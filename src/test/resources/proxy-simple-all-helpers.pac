@@ -46,6 +46,10 @@ function FindProxyForURL(url, host) {
     }
 
     var myIp = myIpAddress();
+    alert(myIp);
+
+    var myIpx = myIpAddressEx();
+    alert(myIpx);
 
     return 'DIRECT';
 }

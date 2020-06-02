@@ -46,6 +46,10 @@ public class FoomApplication {
 
     public static void main(String[] args) {
 
+        // Disable Java code execution
+        // within the PAC script for safety reasons
+        System.setProperty("nashorn.args", "--no-java");
+
         try {
             UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
         } catch (Exception e) {

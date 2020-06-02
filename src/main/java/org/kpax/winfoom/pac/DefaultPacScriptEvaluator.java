@@ -16,14 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.kpax.winfoom.util.pac;
+package org.kpax.winfoom.pac;
 
 import org.kpax.winfoom.exception.PacFileException;
-import org.netbeans.api.scripting.Scripting;
-import org.netbeans.core.network.proxy.pac.PacJsEntryFunction;
-import org.netbeans.core.network.proxy.pac.PacParsingException;
-import org.netbeans.core.network.proxy.pac.PacUtils;
-import org.netbeans.core.network.proxy.pac.impl.NbPacHelperMethods;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,25 +29,21 @@ import javax.script.ScriptException;
 import java.net.URI;
 import java.util.Objects;
 
-/**
- * A simplified version of {@link org.netbeans.core.network.proxy.pac.impl.NbPacScriptEvaluator} class.
- */
-public class NbPacScriptEvaluator {
+public class DefaultPacScriptEvaluator implements PacScriptEvaluator {
 
-    private final Logger logger = LoggerFactory.getLogger(NbPacScriptEvaluator.class);
+    private final Logger logger = LoggerFactory.getLogger(DefaultPacScriptEvaluator.class);
 
     private final PacScriptEngine scriptEngine;
 
-    public NbPacScriptEvaluator(String pacSourceCode) throws PacParsingException {
+    public DefaultPacScriptEvaluator(String pacSourceCode) throws PacFileException {
         scriptEngine = getScriptEngine(pacSourceCode);
     }
 
-    private PacScriptEngine getScriptEngine(String pacSource) throws PacParsingException {
+    private PacScriptEngine getScriptEngine(String pacSource) throws PacFileException {
         try {
-            ScriptEngineManager manager = Scripting.newBuilder().build();
-            ScriptEngine engine = manager.getEngineByName("Nashorn");
+            ScriptEngine engine = new ScriptEngineManager().getEngineByName("Nashorn");
             if (engine == null) {
-                throw new PacParsingException("Nashorn engine not found");
+                throw new PacFileException("Nashorn engine not found");
             }
             String[] allowedGlobals =
                     ("Object,Function,Array,String,Date,Number,BigInt,"
@@ -89,7 +80,7 @@ public class NbPacScriptEvaluator {
             String helperJSScript = HelperScriptFactory.getPacHelperSource();
             logger.debug("PAC Helper JavaScript :\n{}", helperJSScript);
             try {
-                ((Invocable) engine).invokeMethod(engine.eval(helperJSScript), "call", null, new NbPacHelperMethods());
+                ((Invocable) engine).invokeMethod(engine.eval(helperJSScript), "call", null, new DefaultPacHelperMethods());
             } catch (NoSuchMethodException ex) {
                 throw new ScriptException(ex);
             }
@@ -97,10 +88,11 @@ public class NbPacScriptEvaluator {
             PacJsEntryFunction jsMainFunction = testScriptEngine(engine);
             return new PacScriptEngine(engine, jsMainFunction);
         } catch (ScriptException ex) {
-            throw new PacParsingException(ex);
+            throw new PacFileException(ex);
         }
     }
 
+    @Override
     public String findProxyForURL(URI uri) throws PacFileException {
         try {
             Object obj = scriptEngine.findProxyForURL(PacUtils.toStrippedURLStr(uri), uri.getHost());
@@ -124,14 +116,14 @@ public class NbPacScriptEvaluator {
      * Test if the main entry point, function FindProxyForURL()/FindProxyForURLEx(),
      * is available.
      */
-    private PacJsEntryFunction testScriptEngine(ScriptEngine eng) throws PacParsingException {
+    private PacJsEntryFunction testScriptEngine(ScriptEngine eng) throws PacFileException {
         if (isJsFunctionAvailable(eng, PacJsEntryFunction.IPV6_AWARE.getJsFunctionName())) {
             return PacJsEntryFunction.IPV6_AWARE;
         }
         if (isJsFunctionAvailable(eng, PacJsEntryFunction.STANDARD.getJsFunctionName())) {
             return PacJsEntryFunction.STANDARD;
         }
-        throw new PacParsingException("Function " + PacJsEntryFunction.STANDARD.getJsFunctionName() +
+        throw new PacFileException("Function " + PacJsEntryFunction.STANDARD.getJsFunctionName() +
                 " or " + PacJsEntryFunction.IPV6_AWARE.getJsFunctionName() + " not found in PAC Script.");
     }
 
@@ -273,6 +265,40 @@ public class NbPacScriptEvaluator {
 
         }
 
+    }
+
+    /**
+     * Entry points for PAC script.
+     */
+    enum PacJsEntryFunction {
+
+        /**
+         * Main entry point to JavaScript PAC script as defined by Netscape.
+         * This is JavaScript function name {@code FindProxyForURL()}.
+         */
+        STANDARD("FindProxyForURL"),
+
+        /**
+         * Main entry point to JavaScript PAC script for IPv6 support,
+         * as defined by Microsoft.
+         * This is JavaScript function name {@code FindProxyForURLEx()}.
+         */
+        IPV6_AWARE("FindProxyForURLEx");
+
+        private final String jsFunctionName;
+
+        PacJsEntryFunction(String jsFunctionName) {
+            this.jsFunctionName = jsFunctionName;
+        }
+
+        /**
+         * Gets name of JavaScript function.
+         *
+         * @return
+         */
+        String getJsFunctionName() {
+            return jsFunctionName;
+        }
     }
 
 }

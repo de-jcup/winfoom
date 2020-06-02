@@ -15,8 +15,9 @@ package org.kpax.winfoom.proxy;
 import org.apache.commons.io.IOUtils;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.exception.PacFileException;
+import org.kpax.winfoom.pac.PacScriptEvaluator;
 import org.kpax.winfoom.util.HttpUtils;
-import org.kpax.winfoom.util.pac.NbPacScriptEvaluator;
+import org.kpax.winfoom.pac.DefaultPacScriptEvaluator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,16 +44,16 @@ class ProxyAutoConfig {
     /**
      * The NetBeans implementation of a PAC script evaluator.
      */
-    private NbPacScriptEvaluator nbPacScriptEvaluator;
+    private PacScriptEvaluator pacScriptEvaluator;
 
     /**
      * Load and parse the PAC script file.
      *
-     * @return the {@link NbPacScriptEvaluator} instance.
+     * @return the {@link DefaultPacScriptEvaluator} instance.
      * @throws IOException
      * @throws PacFileException
      */
-    synchronized NbPacScriptEvaluator loadScript() throws IOException, PacFileException {
+    synchronized PacScriptEvaluator loadScript() throws IOException, PacFileException {
         URL url = proxyConfig.getProxyPacFileLocationAsURL();
         if (url == null) {
             throw new IllegalStateException("No proxy PAC file location found");
@@ -62,23 +63,23 @@ class ProxyAutoConfig {
             String content = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
             logger.info("PAC content: {}", content);
             try {
-                nbPacScriptEvaluator = new NbPacScriptEvaluator(content);
+                pacScriptEvaluator = new DefaultPacScriptEvaluator(content);
             } catch (Exception e) {
                 throw new PacFileException("The provided PAC file is not valid", e);
             }
         }
-        return nbPacScriptEvaluator;
+        return pacScriptEvaluator;
     }
 
-    private NbPacScriptEvaluator getPacScriptEvaluator() {
-        if (nbPacScriptEvaluator == null) {
+    private PacScriptEvaluator getPacScriptEvaluator() {
+        if (pacScriptEvaluator == null) {
             throw new IllegalStateException("Proxy PAC file not loaded");
         }
-        return nbPacScriptEvaluator;
+        return pacScriptEvaluator;
     }
 
     boolean isLoaded() {
-        return nbPacScriptEvaluator != null;
+        return pacScriptEvaluator != null;
     }
 
     /**
