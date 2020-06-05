@@ -19,19 +19,12 @@
 package org.kpax.winfoom.pac.net;
 
 import com.sun.jna.Native;
-import com.sun.jna.platform.win32.Kernel32Util;
-import com.sun.jna.platform.win32.Win32Exception;
 import org.kpax.winfoom.exception.NativeException;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Hostname utilities for Microsoft Windows OS.
  */
 public class HostnameUtils {
-
-    private static final Logger LOGGER = Logger.getLogger(HostnameUtils.class.getName());
 
     /**
      * Gets the local host name.
@@ -39,8 +32,7 @@ public class HostnameUtils {
      * <p>
      * The underlying Windows function may return a simple host name (e.g.
      * {@code chicago}) or it may return a fully qualified host name (e.g.
-     * {@code chicago.us.internal.net}). The {@code noQualify} parameter can
-     * remove the domain part if it exists.
+     * {@code chicago.us.internal.net}).
      *
      * <p>
      * Note that the underlying Windows function will do a name service lookup
@@ -52,25 +44,15 @@ public class HostnameUtils {
      * Windows API equivalent: {@code gethostname()} function from
      * {@code Ws2_32} library.
      *
-     * @param noQualify if {@code true} the result is never qualified with domain,
-     *                  if {@code false} the result is <i>potentially</i> a fully qualified
-     *                  host name.
      * @return host name
      * @throws NativeException if there was an error executing the
      *                         system call.
      */
-    public static String getHostName(boolean noQualify) throws NativeException {
-
+    public static String getHostName() throws NativeException {
         byte[] buf = new byte[256];
-
         int returnCode = Winsock2Lib.INSTANCE.gethostname(buf, buf.length);
         if (returnCode == 0) {
-            String result = Native.toString(buf);
-            if (noQualify) {
-                return IpAddressUtils.removeDomain(result);
-            } else {
-                return result;
-            }
+            return Native.toString(buf);
         } else {
             throw new NativeException(returnCode, "error calling 'gethostname()' function");
         }

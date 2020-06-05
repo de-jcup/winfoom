@@ -55,18 +55,14 @@ public class PacUtilsDateTime {
      * @throws PacDateTimeInputException if arguments were invalid
      */
     public static boolean isInWeekdayRange(Date now, Object... args) throws PacDateTimeInputException {
-        int params = getNoOfParams(args);
-        boolean gmt = usesGMT(args);
-        Calendar cal = getCalendar(now, gmt);
-        if (gmt) {
-            params--;
-        }
-        if (!(params >= 1 && params <= 2)) {
+        ParamsInfo paramsInfo = getParamsInfo(args);
+
+        if (!(paramsInfo.count >= 1 && paramsInfo.count <= 2)) {
             throw new PacDateTimeInputException("invalid number of arguments");
         }
         final int wdNumMin;
         final int wdNumMax;
-        if (params == 1) {
+        if (paramsInfo.count == 1) {
             wdNumMin = getWeekday(args[0].toString());
             wdNumMax = wdNumMin;
         } else {
@@ -74,6 +70,7 @@ public class PacUtilsDateTime {
             wdNumMax = getWeekday(args[1].toString());
         }
 
+        Calendar cal = getCalendar(now, paramsInfo.useGMT);
         int wdNum = cal.get(Calendar.DAY_OF_WEEK);
 
         if (wdNumMin <= wdNumMax) {
@@ -94,40 +91,37 @@ public class PacUtilsDateTime {
      * @throws PacDateTimeInputException if arguments were invalid
      */
     public static boolean isInTimeRange(Date now, Object... args) throws PacDateTimeInputException {
-        int params = getNoOfParams(args);
-        boolean gmt = usesGMT(args);
-        Calendar cal = getCalendar(now, gmt);
-        if (gmt) {
-            params--;
-        }
-        if (!(params >= 1 && params <= 6) || params == 5 || params == 3) {
+        ParamsInfo paramsInfo = getParamsInfo(args);
+
+        if (!(paramsInfo.count >= 1 && paramsInfo.count <= 6) || paramsInfo.count == 5 || paramsInfo.count == 3) {
             throw new PacDateTimeInputException("invalid number of arguments");
         }
 
-        TimeRange.TimeRangeBuilder trBld = TimeRange.getBuilder();
+        TimeRange.TimeRangeBuilder builder = TimeRange.getBuilder();
 
-        if (params == 1) {
-            trBld.setHourMinMax(getHour(args[0]), getHour(args[0]));
+        if (paramsInfo.count == 1) {
+            builder.withHourMinMax(getHour(args[0]), getHour(args[0]));
         }
-        if (params == 2) {
-            trBld.setHourMinMax(getHour(args[0]), getHour(args[1]));
+        if (paramsInfo.count == 2) {
+            builder.withHourMinMax(getHour(args[0]), getHour(args[1]));
             if (getHour(args[0]) != getHour(args[1])) {
-                trBld.setMinuteMinMax(0, 0);
+                builder.withMinuteMinMax(0, 0);
             }
         }
-        if (params == 4) {
-            trBld.setHourMinMax(getHour(args[0]), getHour(args[2]))
-                    .setMinuteMinMax(getMinute(args[1]), getMinute(args[3]))
-                    .setSecondMinMax(0, 0);
+        if (paramsInfo.count == 4) {
+            builder.withHourMinMax(getHour(args[0]), getHour(args[2]))
+                    .withMinuteMinMax(getMinute(args[1]), getMinute(args[3]))
+                    .withSecondMinMax(0, 0);
         }
-        if (params == 6) {
-            trBld.setHourMinMax(getHour(args[0]), getHour(args[3]))
-                    .setMinuteMinMax(getMinute(args[1]), getMinute(args[4]))
-                    .setSecondMinMax(getSecond(args[2]), getSecond(args[5]));
+        if (paramsInfo.count == 6) {
+            builder.withHourMinMax(getHour(args[0]), getHour(args[3]))
+                    .withMinuteMinMax(getMinute(args[1]), getMinute(args[4]))
+                    .withSecondMinMax(getSecond(args[2]), getSecond(args[5]));
         }
-        TimeRange timeRange = trBld.createTimeRange();
+        TimeRange timeRange = builder.build();
 
-        return timeRange.isInRange(cal);
+        Calendar calendar = getCalendar(now, paramsInfo.useGMT);
+        return timeRange.isInRange(calendar);
     }
 
 
@@ -141,62 +135,54 @@ public class PacUtilsDateTime {
      * @throws PacDateTimeInputException if arguments were invalid
      */
     public static boolean isInDateRange(Date now, Object... args) throws PacDateTimeInputException {
-        int params = getNoOfParams(args);
-        boolean gmt = usesGMT(args);
-        Calendar cal = getCalendar(now, gmt);
-        if (gmt) {
-            params--;
-        }
-        if (!(params >= 1 && params <= 6) || params == 5 || params == 3) {
+        ParamsInfo paramsInfo = getParamsInfo(args);
+
+        if (!(paramsInfo.count >= 1 && paramsInfo.count <= 6) || paramsInfo.count == 5 || paramsInfo.count == 3) {
             throw new PacDateTimeInputException("invalid number of arguments");
         }
 
-        DateRange.DateRangeBuilder drBld = DateRange.getBuilder();
-        if (params == 1) {
+        DateRange.DateRangeBuilder builder = DateRange.builder();
+        if (paramsInfo.count == 1) {
             if (isYear(args[0])) {
-                int y = getYear(args[0]);
-                drBld.setYear(y, y);
+                int year = getYear(args[0]);
+                builder.withYear(year, year);
             } else if (isMonth(args[0])) {
-                int m = getMonth(args[0].toString());
-                drBld.setMonth(m, m);
+                int month = getMonth(args[0].toString());
+                builder.withMonth(month, month);
             } else if (isDate(args[0])) {
-                int d = getDate(args[0]);
-                drBld.setDate(d, d);
+                int date = getDate(args[0]);
+                builder.withDate(date, date);
             } else {
                 throw new PacDateTimeInputException("invalid argument : " + args[0].toString());
             }
-        }
-        if (params == 2) {
+        } else if (paramsInfo.count == 2) {
             if (isYear(args[0])) {
-                drBld.setYear(getYear(args[0]), getYear(args[1]));
+                builder.withYear(getYear(args[0]), getYear(args[1]));
             } else if (isMonth(args[0])) {
-                drBld.setMonth(getMonth(args[0].toString()), getMonth(args[1].toString()));
+                builder.withMonth(getMonth(args[0].toString()), getMonth(args[1].toString()));
             } else if (isDate(args[0])) {
-                drBld.setDate(getDate(args[0]), getDate(args[1]));
+                builder.withDate(getDate(args[0]), getDate(args[1]));
             } else {
                 throw new PacDateTimeInputException("invalid argument : " + args[0].toString());
             }
-        }
-        if (params == 4) {
+        } else if (paramsInfo.count == 4) {
             if (isMonth(args[0])) {
-                drBld.setYear(getYear(args[1]), getYear(args[3]))
-                        .setMonth(getMonth(args[0].toString()), getMonth(args[2].toString()));
+                builder.withYear(getYear(args[1]), getYear(args[3]))
+                        .withMonth(getMonth(args[0].toString()), getMonth(args[2].toString()));
             } else if (isDate(args[0])) {
-                drBld.setMonth(getMonth(args[1].toString()), getMonth(args[3].toString()))
-                        .setDate(getDate(args[0]), getDate(args[2]));
+                builder.withMonth(getMonth(args[1].toString()), getMonth(args[3].toString()))
+                        .withDate(getDate(args[0]), getDate(args[2]));
             } else {
                 throw new PacDateTimeInputException("invalid argument : " + args[0].toString());
             }
-        }
-        if (params == 6) {
-            drBld.setYear(getYear(args[2]), getYear(args[5]))
-                    .setMonth(getMonth(args[1].toString()), getMonth(args[4].toString()))
-                    .setDate(getDate(args[0]), getDate(args[3]));
+        } else if (paramsInfo.count == 6) {
+            builder.withYear(getYear(args[2]), getYear(args[5]))
+                    .withMonth(getMonth(args[1].toString()), getMonth(args[4].toString()))
+                    .withDate(getDate(args[0]), getDate(args[3]));
         }
 
-        DateRange dateRange = drBld.createDateRange();
-
-        return dateRange.isInRange(cal);
+        Calendar cal = getCalendar(now, paramsInfo.useGMT);
+        return builder.build().isInRange(cal);
     }
 
 
@@ -301,7 +287,7 @@ public class PacUtilsDateTime {
 
 
     /**
-     * Gets the number of true arguments passed to a JavaScript
+     * Gets the number of actual arguments passed to a JavaScript
      * function. This is done by counting the number of arguments of type
      * {@code Number} or {@code CharSequence}.
      *
@@ -320,37 +306,23 @@ public class PacUtilsDateTime {
      * @param objs
      * @return
      */
-    public static int getNoOfParams(Object... objs) {
-        int params = 0;
-        for (Object obj : objs) {
-            if (obj == null) {  // don't really know if parameters 
-                // will ever be null when the Java method is
-                // is invoked from JavaScript. I believe not, i.e
-                // they will be of class Undefined rather than null.
-                continue;
-            }
-            // Only parameters of type CharSequence (String) and 
-            // Number (Integer, Long, etc) are relevant.
-            if ((obj instanceof Number) || (obj instanceof CharSequence)) {
-                params++;
-            }
-        }
-        return params;
+    private static int getNoOfParams(Object... objs) {
+        return (int) Arrays.stream(objs).filter((obj) -> obj instanceof Number || obj instanceof CharSequence).count();
     }
 
-    /**
-     * Evaluates if the last parameter of a parameter array is "GMT".
-     *
-     * @param args parameters
-     * @return
-     */
-    public static boolean usesGMT(Object... args) {
+    private static ParamsInfo getParamsInfo(Object... args) {
         int params = getNoOfParams(args);
+        boolean useGMT;
         if (args[params - 1] instanceof CharSequence) {
             String p = args[params - 1].toString();
-            return p.equals("GMT");
+            useGMT = p.equals("GMT");
+        } else {
+            useGMT = false;
         }
-        return false;
+        if (useGMT) {
+            params--;
+        }
+        return new ParamsInfo(params, useGMT);
     }
 
 
@@ -364,4 +336,13 @@ public class PacUtilsDateTime {
         }
     }
 
+    private static class ParamsInfo {
+        private final int count;
+        private final boolean useGMT;
+
+        ParamsInfo(int count, boolean useGMT) {
+            this.count = count;
+            this.useGMT = useGMT;
+        }
+    }
 }

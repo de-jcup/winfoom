@@ -23,18 +23,14 @@ import java.net.URI;
 public interface PacScriptEvaluator {
 
     /**
-     * Returns the proxy/proxies appropriate to use for the given URI.
-     *
      * <p>
      * The method calls the JavaScript {@code FindProxyForURL(url, host)}
      * function in the PAC script (or alternatively the
-     * {@code FindProxyForURLEx(url, host)} function), parses the result and
-     * returns it as a prioritized list of proxies.
+     * {@code FindProxyForURLEx(url, host)} function).
      *
      * @param uri URI to get proxies for.
-     * @return
-     * @throws PacFileException when the result from the JavaScript function
-     *                          cannot be interpreted.
+     * @return The result of Javascript call as it is.
+     * @throws PacFileException when something does wrong with the JavaScript function's call.
      */
     String findProxyForURL(URI uri) throws PacFileException;
 

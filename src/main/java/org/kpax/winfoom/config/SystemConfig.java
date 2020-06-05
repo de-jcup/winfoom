@@ -100,6 +100,16 @@ public class SystemConfig {
     @Value("${useSystemProperties:false}")
     private boolean useSystemProperties;
 
+    /**
+     * This is a Java system property.<br>
+     * When dealing with a host which has both IPv4 and IPv6 addresses,and if IPv6 is available on the operating system,
+     * the default behavior is to prefer using IPv4 addresses over IPv6 ones.<br>
+     * This is to ensure backward compatibility, for example applications that depend on the representation of an IPv4 address (e.g. 192.168.1.1).<br>
+     * This property can be set to true to change that preference and use IPv6 addresses over IPv4 ones where possible.<br>
+     */
+    @Value("${java.net.preferIPv6Addresses:false}")
+    private boolean preferIPv6Addresses;
+
     public Integer getMaxConnectionsPerRoute() {
         return maxConnectionsPerRoute;
     }
@@ -134,6 +144,10 @@ public class SystemConfig {
 
     public Integer getSocketConnectTimeout() {
         return socketConnectTimeout;
+    }
+
+    public boolean isPreferIPv6Addresses() {
+        return preferIPv6Addresses;
     }
 
     public RequestConfig.Builder applyConfig(final RequestConfig.Builder configBuilder) {

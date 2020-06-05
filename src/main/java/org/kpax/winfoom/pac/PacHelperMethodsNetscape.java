@@ -18,7 +18,7 @@ import org.kpax.winfoom.pac.datetime.PacUtilsDateTime;
 /**
  * Netscape's original PAC script helper functions. In their original
  * document, Netscape defined 12 helper functions which should be available
- * to the JavaScript PAC. The first browser to implement these were - unsurpringsly -
+ * to the JavaScript PAC. The first browser to implement these were - unsurprisingly -
  * the Netscape Navigator.
  *
  * <p>
@@ -31,7 +31,7 @@ import org.kpax.winfoom.pac.datetime.PacUtilsDateTime;
  *
  * <p>
  * Beware that at the time when Netscape defined these functions IPv6
- * wasn't on the radar. Therefore the concensus among browser makers
+ * wasn't on the radar. Therefore the consensus among browser makers
  * is that IPv4 is implied in all these functions.
  *
  * @author lbruun

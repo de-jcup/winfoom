@@ -18,6 +18,7 @@
  */
 package org.kpax.winfoom.pac;
 
+import org.apache.commons.io.IOUtils;
 import org.kpax.winfoom.exception.PacFileException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,16 +28,33 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 public class DefaultPacScriptEvaluator implements PacScriptEvaluator {
+
+    /**
+     * Main entry point to JavaScript PAC script as defined by Netscape.
+     * This is JavaScript function name {@code FindProxyForURL()}.
+     */
+    public static final String STANDARD_PAC_MAIN_FUNCTION = "FindProxyForURL";
+
+    /**
+     * Main entry point to JavaScript PAC script for IPv6 support,
+     * as defined by Microsoft.
+     * This is JavaScript function name {@code FindProxyForURLEx()}.
+     */
+    public static final String IPV6_AWARE_PAC_MAIN_FUNCTION = "FindProxyForURLEx";
 
     private final Logger logger = LoggerFactory.getLogger(DefaultPacScriptEvaluator.class);
 
     private final PacScriptEngine scriptEngine;
 
-    public DefaultPacScriptEvaluator(String pacSourceCode) throws PacFileException {
-        scriptEngine = getScriptEngine(pacSourceCode);
+    private final boolean preferIPv6Addresses;
+
+    public DefaultPacScriptEvaluator(String pacSourceCode, boolean preferIPv6Addresses) throws PacFileException {
+        this.scriptEngine = getScriptEngine(pacSourceCode);
+        this.preferIPv6Addresses = preferIPv6Addresses;
     }
 
     private PacScriptEngine getScriptEngine(String pacSource) throws PacFileException {
@@ -77,18 +95,25 @@ public class DefaultPacScriptEvaluator implements PacScriptEvaluator {
                 throw new ScriptException(ex);
             }
             engine.eval(pacSource);
-            String helperJSScript = HelperScriptFactory.getPacHelperSource();
+
+            String helperJSScript;
+            try {
+                helperJSScript = IOUtils.toString(getClass().getClassLoader().
+                        getResourceAsStream("javascript/pacFunctions.js"), StandardCharsets.UTF_8);
+            } catch (Exception e) {
+                throw new PacFileException("pacFunctions.js not found in classpath", e);
+            }
+
             logger.debug("PAC Helper JavaScript :\n{}", helperJSScript);
             try {
-                ((Invocable) engine).invokeMethod(engine.eval(helperJSScript), "call", null, new DefaultPacHelperMethods());
+                ((Invocable) engine).invokeMethod(engine.eval(helperJSScript), "call", null, new DefaultPacHelperMethods(preferIPv6Addresses));
             } catch (NoSuchMethodException ex) {
                 throw new ScriptException(ex);
             }
-            // Do some minimal testing of the validity of the PAC Script.
-            PacJsEntryFunction jsMainFunction = testScriptEngine(engine);
-            return new PacScriptEngine(engine, jsMainFunction);
-        } catch (ScriptException ex) {
-            throw new PacFileException(ex);
+
+            return new PacScriptEngine(engine);
+        } catch (ScriptException e) {
+            throw new PacFileException(e);
         }
     }
 
@@ -107,24 +132,8 @@ public class DefaultPacScriptEvaluator implements PacScriptEvaluator {
                 }
             }
             // other unforeseen errors
-            throw new PacFileException("Error when executing PAC script function " + scriptEngine.getJsMainFunction().getJsFunctionName(), ex);
+            throw new PacFileException("Error when executing PAC script function " + scriptEngine.jsMainFunction, ex);
         }
-    }
-
-
-    /**
-     * Test if the main entry point, function FindProxyForURL()/FindProxyForURLEx(),
-     * is available.
-     */
-    private PacJsEntryFunction testScriptEngine(ScriptEngine eng) throws PacFileException {
-        if (isJsFunctionAvailable(eng, PacJsEntryFunction.IPV6_AWARE.getJsFunctionName())) {
-            return PacJsEntryFunction.IPV6_AWARE;
-        }
-        if (isJsFunctionAvailable(eng, PacJsEntryFunction.STANDARD.getJsFunctionName())) {
-            return PacJsEntryFunction.STANDARD;
-        }
-        throw new PacFileException("Function " + PacJsEntryFunction.STANDARD.getJsFunctionName() +
-                " or " + PacJsEntryFunction.IPV6_AWARE.getJsFunctionName() + " not found in PAC Script.");
     }
 
     private boolean isJsFunctionAvailable(ScriptEngine eng, String functionName) {
@@ -140,164 +149,24 @@ public class DefaultPacScriptEvaluator implements PacScriptEvaluator {
         }
     }
 
-    private static class PacScriptEngine {
+    private class PacScriptEngine {
         private final Invocable invocable;
-        private final PacJsEntryFunction jsMainFunction;
+        private final String jsMainFunction;
 
-        PacScriptEngine(ScriptEngine scriptEngine, PacJsEntryFunction jsMainFunction) {
+        PacScriptEngine(ScriptEngine scriptEngine) throws PacFileException {
             this.invocable = (Invocable) scriptEngine;
-            this.jsMainFunction = jsMainFunction;
-        }
-
-        PacJsEntryFunction getJsMainFunction() {
-            return jsMainFunction;
+            if (isJsFunctionAvailable(scriptEngine, IPV6_AWARE_PAC_MAIN_FUNCTION)) {
+                this.jsMainFunction = IPV6_AWARE_PAC_MAIN_FUNCTION;
+            } else if (isJsFunctionAvailable(scriptEngine, STANDARD_PAC_MAIN_FUNCTION)) {
+                this.jsMainFunction = STANDARD_PAC_MAIN_FUNCTION;
+            } else {
+                throw new PacFileException("Function " + STANDARD_PAC_MAIN_FUNCTION +
+                        " or " + IPV6_AWARE_PAC_MAIN_FUNCTION + " not found in PAC Script.");
+            }
         }
 
         Object findProxyForURL(String url, String host) throws ScriptException, NoSuchMethodException {
-            return invocable.invokeFunction(jsMainFunction.getJsFunctionName(), url, host);
-        }
-    }
-
-    /**
-     * Auto-generates JavaScript source for declaration of
-     * helper functions.
-     */
-    private static class HelperScriptFactory {
-
-        // Netscape functions
-        private static final JsHelperFunction[] JS_HELPER_FUNCTIONS_NS = new JsHelperFunction[]{
-                new JsHelperFunction("isPlainHostName", new String[]{"host"}, Boolean.class),
-                new JsHelperFunction("dnsDomainIs", new String[]{"host", "domain"}, Boolean.class),
-                new JsHelperFunction("localHostOrDomainIs", new String[]{"host", "hostdom"}, Boolean.class),
-                new JsHelperFunction("isResolvable", new String[]{"host"}, Boolean.class),
-                new JsHelperFunction("isInNet", new String[]{"host", "pattern", "mask"}, Boolean.class),
-                new JsHelperFunction("dnsResolve", new String[]{"host"}, String.class),
-                new JsHelperFunction("myIpAddress", new String[]{}, String.class),
-                new JsHelperFunction("dnsDomainLevels", new String[]{"host"}, Integer.class),
-                new JsHelperFunction("shExpMatch", new String[]{"str", "shexp"}, Boolean.class),
-                new JsHelperFunction("weekdayRange", new String[]{"wd1", "wd2", "gmt"}, Boolean.class),
-                new JsHelperFunction("dateRange", new String[]{"day1", "month1", "year1", "day2", "month2", "year2", "gmt"}, Boolean.class),
-                new JsHelperFunction("timeRange", new String[]{"hour1", "min1", "sec1", "hour2", "min2", "sec2", "gmt"}, Boolean.class),
-        };
-
-        // Microsoft functions
-        private static final JsHelperFunction[] JS_HELPER_FUNCTIONS_MS = new JsHelperFunction[]{
-                new JsHelperFunction("isResolvableEx", new String[]{"host"}, Boolean.class),
-                new JsHelperFunction("isInNetEx", new String[]{"host", "ipPrefix"}, Boolean.class),
-                new JsHelperFunction("dnsResolveEx", new String[]{"host"}, String.class),
-                new JsHelperFunction("myIpAddressEx", new String[]{}, String.class),
-                new JsHelperFunction("sortIpAddressList", new String[]{"ipAddressList"}, String.class),
-                new JsHelperFunction("getClientVersion", new String[]{}, String.class)
-        };
-
-        // Debug functions (not part of any spec)
-        private static final JsHelperFunction[] JS_HELPER_FUNCTIONS_DEBUG = new JsHelperFunction[]{
-                new JsHelperFunction("alert", new String[]{"txt"}, Void.class)
-        };
-
-        /**
-         * Gets JavaScript source with PAC Helper function declarations.
-         *
-         * @return JavaScript source code that returns a function that delegates
-         * to its first argument
-         */
-        static String getPacHelperSource() {
-            StringBuilder sb = new StringBuilder(2000);
-            sb.append("(function(self) {\n");
-            addFunctionDecls(sb, JS_HELPER_FUNCTIONS_NS);
-            addFunctionDecls(sb, JS_HELPER_FUNCTIONS_MS);
-            addFunctionDecls(sb, JS_HELPER_FUNCTIONS_DEBUG);
-            sb.append("})\n");
-            return sb.toString();
-        }
-
-
-        private static void addFunctionDecls(StringBuilder sb, JsHelperFunction[] jsHelperFunctions) {
-            for (JsHelperFunction helperFunction : jsHelperFunctions) {
-                sb.append("this['");
-                sb.append(helperFunction.functionName);
-                sb.append("'] = function(");
-                addArgList(sb, helperFunction.argList);
-                sb.append(") {\n");
-                sb.append("    return ");
-                boolean encloseReturnValue = false;
-                if (Number.class.isAssignableFrom(helperFunction.returnType)) {
-                    encloseReturnValue = true;
-                    sb.append("Number(");
-                } else if (helperFunction.returnType == String.class) {
-                    encloseReturnValue = true;
-                    sb.append("String(");
-                }
-                sb.append("self.");
-                sb.append(helperFunction.functionName);
-                sb.append('(');
-                addArgList(sb, helperFunction.argList);
-                sb.append(')');
-                if (encloseReturnValue) {
-                    sb.append(')');
-                }
-                sb.append(";\n");
-                sb.append("}\n\n");
-            }
-        }
-
-        private static void addArgList(StringBuilder sb, String[] argList) {
-            if (argList != null && argList.length > 0) {
-                for (int i = 0; i < argList.length; i++) {
-                    sb.append(argList[i]);
-                    if (i < argList.length - 1) {
-                        sb.append(", ");
-                    }
-                }
-            }
-        }
-
-        private static class JsHelperFunction {
-            final String functionName;
-            final String[] argList;
-            final Class returnType;
-
-            JsHelperFunction(String functionName, String[] argList, Class returnType) {
-                this.functionName = functionName;
-                this.argList = argList;
-                this.returnType = returnType;
-            }
-
-        }
-
-    }
-
-    /**
-     * Entry points for PAC script.
-     */
-    enum PacJsEntryFunction {
-
-        /**
-         * Main entry point to JavaScript PAC script as defined by Netscape.
-         * This is JavaScript function name {@code FindProxyForURL()}.
-         */
-        STANDARD("FindProxyForURL"),
-
-        /**
-         * Main entry point to JavaScript PAC script for IPv6 support,
-         * as defined by Microsoft.
-         * This is JavaScript function name {@code FindProxyForURLEx()}.
-         */
-        IPV6_AWARE("FindProxyForURLEx");
-
-        private final String jsFunctionName;
-
-        PacJsEntryFunction(String jsFunctionName) {
-            this.jsFunctionName = jsFunctionName;
-        }
-
-        /**
-         * Gets name of JavaScript function.
-         *
-         * @return
-         */
-        String getJsFunctionName() {
-            return jsFunctionName;
+            return invocable.invokeFunction(jsMainFunction, url, host);
         }
     }
 

@@ -13,15 +13,12 @@
  */
 package org.kpax.winfoom.pac;
 
-import org.kpax.winfoom.pac.net.IpAddressUtils;
+import org.cache2k.Cache;
+import org.cache2k.Cache2kBuilder;
+import org.cache2k.configuration.Cache2kConfiguration;
 
-import java.math.BigInteger;
-import java.net.*;
-import java.util.Arrays;
-import java.util.List;
-import java.util.function.Function;
+import java.net.URI;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * Methods and constants useful in PAC script evaluation.
@@ -33,10 +30,13 @@ public class PacUtils {
     /**
      * Size of the cache used for precompiled GLOBs.
      */
-    public static final int PRECOMPILED_GLOB_CACHE_MAX_ITEMS = 10;
+    public static final int PRECOMPILED_GLOB_PATTERN_CACHE_MAX_ITEMS = 100;
 
-    private static final SimpleObjCache<String, Pattern> PRECOMPILED_GLOB_CACHE
-            = new SimpleObjCache<>(PRECOMPILED_GLOB_CACHE_MAX_ITEMS);
+    private static final Cache<String, Pattern> cache = Cache2kBuilder.of(new Cache2kConfiguration<String, Pattern>())
+            .name("precompiledGlobPattern")
+            .eternal(true)
+            .entryCapacity(PRECOMPILED_GLOB_PATTERN_CACHE_MAX_ITEMS)
+            .build();
 
 
     /**
@@ -65,13 +65,13 @@ public class PacUtils {
      * A small cache is used so that if a glob pattern has already been
      * translated previously, the result from the cache will be returned.
      *
-     * @param glob
-     * @return
+     * @param glob the GLOB pattern.
+     * @return the pattern.
      */
     public static Pattern createRegexPatternFromGlob(String glob) {
 
         // First try the cache
-        Pattern pattern = PRECOMPILED_GLOB_CACHE.get(glob);
+        Pattern pattern = cache.get(glob);
         if (pattern != null) {
             return pattern;
         }
@@ -106,169 +106,8 @@ public class PacUtils {
         }
         out.append("$");
         pattern = Pattern.compile(out.toString());
-        PRECOMPILED_GLOB_CACHE.put(glob, pattern);
+        cache.put(glob, pattern);
         return pattern;
-    }
-
-
-    /**
-     * Converts list into semi-colon separated string where each element
-     * is represented by the result of the {@code fn} function.
-     *
-     * @param <T>
-     * @param list list of objects
-     * @param fn   function which returns string
-     * @return string with elements separated by semi-colon
-     */
-    public static <T> String toSemiColonList(List<T> list, Function<T, String> fn) {
-        return list.stream()
-                .map(i -> fn.apply(i))
-                .collect(Collectors.joining(";"));
-    }
-
-    /**
-     * Converts list into semi-colon separated string where each element
-     * is represented by the result of {@link Object#toString()}.
-     *
-     * @param <T>
-     * @param list list of objects
-     * @return string with elements separated by semi-colon
-     * @see #toSemiColonList(List, Function)
-     */
-    public static <T> String toSemiColonList(List<T> list) {
-        return toSemiColonList(list, Object::toString);
-    }
-
-    /**
-     * Converts a list of {@code InetAddress} into a semi-colon
-     * separated string. Each address is represented by the result
-     * of {@link InetAddress#getHostAddress()}.
-     *
-     * @param addresses
-     * @return semi-colon separated string of addresses in literal form
-     * @see #toSemiColonList(List, Function)
-     */
-    public static String toSemiColonListInetAddress(InetAddress[] addresses) {
-        return toSemiColonList(Arrays.asList(addresses), InetAddress::getHostAddress);
-    }
-
-    /**
-     * Converts an array of {@code InetAddress} into a semi-colon
-     * separated string. Each address is represented by the result
-     * of {@link InetAddress#getHostAddress()}.
-     *
-     * @param addresses
-     * @return semi-colon separated string of addresses in literal form
-     * @see #toSemiColonList(List, Function)
-     */
-    public static String toSemiColonListInetAddress(List<InetAddress> addresses) {
-        return toSemiColonList(addresses, InetAddress::getHostAddress);
-    }
-
-
-    /**
-     * Checks if an IP address matches a given CIDR pattern.
-     * <p>
-     * The pattern must use the format:
-     * <pre>
-     *     ipLiteral/bitField
-     * </pre>
-     * <p>
-     * Examples of valid patterns:
-     * <pre>
-     *   198.95.249.79/32
-     *   198.95.0.0/16
-     *   3ffe:8311:ffff/48
-     * </pre>
-     *
-     * <p>
-     * For IPv6 the {@code ipLiteral} is allowed to be incomplete at the end. If
-     * not complete, then a suffix of "::" is appended to the literal, e.g. the
-     * method will translate {@code "3ffe:8311:ffff/48"} to
-     * {@code "3ffe:8311:ffff::/48"}.
-     *
-     * <p>
-     * A number of validation checks are carried out on the {@code ipPrefix}
-     * argument and {@code false} will be returned if these checks fails:
-     * <ul>
-     *    <li>If {@code ipAddress} is IPv4 then {@code bitField}
-     *        must be between 8 and 32.
-     *    </li>
-     *    <li>If {@code ipAddress} is IPv6 then {@code bitField}
-     *        must be between 8 and 128.
-     *    </li>
-     *    <li>The {@code ipLiteral} value must be a valid IPv4 literal or IPv6 literal.
-     *    </li>
-     *    <li>The IP protocol type of {@code ipLiteral} value must match the IP protocol
-     *        type of {@code ipAddress}.
-     *    </li>
-     * </ul>
-     *
-     * <p>
-     * Note: The method was developed for the purpose of supporting the
-     * {@link PacHelperMethodsMicrosoft#isInNetEx(String, String)
-     * Microsoft isInNetEx()} extension to PAC scripting, but the method may
-     * have an appeal broader than this particular use case.
-     *
-     * <br><br>
-     *
-     * @param ipAddress address
-     * @param ipPrefix  pattern
-     * @return true if the address, {@code ipAddress}, match the pattern, {@code ipPrefix}.
-     */
-    public static boolean ipPrefixMatch(InetAddress ipAddress, String ipPrefix) {
-        if (ipPrefix.indexOf('/') == -1) {
-            return false;
-        }
-        String[] parts = ipPrefix.trim().split("\\/");
-
-        int bitField = 0;
-        try {
-            bitField = Integer.parseInt(parts[1].trim());
-            if (!(bitField >= 0 && bitField <= 128)) {
-                return false;
-            }
-            if (ipAddress instanceof Inet4Address) {
-                if (bitField > 32) {
-                    return false;
-                }
-            }
-        } catch (NumberFormatException ex) {
-            return false;
-        }
-        String ipPatternStr = parts[0].trim();
-
-        InetAddress ipPattern = null;
-        if (ipAddress instanceof Inet4Address) {
-            if (IpAddressUtils.looksLikeIpv4Literal(ipPatternStr)) {
-                try {
-                    ipPattern = InetAddress.getByName(ipPatternStr);
-                } catch (UnknownHostException ex) {
-                    return false;
-                }
-            }
-        }
-        if (ipAddress instanceof Inet6Address) {
-            String ipPatternStrC = correctIPv6Str(ipPatternStr);
-            if (IpAddressUtils.looksLikeIpv6Literal(ipPatternStrC)) {
-                try {
-                    ipPattern = InetAddress.getByName(ipPatternStrC);
-                } catch (UnknownHostException ex) {
-                    return false;
-                }
-            }
-        }
-        if (ipPattern == null) {
-            return false;
-        }
-        if (!ipAddress.getClass().equals(ipPattern.getClass())) {
-            return false;
-        }
-        BigInteger mask = BigInteger.valueOf(-1).shiftLeft((ipPattern.getAddress().length * 8) - bitField); // mask = -1<<32-bits  or  mask = -1<<128-bits
-        BigInteger subnetMask = new BigInteger(ipPattern.getAddress()).and(mask);
-
-        return (new BigInteger(ipAddress.getAddress()))
-                .and(mask).equals(subnetMask);
     }
 
     /**
@@ -278,7 +117,7 @@ public class PacUtils {
      * @param s
      * @return
      */
-    private static String correctIPv6Str(String s) {
+    public static String correctIPv6Str(String s) {
         int counter = 0;
         for (int i = 0; i < s.length(); i++) {
             if (s.charAt(i) == ':') {
@@ -337,13 +176,11 @@ public class PacUtils {
      * @return stripped URL string
      */
     public static String toStrippedURLStr(URI uri) {
-
-        String portStr = (uri.getPort() == -1) ? "" : ":" + uri.getPort();
-        return
-                uri.getScheme()
-                        + "://"
-                        + uri.getHost()
-                        + portStr
-                        + "/";  // Chrome seems to always append the slash so we do it too
+        return uri.getScheme() +
+                "://" +
+                uri.getHost() +
+                (uri.getPort() == -1 ? "" : ":" + uri.getPort()) +
+                "/";  // Chrome seems to always append the slash so we do it too
     }
+
 }

@@ -50,11 +50,11 @@ public final class Tunnel implements Closeable {
         return connection;
     }
 
-    public InputStream getInputStream() throws IOException {
+    public InputStream getInputStream() {
         return this.inputStream;
     }
 
-    public OutputStream getOutputStream() throws IOException {
+    public OutputStream getOutputStream() {
         return this.outputStream;
     }
 

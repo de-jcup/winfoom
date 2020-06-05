@@ -48,8 +48,30 @@ function FindProxyForURL(url, host) {
     var myIp = myIpAddress();
     alert(myIp);
 
+    var googleIp = dnsResolve("google.com");
+    alert(googleIp);
+
+    // Microsoft extensions
+
     var myIpx = myIpAddressEx();
     alert(myIpx);
+
+    if (isResolvableEx (host) ) {
+              // do nothing
+    }
+
+    var googleIpEx = dnsResolveEx("google.com");
+    alert(googleIpEx);
+
+    if (isInNetEx(dnsResolveEx(host), "255.0.0.0")) {
+        // do nothing
+    }
+
+    var beforeSorting = '';
+    alert('beforeSorting ' + beforeSorting);
+
+    var afterSorting = sortIpAddressList('10.2.3.9;2001:4898:28:3:201:2ff:feea:fc14;::1;127.0.0.1;::9');
+    alert('afterSorting ' + afterSorting);
 
     return 'DIRECT';
 }

@@ -612,8 +612,8 @@ public class AppFrame extends JFrame {
         try {
             proxyValidator.testProxyConfig();
         } catch (InvalidProxySettingsException e) {
-            SwingUtils.showErrorMessage(this, e.getMessage());
             logger.error("Invalid proxy settings", e);
+            SwingUtils.showErrorMessage(this, e.getMessage());
             return false;
         } catch (Exception e) {
             logger.error("Validation error", e);

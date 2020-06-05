@@ -21,7 +21,7 @@ public class DefaultPacScriptEvaluatorTests {
                 Thread.currentThread().getContextClassLoader().
                         getResourceAsStream("proxy-simple-all-helpers.pac"),
                 StandardCharsets.UTF_8);
-        DefaultPacScriptEvaluator defaultPacScriptEvaluator = new DefaultPacScriptEvaluator(pacContent);
+        DefaultPacScriptEvaluator defaultPacScriptEvaluator = new DefaultPacScriptEvaluator(pacContent, false);
         String proxyForURL = defaultPacScriptEvaluator.findProxyForURL(new URI("http://host:80/path?param1=val"));
         assertEquals("DIRECT", proxyForURL);
     }

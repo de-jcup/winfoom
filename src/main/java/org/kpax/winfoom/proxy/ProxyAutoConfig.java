@@ -14,10 +14,11 @@ package org.kpax.winfoom.proxy;
 
 import org.apache.commons.io.IOUtils;
 import org.kpax.winfoom.config.ProxyConfig;
+import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.exception.PacFileException;
+import org.kpax.winfoom.pac.DefaultPacScriptEvaluator;
 import org.kpax.winfoom.pac.PacScriptEvaluator;
 import org.kpax.winfoom.util.HttpUtils;
-import org.kpax.winfoom.pac.DefaultPacScriptEvaluator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,8 +42,11 @@ class ProxyAutoConfig {
     @Autowired
     private ProxyConfig proxyConfig;
 
+    @Autowired
+    private SystemConfig systemConfig;
+
     /**
-     * The NetBeans implementation of a PAC script evaluator.
+     * The implementation of a PAC script evaluator.
      */
     private PacScriptEvaluator pacScriptEvaluator;
 
@@ -63,7 +67,7 @@ class ProxyAutoConfig {
             String content = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
             logger.info("PAC content: {}", content);
             try {
-                pacScriptEvaluator = new DefaultPacScriptEvaluator(content);
+                pacScriptEvaluator = new DefaultPacScriptEvaluator(content, systemConfig.isPreferIPv6Addresses());
             } catch (Exception e) {
                 throw new PacFileException("The provided PAC file is not valid", e);
             }

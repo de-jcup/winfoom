@@ -126,7 +126,7 @@ class DateRange {
     }
 
 
-    public static DateRangeBuilder getBuilder() {
+    public static DateRangeBuilder builder() {
         return new DateRangeBuilder();
     }
 
@@ -141,13 +141,13 @@ class DateRange {
         private DateRangeBuilder() {
         }
 
-        public DateRangeBuilder setYear(int yearMin, int yearMax) {
+        public DateRangeBuilder withYear(int yearMin, int yearMax) {
             this.yearMin = yearMin;
             this.yearMax = yearMax;
             return this;
         }
 
-        public DateRangeBuilder setMonth(int monthMin, int monthMax) {
+        public DateRangeBuilder withMonth(int monthMin, int monthMax) {
             this.monthMin = monthMin;
             this.monthMax = monthMax;
             return this;
@@ -157,13 +157,13 @@ class DateRange {
          * Sets the day of month restrictions. These values are generally
          * between 1 and 31 but are not enforced by this class.
          */
-        public DateRangeBuilder setDate(int dateMin, int dateMax) {
+        public DateRangeBuilder withDate(int dateMin, int dateMax) {
             this.dateMin = dateMin;
             this.dateMax = dateMax;
             return this;
         }
 
-        public DateRange createDateRange() {
+        public DateRange build() {
             return new DateRange(yearMin, yearMax, monthMin, monthMax, dateMin, dateMax);
         }
 

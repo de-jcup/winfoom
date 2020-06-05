@@ -155,25 +155,25 @@ class TimeRange {
         private TimeRangeBuilder() {
         }
 
-        public TimeRangeBuilder setHourMinMax(int hourMin, int hourMax) {
+        public TimeRangeBuilder withHourMinMax(int hourMin, int hourMax) {
             this.hourMin = hourMin;
             this.hourMax = hourMax;
             return this;
         }
 
-        public TimeRangeBuilder setMinuteMinMax(int minuteMin, int minuteMax) {
+        public TimeRangeBuilder withMinuteMinMax(int minuteMin, int minuteMax) {
             this.minuteMin = minuteMin;
             this.minuteMax = minuteMax;
             return this;
         }
 
-        public TimeRangeBuilder setSecondMinMax(int secondMin, int secondMax) {
+        public TimeRangeBuilder withSecondMinMax(int secondMin, int secondMax) {
             this.secondMin = secondMin;
             this.secondMax = secondMax;
             return this;
         }
 
-        public TimeRange createTimeRange() {
+        public TimeRange build() {
             return new TimeRange(hourMin, hourMax, minuteMin, minuteMax, secondMin, secondMax);
         }
     }

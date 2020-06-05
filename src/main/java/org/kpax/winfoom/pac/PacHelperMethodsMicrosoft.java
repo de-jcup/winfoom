@@ -14,8 +14,6 @@
 package org.kpax.winfoom.pac;
 
 
-import java.net.UnknownHostException;
-
 /**
  * Microsoft's extensions to complement Netscape's original PAC script
  * helper functions. (as defined in {@link PacHelperMethodsNetscape}).
@@ -40,7 +38,7 @@ import java.net.UnknownHostException;
  * functions are indeed available, but there's no support for the new entry function,
  * {@code FindProxyForURLEx}, meaning the new helper functions are
  * available from the old entry method, {@code FindProxyForURL}.
- * An implementation of {@link PacScriptEvaluator} should strive for maximum
+ * An implementation should strive for maximum
  * compatibility meaning all helper functions should be available regardless
  * of entry point.
  *
@@ -98,7 +96,7 @@ public interface PacHelperMethodsMicrosoft {
      * @return a semi-colon delimited string containing (potentially both)
      * IPv6 and IPv4 addresses.
      */
-    String myIpAddressEx() throws UnknownHostException;
+    String myIpAddressEx();
 
     /**
      * Sorts a list of IP addresses in ascending order. If both IPv6 and IPv4
