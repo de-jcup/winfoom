@@ -19,18 +19,30 @@
 package org.kpax.winfoom.pac;
 
 import org.apache.commons.io.IOUtils;
+import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.exception.PacFileException;
+import org.kpax.winfoom.exception.PacScriptException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
+@Component
+@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class DefaultPacScriptEvaluator implements PacScriptEvaluator {
 
     /**
@@ -48,13 +60,37 @@ public class DefaultPacScriptEvaluator implements PacScriptEvaluator {
 
     private final Logger logger = LoggerFactory.getLogger(DefaultPacScriptEvaluator.class);
 
-    private final PacScriptEngine scriptEngine;
+    @Autowired
+    private ProxyConfig proxyConfig;
 
-    private final boolean preferIPv6Addresses;
+    @Autowired
+    private DefaultPacHelperMethods pacHelperMethods;
 
-    public DefaultPacScriptEvaluator(String pacSourceCode, boolean preferIPv6Addresses) throws PacFileException {
-        this.scriptEngine = getScriptEngine(pacSourceCode);
-        this.preferIPv6Addresses = preferIPv6Addresses;
+    private PacScriptEngine scriptEngine;
+
+
+    @PostConstruct
+    void init () throws IOException, PacFileException {
+        this.scriptEngine = getScriptEngine(loadScript());
+    }
+
+    /**
+     * Load and parse the PAC script file.
+     *
+     * @return the {@link DefaultPacScriptEvaluator} instance.
+     * @throws IOException
+     */
+    private String loadScript() throws IOException {
+        URL url = proxyConfig.getProxyPacFileLocationAsURL();
+        if (url == null) {
+            throw new IllegalStateException("No proxy PAC file location found");
+        }
+        logger.info("Get PAC file from: {}", url);
+        try (InputStream inputStream = url.openStream()) {
+            String content = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+            logger.info("PAC content: {}", content);
+            return content;
+        }
     }
 
     private PacScriptEngine getScriptEngine(String pacSource) throws PacFileException {
@@ -106,7 +142,7 @@ public class DefaultPacScriptEvaluator implements PacScriptEvaluator {
 
             logger.debug("PAC Helper JavaScript :\n{}", helperJSScript);
             try {
-                ((Invocable) engine).invokeMethod(engine.eval(helperJSScript), "call", null, new DefaultPacHelperMethods(preferIPv6Addresses));
+                ((Invocable) engine).invokeMethod(engine.eval(helperJSScript), "call", null, pacHelperMethods);
             } catch (NoSuchMethodException ex) {
                 throw new ScriptException(ex);
             }
@@ -118,7 +154,7 @@ public class DefaultPacScriptEvaluator implements PacScriptEvaluator {
     }
 
     @Override
-    public String findProxyForURL(URI uri) throws PacFileException {
+    public String findProxyForURL(URI uri) throws PacScriptException {
         try {
             Object obj = scriptEngine.findProxyForURL(PacUtils.toStrippedURLStr(uri), uri.getHost());
             return Objects.toString(obj, null);
@@ -126,13 +162,13 @@ public class DefaultPacScriptEvaluator implements PacScriptEvaluator {
             if (ex.getCause() != null) {
                 if (ex.getCause() instanceof ClassNotFoundException) {
                     // Is someone trying to break out of the sandbox ?
-                    logger.warn("The downloaded PAC script is attempting to access Java class ''{}'' " +
+                    logger.warn("The downloaded PAC script is attempting to access Java class [{}] " +
                             "which may be a sign of maliciousness. " +
                             "You should investigate this with your network administrator.", ex.getCause().getMessage());
                 }
             }
             // other unforeseen errors
-            throw new PacFileException("Error when executing PAC script function " + scriptEngine.jsMainFunction, ex);
+            throw new PacScriptException("Error when executing PAC script function: " + scriptEngine.jsMainFunction, ex);
         }
     }
 

@@ -207,9 +207,9 @@ public final class InputOutputs {
             }
             if (withWarning) {
                 SwingUtils.showWarningMessage(null,
-                        String.format("The %s file found belongs to a different application version\n" +
-                                        "and is not compatible with the current version!\n" +
-                                        "The existent one will be moved to:\n" +
+                        String.format("The %s file found belongs to a different application version<br>" +
+                                        "and is not compatible with the current version!<br>" +
+                                        "The existent one will be moved to:<br>" +
                                         "%s directory.",
                                 path.getFileName(),
                                 backupDirPath.toString()));

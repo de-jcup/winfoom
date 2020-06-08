@@ -19,7 +19,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.RequestLine;
 import org.apache.http.protocol.HTTP;
 import org.kpax.winfoom.config.ProxyConfig;
-import org.kpax.winfoom.exception.PacFileException;
+import org.kpax.winfoom.exception.PacScriptException;
 import org.kpax.winfoom.util.HeaderDateGenerator;
 import org.kpax.winfoom.util.HttpUtils;
 import org.kpax.winfoom.util.InputOutputs;
@@ -149,7 +149,7 @@ class ClientConnectionHandler {
                     }
                 }
             }
-        } catch (PacFileException e) {
+        } catch (PacScriptException e) {
             clientConnection.writeErrorResponse(requestLine.getProtocolVersion(),
                     HttpStatus.SC_INTERNAL_SERVER_ERROR,
                     "Proxy Auto Config file error");

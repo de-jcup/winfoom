@@ -35,6 +35,7 @@ public class ProxyContext implements AutoCloseable {
 
     private final Logger logger = LoggerFactory.getLogger(ProxyContext.class);
 
+
     @Autowired
     private LocalProxyServer localProxyServer;
 
@@ -49,6 +50,9 @@ public class ProxyContext implements AutoCloseable {
 
     @Autowired
     private ProxyBlacklist proxyBlacklist;
+
+    @Autowired
+    private ProxyAutoConfig proxyAutoConfig;
 
     private ThreadPoolExecutor threadPool;
 
@@ -95,6 +99,7 @@ public class ProxyContext implements AutoCloseable {
             }
 
             proxyBlacklist.clear();
+            proxyAutoConfig.reset();
 
             return true;
         }

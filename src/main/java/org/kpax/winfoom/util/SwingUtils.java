@@ -64,7 +64,11 @@ public class SwingUtils {
     }
 
     public static void showMessage(Component parentComponent, String title, String message, int type) {
-        JOptionPane.showMessageDialog(parentComponent, message, title, type);
+        JOptionPane.showMessageDialog(parentComponent,
+                String.format("<html><body><p style='max-width: 300px;overflow-wrap: normal;'>%s</p></body></html>",
+                        message) ,
+                title,
+                type);
     }
 
     public static void showErrorMessage(Component parentComponent, String message) {
@@ -128,7 +132,6 @@ public class SwingUtils {
             } else {
                 throw new FileNotFoundException("Resource not found");
             }
-
         } catch (IOException e) {
             throw new IllegalArgumentException("Cannot load the image named: " + filename, e);
         }

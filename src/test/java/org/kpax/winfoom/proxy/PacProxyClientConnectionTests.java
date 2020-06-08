@@ -36,7 +36,7 @@ import org.kpax.winfoom.TestConstants;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.exception.PacFileException;
-import org.kpax.winfoom.pac.DefaultPacScriptEvaluator;
+import org.kpax.winfoom.util.InMemoryURLFactory;
 import org.mockserver.integration.ClientAndServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +51,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.URL;
 import java.time.Instant;
 import java.util.Map;
 
@@ -149,8 +150,10 @@ public class PacProxyClientConnectionTests {
         try {
             String content = String.format("function FindProxyForURL(url, host) {return \"SOCKS4 localhost:%s\";}", proxyServer.getLocalPort());
             logger.debug("content {}", content);
-            DefaultPacScriptEvaluator defaultPacScriptEvaluator = new DefaultPacScriptEvaluator(content, false);
-            ReflectionTestUtils.setField(proxyAutoConfig, "nbPacScriptEvaluator", defaultPacScriptEvaluator);
+
+            proxyAutoConfig.reset();
+            URL pacFileUrl = InMemoryURLFactory.getInstance().build("/fake/url/to/pac/file", content);
+            when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(pacFileUrl);
 
             HttpHost localProxy = new HttpHost("localhost", LOCAL_PROXY_PORT, "http");
             try (CloseableHttpClient httpClient = HttpClientBuilder.create().disableAutomaticRetries().build()) {
@@ -189,8 +192,9 @@ public class PacProxyClientConnectionTests {
         try {
             String content = String.format("function FindProxyForURL(url, host) {return \"SOCKS5 localhost:%s\";}", proxyServer.getLocalPort());
             logger.debug("content {}", content);
-            DefaultPacScriptEvaluator defaultPacScriptEvaluator = new DefaultPacScriptEvaluator(content, false);
-            ReflectionTestUtils.setField(proxyAutoConfig, "nbPacScriptEvaluator", defaultPacScriptEvaluator);
+            proxyAutoConfig.reset();
+            URL pacFileUrl = InMemoryURLFactory.getInstance().build("/fake/url/to/pac/file", content);
+            when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(pacFileUrl);
 
             HttpHost localProxy = new HttpHost("localhost", LOCAL_PROXY_PORT, "http");
             try (CloseableHttpClient httpClient = HttpClientBuilder.create().disableAutomaticRetries().build()) {
@@ -228,8 +232,9 @@ public class PacProxyClientConnectionTests {
         try {
             String content = String.format("function FindProxyForURL(url, host) {return \"HTTP localhost:%s\";}", proxyServer.getLocalPort());
             logger.debug("content {}", content);
-            DefaultPacScriptEvaluator defaultPacScriptEvaluator = new DefaultPacScriptEvaluator(content, false);
-            ReflectionTestUtils.setField(proxyAutoConfig, "nbPacScriptEvaluator", defaultPacScriptEvaluator);
+            proxyAutoConfig.reset();
+            URL pacFileUrl = InMemoryURLFactory.getInstance().build("/fake/url/to/pac/file", content);
+            when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(pacFileUrl);
 
             HttpHost localProxy = new HttpHost("localhost", LOCAL_PROXY_PORT, "http");
             try (CloseableHttpClient httpClient = HttpClientBuilder.create().disableAutomaticRetries().build()) {
@@ -267,8 +272,9 @@ public class PacProxyClientConnectionTests {
         try {
             String content = String.format("function FindProxyForURL(url, host) {return \"PROXY localhost:%s\";}", proxyServer.getLocalPort());
             logger.debug("content {}", content);
-            DefaultPacScriptEvaluator defaultPacScriptEvaluator = new DefaultPacScriptEvaluator(content, false);
-            ReflectionTestUtils.setField(proxyAutoConfig, "nbPacScriptEvaluator", defaultPacScriptEvaluator);
+            proxyAutoConfig.reset();
+            URL pacFileUrl = InMemoryURLFactory.getInstance().build("/fake/url/to/pac/file", content);
+            when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(pacFileUrl);
 
             HttpHost localProxy = new HttpHost("localhost", LOCAL_PROXY_PORT, "http");
             try (CloseableHttpClient httpClient = HttpClientBuilder.create().disableAutomaticRetries().build()) {
@@ -306,8 +312,9 @@ public class PacProxyClientConnectionTests {
         try {
             String content = String.format("function FindProxyForURL(url, host) {return \"SOCKS localhost:%s\";}", proxyServer.getLocalPort());
             logger.debug("content {}", content);
-            DefaultPacScriptEvaluator defaultPacScriptEvaluator = new DefaultPacScriptEvaluator(content, false);
-            ReflectionTestUtils.setField(proxyAutoConfig, "nbPacScriptEvaluator", defaultPacScriptEvaluator);
+            proxyAutoConfig.reset();
+            URL pacFileUrl = InMemoryURLFactory.getInstance().build("/fake/url/to/pac/file", content);
+            when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(pacFileUrl);
 
             HttpHost localProxy = new HttpHost("localhost", LOCAL_PROXY_PORT, "http");
             try (CloseableHttpClient httpClient = HttpClientBuilder.create().disableAutomaticRetries().build()) {
@@ -343,8 +350,9 @@ public class PacProxyClientConnectionTests {
     void singleProxy_DirectConnectAndNonConnect_CorrectResponse() throws IOException, PacFileException {
         String content = String.format("function FindProxyForURL(url, host) {return \"DIRECT\";}");
         logger.debug("content {}", content);
-        DefaultPacScriptEvaluator defaultPacScriptEvaluator = new DefaultPacScriptEvaluator(content, false);
-        ReflectionTestUtils.setField(proxyAutoConfig, "nbPacScriptEvaluator", defaultPacScriptEvaluator);
+        proxyAutoConfig.reset();
+        URL pacFileUrl = InMemoryURLFactory.getInstance().build("/fake/url/to/pac/file", content);
+        when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(pacFileUrl);
 
         HttpHost localProxy = new HttpHost("localhost", LOCAL_PROXY_PORT, "http");
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().disableAutomaticRetries().build()) {
@@ -383,8 +391,9 @@ public class PacProxyClientConnectionTests {
                     "function FindProxyForURL(url, host) {return \"SOCKS4 192.168.111.000:1234;HTTP localhost:%s\";}",
                     proxyServer.getLocalPort());
             logger.debug("content {}", content);
-            DefaultPacScriptEvaluator defaultPacScriptEvaluator = new DefaultPacScriptEvaluator(content, false);
-            ReflectionTestUtils.setField(proxyAutoConfig, "nbPacScriptEvaluator", defaultPacScriptEvaluator);
+            proxyAutoConfig.reset();
+            URL pacFileUrl = InMemoryURLFactory.getInstance().build("/fake/url/to/pac/file", content);
+            when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(pacFileUrl);
 
             HttpHost localProxy = new HttpHost("localhost", LOCAL_PROXY_PORT, "http");
             try (CloseableHttpClient httpClient = HttpClientBuilder.create().disableAutomaticRetries().build()) {
@@ -430,8 +439,9 @@ public class PacProxyClientConnectionTests {
     void nullProxyLine_DirectConnectAndNonConnect_NoProxyCorrectResponse() throws IOException, PacFileException {
         String content = String.format("function FindProxyForURL(url, host) {return null;}");
         logger.debug("content {}", content);
-        DefaultPacScriptEvaluator defaultPacScriptEvaluator = new DefaultPacScriptEvaluator(content, false);
-        ReflectionTestUtils.setField(proxyAutoConfig, "nbPacScriptEvaluator", defaultPacScriptEvaluator);
+        proxyAutoConfig.reset();
+        URL pacFileUrl = InMemoryURLFactory.getInstance().build("/fake/url/to/pac/file", content);
+        when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(pacFileUrl);
 
         HttpHost localProxy = new HttpHost("localhost", LOCAL_PROXY_PORT, "http");
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().disableAutomaticRetries().build()) {

@@ -24,9 +24,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.kpax.winfoom.FoomApplicationTest;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.exception.PacFileException;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -41,10 +43,10 @@ import static org.mockito.Mockito.when;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ProxyAutoConfigTests {
-
     @MockBean
     private ProxyConfig proxyConfig;
 
+    @Lazy
     @Autowired
     private ProxyAutoConfig proxyAutoconfig;
 
@@ -67,20 +69,23 @@ class ProxyAutoConfigTests {
     @Test
     void loadPacFileContent_validLocalFile_NoError() throws IOException, PacFileException {
         when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(getClass().getClassLoader().getResource("proxy-simple.pac"));
-        proxyAutoconfig.loadScript();
+        proxyAutoconfig.reset();
+        proxyAutoconfig.getPacScriptEvaluatorSupplier().get();
     }
 
     @Test
     void loadPacFileContent_validRemoteFile_NoError() throws IOException, PacFileException {
         when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(new URL("http://localhost:" + remoteServer.getLocalPort() + "/pacFile"));
-        proxyAutoconfig.loadScript();
+        proxyAutoconfig.reset();
+        proxyAutoconfig.getPacScriptEvaluatorSupplier().get();
     }
 
 
     @Test
     void loadPacFileContent_invalidLocalFile_InvalidPacFileException() throws IOException {
         when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(getClass().getClassLoader().getResource("proxy-invalid.pac"));
-        Assertions.assertThrows(PacFileException.class, proxyAutoconfig::loadScript);
+        proxyAutoconfig.reset();
+        Assertions.assertThrows(BeanCreationException.class, () -> {proxyAutoconfig.getPacScriptEvaluatorSupplier().get();});
     }
 
     @AfterAll

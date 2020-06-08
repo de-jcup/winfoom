@@ -18,6 +18,7 @@ import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.util.InputOutputs;
+import org.kpax.winfoom.util.functional.SupplierSingleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,17 +44,20 @@ class ConnectionPoolingManager implements AutoCloseable {
     /**
      * For HTTP proxy type
      */
-    private volatile PoolingHttpClientConnectionManager httpConnectionManager;
+    private SupplierSingleton<PoolingHttpClientConnectionManager> httpClientConnectionManagerSupplier =
+            SupplierSingleton.of(() -> createConnectionManager(null));
 
     /**
      * For SOCKS5 proxy type
      */
-    private volatile PoolingHttpClientConnectionManager socksConnectionManager;
+    private SupplierSingleton<PoolingHttpClientConnectionManager> socksConnectionManagerSupplier =
+            SupplierSingleton.of(() -> createSocksConnectionManager(false));
 
     /**
      * For SOCKS4 proxy type
      */
-    private volatile PoolingHttpClientConnectionManager socks4ConnectionManager;
+    private SupplierSingleton<PoolingHttpClientConnectionManager> socks4ConnectionManagerSupplier =
+            SupplierSingleton.of(() -> createSocksConnectionManager(true));
 
     /**
      * Whether this manager is started or not.
@@ -66,15 +70,7 @@ class ConnectionPoolingManager implements AutoCloseable {
      * @return the existent {@link PoolingHttpClientConnectionManager} instance or a new one if {@code null}.
      */
     PoolingHttpClientConnectionManager getHttpConnectionManager() {
-        if (httpConnectionManager == null) {
-            synchronized (this) {
-                if (httpConnectionManager == null) {
-                    httpConnectionManager = createConnectionManager(null);
-                }
-            }
-        }
-        return httpConnectionManager;
-
+        return httpClientConnectionManagerSupplier.get();
     }
 
     /**
@@ -83,14 +79,7 @@ class ConnectionPoolingManager implements AutoCloseable {
      * @return the existent {@link PoolingHttpClientConnectionManager} instance or a new one if {@code null}.
      */
     PoolingHttpClientConnectionManager getSocksConnectionManager() {
-        if (socksConnectionManager == null) {
-            synchronized (this) {
-                if (socksConnectionManager == null) {
-                    socksConnectionManager = createSocksConnectionManager(false);
-                }
-            }
-        }
-        return socksConnectionManager;
+        return socksConnectionManagerSupplier.get();
     }
 
     /**
@@ -99,14 +88,7 @@ class ConnectionPoolingManager implements AutoCloseable {
      * @return the existent {@link PoolingHttpClientConnectionManager} instance or a new one if {@code null}.
      */
     PoolingHttpClientConnectionManager getSocks4ConnectionManager() {
-        if (socks4ConnectionManager == null) {
-            synchronized (this) {
-                if (socks4ConnectionManager == null) {
-                    socks4ConnectionManager = createSocksConnectionManager(true);
-                }
-            }
-        }
-        return socks4ConnectionManager;
+        return socks4ConnectionManagerSupplier.get();
     }
 
     /**
@@ -119,18 +101,18 @@ class ConnectionPoolingManager implements AutoCloseable {
     }
 
     /**
-     * @return all active {@link PoolingHttpClientConnectionManager} instances
+     * @return all active {@link PoolingHttpClientConnectionManager} suppliers.
      */
-    private List<PoolingHttpClientConnectionManager> getAllActiveConnectionManagers() {
-        List<PoolingHttpClientConnectionManager> activeConnectionManagers = new ArrayList<>();
-        if (httpConnectionManager != null) {
-            activeConnectionManagers.add(httpConnectionManager);
+    private List<SupplierSingleton<PoolingHttpClientConnectionManager>> getAllActiveConnectionManagers() {
+        List<SupplierSingleton<PoolingHttpClientConnectionManager>> activeConnectionManagers = new ArrayList<>();
+        if (httpClientConnectionManagerSupplier.hasValue()) {
+            activeConnectionManagers.add(httpClientConnectionManagerSupplier);
         }
-        if (socksConnectionManager != null) {
-            activeConnectionManagers.add(socksConnectionManager);
+        if (socksConnectionManagerSupplier.hasValue()) {
+            activeConnectionManagers.add(socksConnectionManagerSupplier);
         }
-        if (socks4ConnectionManager != null) {
-            activeConnectionManagers.add(socks4ConnectionManager);
+        if (socks4ConnectionManagerSupplier.hasValue()) {
+            activeConnectionManagers.add(socks4ConnectionManagerSupplier);
         }
         return activeConnectionManagers;
     }
@@ -146,8 +128,9 @@ class ConnectionPoolingManager implements AutoCloseable {
     void cleanUpConnectionManager() {
         if (isStarted()) {
             logger.debug("Execute connection manager pool clean up task");
-            for (PoolingHttpClientConnectionManager connectionManager : getAllActiveConnectionManagers()) {
+            for (SupplierSingleton<PoolingHttpClientConnectionManager> connectionManagerSupplier : getAllActiveConnectionManagers()) {
                 try {
+                    PoolingHttpClientConnectionManager connectionManager = connectionManagerSupplier.get();
                     connectionManager.closeExpiredConnections();
                     connectionManager.closeIdleConnections(systemConfig.getConnectionManagerIdleTimeout(),
                             TimeUnit.SECONDS);
@@ -215,12 +198,10 @@ class ConnectionPoolingManager implements AutoCloseable {
     synchronized boolean stop() {
         if (started) {
             started = false;
-            InputOutputs.close(httpConnectionManager);
-            InputOutputs.close(socksConnectionManager);
-            InputOutputs.close(socks4ConnectionManager);
-            httpConnectionManager = null;
-            socksConnectionManager = null;
-            socks4ConnectionManager = null;
+            getAllActiveConnectionManagers().forEach((connSupplier) -> {
+                InputOutputs.close(connSupplier.get());
+                connSupplier.reset();
+            });
             return true;
         } else {
             return false;

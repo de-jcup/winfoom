@@ -547,9 +547,9 @@ public class AppFrame extends JFrame {
             mntmAbout = new JMenuItem("About");
             mntmAbout.setIcon(new TunedImageIcon("dialog-information.png"));
             mntmAbout.addActionListener(e -> SwingUtils.showInfoMessage(this, "About", "Winfoom - Basic Proxy Facade" +
-                    "\nVersion: " + proxyConfig.getAppVersion()
-                    + "\nProject home page: https://github.com/ecovaci/winfoom"
-                    + "\nLicense: Apache 2.0"));
+                    "<br>Version: " + proxyConfig.getAppVersion()
+                    + "<br>Project home page: https://github.com/ecovaci/winfoom"
+                    + "<br>License: Apache 2.0"));
         }
         return mntmAbout;
     }
@@ -651,7 +651,7 @@ public class AppFrame extends JFrame {
                     logger.error("Error on starting proxy server", e);
                     enableInput();
                     SwingUtils.showErrorMessage(AppFrame.this,
-                            "Error on starting proxy server.\nSee the application's log for details.");
+                            "Error on starting proxy server.<br>See the application's log for details.");
                 }
             } else {
                 enableInput();

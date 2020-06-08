@@ -311,18 +311,18 @@ public class PacUtilsDateTime {
     }
 
     private static ParamsInfo getParamsInfo(Object... args) {
-        int params = getNoOfParams(args);
+        int noOfParams = getNoOfParams(args);
         boolean useGMT;
-        if (args[params - 1] instanceof CharSequence) {
-            String p = args[params - 1].toString();
+        if (args[noOfParams - 1] instanceof CharSequence) {
+            String p = args[noOfParams - 1].toString();
             useGMT = p.equals("GMT");
         } else {
             useGMT = false;
         }
         if (useGMT) {
-            params--;
+            noOfParams--;
         }
-        return new ParamsInfo(params, useGMT);
+        return new ParamsInfo(noOfParams, useGMT);
     }
 
 

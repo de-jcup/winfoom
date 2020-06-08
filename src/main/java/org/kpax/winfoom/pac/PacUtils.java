@@ -30,12 +30,12 @@ public class PacUtils {
     /**
      * Size of the cache used for precompiled GLOBs.
      */
-    public static final int PRECOMPILED_GLOB_PATTERN_CACHE_MAX_ITEMS = 100;
+    public static final int GLOB_PATTERN_CACHE_CAPACITY = 100;
 
     private static final Cache<String, Pattern> cache = Cache2kBuilder.of(new Cache2kConfiguration<String, Pattern>())
             .name("precompiledGlobPattern")
             .eternal(true)
-            .entryCapacity(PRECOMPILED_GLOB_PATTERN_CACHE_MAX_ITEMS)
+            .entryCapacity(GLOB_PATTERN_CACHE_CAPACITY)
             .build();
 
 
@@ -62,13 +62,13 @@ public class PacUtils {
      * </table>
      *
      * <p>
-     * A small cache is used so that if a glob pattern has already been
+     * A cache is used so that if a glob pattern has already been
      * translated previously, the result from the cache will be returned.
      *
      * @param glob the GLOB pattern.
      * @return the pattern.
      */
-    public static Pattern createRegexPatternFromGlob(String glob) {
+    public static Pattern createGlobRegexPattern(String glob) {
 
         // First try the cache
         Pattern pattern = cache.get(glob);
@@ -108,32 +108,6 @@ public class PacUtils {
         pattern = Pattern.compile(out.toString());
         cache.put(glob, pattern);
         return pattern;
-    }
-
-    /**
-     * Completes an IPv6 literal address if it is incomplete at the end.
-     * This is done by appending "::" if needed.
-     *
-     * @param s
-     * @return
-     */
-    public static String correctIPv6Str(String s) {
-        int counter = 0;
-        for (int i = 0; i < s.length(); i++) {
-            if (s.charAt(i) == ':') {
-                counter++;
-                if (i > 0) {
-                    if (s.charAt(i - 1) == ':') {
-                        return s;
-                    }
-                }
-            }
-        }
-        if (counter != 7) {
-            return s + "::";
-        } else {
-            return s;
-        }
     }
 
     /**

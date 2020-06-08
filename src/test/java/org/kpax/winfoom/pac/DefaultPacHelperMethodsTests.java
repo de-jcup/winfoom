@@ -1,16 +1,30 @@
 package org.kpax.winfoom.pac;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.kpax.winfoom.FoomApplicationTest;
+import org.kpax.winfoom.config.SystemConfig;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@SpringBootTest(classes = FoomApplicationTest.class)
+@ExtendWith(SpringExtension.class)
+@ActiveProfiles("test")
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class DefaultPacHelperMethodsTests {
 
-    DefaultPacHelperMethods defaultPacHelperMethods = new DefaultPacHelperMethods(false);
+    @Autowired
+    private DefaultPacHelperMethods defaultPacHelperMethods;
+
+    @Autowired
+    private SystemConfig systemConfig;
 
     @Test
     void isPlainHostName_Plain_True() {
@@ -87,9 +101,6 @@ public class DefaultPacHelperMethodsTests {
     @Test
     void isInNetEx_MaskMatchIPv6_True() throws UnknownHostException {
         String s = "2001:db8:a1d5::";
-        //s = PacUtils.correctIPv6Str(s);
-        InetAddress.getByName(s);
-        System.out.println(s);
         boolean inNetEx = defaultPacHelperMethods.isInNetEx(s, s + "/52");
         assertTrue(inNetEx);
     }

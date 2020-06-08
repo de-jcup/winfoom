@@ -61,7 +61,7 @@ public class FoomApplication {
             checkAppVersion();
         } catch (Exception e) {
             logger.error("Failed to verify app version", e);
-            SwingUtils.showErrorMessage(null, String.format("Failed to verify application version.\n" +
+            SwingUtils.showErrorMessage(null, String.format("Failed to verify application version.<br>" +
                             "Remove the %s directory then try again.",
                     Paths.get(System.getProperty("user.home"), SystemConfig.APP_HOME_DIR_NAME)));
             System.exit(1);
@@ -81,7 +81,7 @@ public class FoomApplication {
             } catch (Exception e) {
                 logger.error("GUI error", e);
                 SwingUtils.showErrorMessage(null, "Failed to load the graphical interface." +
-                        "\nPlease check the application's log file.");
+                        "<br>Please check the application's log file.");
             }
         });
     }

@@ -157,7 +157,6 @@ class HttpUtilsTests {
         assertEquals("1.1 winfoom", viaHeader.getValue());
     }
 
-
     @Test
     void createViaHeader_WithExisting_TwoTokens() {
         Header viaHeader = HttpUtils.createViaHeader(HttpVersion.HTTP_1_1, new BasicHeader(HttpHeaders.VIA, "1.0 bla (bla)"));

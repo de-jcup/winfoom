@@ -1,12 +1,16 @@
 package org.kpax.winfoom.pac;
 
-import inet.ipaddr.IPAddressString;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.util.SubnetUtils;
+import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.pac.datetime.PacUtilsDateTime;
+import org.kpax.winfoom.pac.net.IpAddressMatcher;
 import org.kpax.winfoom.pac.net.IpAddressUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
 import java.net.Inet4Address;
 import java.net.InetAddress;
@@ -33,15 +37,14 @@ import java.util.stream.Collectors;
  *
  * @author lbruun
  */
+@Lazy
+@Component
 public class DefaultPacHelperMethods implements PacHelperMethodsNetscape, PacHelperMethodsMicrosoft {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultPacHelperMethods.class);
 
-    private final boolean preferIPv6Addresses;
-
-    public DefaultPacHelperMethods(boolean preferIPv6Addresses) {
-        this.preferIPv6Addresses = preferIPv6Addresses;
-    }
+    @Autowired
+    private SystemConfig systemConfig;
 
     // *************************************************************
     //  Official helper functions.
@@ -66,7 +69,6 @@ public class DefaultPacHelperMethods implements PacHelperMethodsNetscape, PacHel
         }
         return false;
     }
-
 
     @Override
     public boolean localHostOrDomainIs(String host, String hostdom) {
@@ -114,7 +116,6 @@ public class DefaultPacHelperMethods implements PacHelperMethodsNetscape, PacHel
         }
     }
 
-
     @Override
     public boolean isInNet(String host, String pattern, String mask) {
         final String dnsResolve = dnsResolve(host);
@@ -131,7 +132,7 @@ public class DefaultPacHelperMethods implements PacHelperMethodsNetscape, PacHel
 
     @Override
     public boolean shExpMatch(String str, String shexp) {
-        Pattern pattern = PacUtils.createRegexPatternFromGlob(shexp);
+        Pattern pattern = PacUtils.createGlobRegexPattern(shexp);
         return pattern.matcher(str).matches();
     }
 
@@ -169,12 +170,10 @@ public class DefaultPacHelperMethods implements PacHelperMethodsNetscape, PacHel
         }
     }
 
-
     // *************************************************************
     //  Microsoft extensions
     // 
     // *************************************************************
-
 
     @Override
     public boolean isResolvableEx(String host) {
@@ -190,7 +189,9 @@ public class DefaultPacHelperMethods implements PacHelperMethodsNetscape, PacHel
         try {
             List<InetAddress> addresses = IpAddressUtils.resolve(host);
             if (!addresses.isEmpty()) {
-                Collections.sort(addresses, IpAddressUtils.addressComparator(preferIPv6Addresses));
+                if (addresses.size() > 1) {
+                    Collections.sort(addresses, IpAddressUtils.addressComparator(systemConfig.isPreferIPv6Addresses()));
+                }
                 return addresses.get(0).getHostAddress();
             }
         } catch (UnknownHostException ex) {
@@ -204,7 +205,7 @@ public class DefaultPacHelperMethods implements PacHelperMethodsNetscape, PacHel
         try {
             InetAddress[] addresses = IpAddressUtils.ALL_PRIMARY_ADDRESSES.get();
             return Arrays.stream(addresses).
-                    sorted(IpAddressUtils.addressComparator(preferIPv6Addresses)).
+                    sorted(IpAddressUtils.addressComparator(systemConfig.isPreferIPv6Addresses())).
                     map(InetAddress::getHostAddress).
                     collect(Collectors.joining(";"));
         } catch (Exception e) {
@@ -223,9 +224,9 @@ public class DefaultPacHelperMethods implements PacHelperMethodsNetscape, PacHel
         // those) but at the same time we have to preserve the way
         // the original input was represented and return in the same
         // format.
-        String[] arrAddreses = ipAddressList.split(";");
+        String[] arrAddresses = ipAddressList.split(";");
         List<InetAddress> addresses = new ArrayList<>();
-        for (String host : arrAddreses) {
+        for (String host : arrAddresses) {
             try {
                 addresses.add(InetAddress.getByName(host.trim()));
             } catch (UnknownHostException ex) {
@@ -235,7 +236,7 @@ public class DefaultPacHelperMethods implements PacHelperMethodsNetscape, PacHel
 
         return addresses.stream().
                 sorted(IpAddressUtils.IPv6_FIRST_TOTAL_ORDERING_COMPARATOR).
-                map(a -> arrAddreses[addresses.indexOf(a)].trim()).
+                map(a -> arrAddresses[addresses.indexOf(a)].trim()).
                 collect(Collectors.joining(";"));
     }
 
@@ -246,11 +247,11 @@ public class DefaultPacHelperMethods implements PacHelperMethodsNetscape, PacHel
 
     @Override
     public boolean isInNetEx(String ipAddress, String ipPrefix) {
-        if (StringUtils.isEmpty(ipAddress) || StringUtils.isEmpty(ipPrefix)) {
+        try {
+            return new IpAddressMatcher(ipPrefix).matches(ipAddress);
+        } catch (UnknownHostException e) {
             return false;
         }
-
-        return new IPAddressString(ipPrefix).contains(new IPAddressString(ipAddress));
     }
 
 

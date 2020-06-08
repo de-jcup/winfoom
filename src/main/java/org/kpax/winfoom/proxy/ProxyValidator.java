@@ -35,10 +35,14 @@ import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.exception.InvalidProxySettingsException;
 import org.kpax.winfoom.exception.PacFileException;
+import org.kpax.winfoom.exception.PacScriptException;
 import org.kpax.winfoom.util.HttpUtils;
+import org.kpax.winfoom.util.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import javax.security.auth.login.CredentialException;
@@ -61,8 +65,9 @@ public class ProxyValidator {
     @Autowired
     private SystemConfig systemConfig;
 
+    @Lazy
     @Autowired
-    private ProxyAutoConfig proxyAutoconfig;
+    private ProxyAutoConfig proxyAutoConfig;
 
     @Autowired
     private ProxyBlacklist proxyBlacklist;
@@ -111,13 +116,18 @@ public class ProxyValidator {
 
     private List<ProxyInfo> loadPacProxyInfos() throws InvalidProxySettingsException {
         try {
-            proxyAutoconfig.loadScript();
             HttpHost testHost = HttpHost.create(proxyConfig.getProxyTestUrl());
-            return proxyAutoconfig.findProxyForURL(new URI(testHost.toURI()));
-        } catch (IOException e) {
-            throw new InvalidProxySettingsException("Cannot load and parse the PAC file", e);
-        } catch (PacFileException e) {
-            throw new InvalidProxySettingsException("Invalid PAC file", e);
+            return proxyAutoConfig.findProxyForURL(new URI(testHost.toURI()));
+        } catch (BeanCreationException e) {
+            Throwable actualException = Throwables.getRootCause(e, IOException.class, PacFileException.class);
+            if (actualException instanceof IOException) {
+                throw new InvalidProxySettingsException("Cannot load the PAC file", actualException);
+            } else if (actualException instanceof PacFileException) {
+                throw new InvalidProxySettingsException("The PAC file seems to be invalid", actualException);
+            }
+            throw new InvalidProxySettingsException("Cannot load or parse the PAC file", e);
+        } catch (PacScriptException e) {
+            throw new InvalidProxySettingsException("Error on PAC script execution", e);
         } catch (URISyntaxException e) {
             throw new InvalidProxySettingsException("Invalid test URL", e);
         }

@@ -22,7 +22,7 @@ package org.kpax.winfoom.pac.net;
 
 import org.apache.commons.validator.routines.InetAddressValidator;
 import org.kpax.winfoom.exception.NativeException;
-import org.kpax.winfoom.util.SingletonReference;
+import org.kpax.winfoom.util.functional.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,15 +45,15 @@ public class IpAddressUtils {
 
     public static final String LOCALHOST = "127.0.0.1";
 
-    public static final SingletonReference<InetAddress[]> ALL_PRIMARY_ADDRESSES = SingletonReference.of(() -> {
+    public static final Singleton<InetAddress[]> ALL_PRIMARY_ADDRESSES = Singleton.of(() -> {
         try {
-            return InetAddress.getAllByName(IpAddressUtils.removeDomain(HostnameUtils.getHostName()));
+            return InetAddress.getAllByName(HostnameUtils.removeDomain(HostnameUtils.getHostName()));
         } catch (NativeException e) {
             throw new UnknownHostException(e.getMessage() + ", error code : " + e.getErrorCode());
         }
     });
 
-    public static final SingletonReference<InetAddress> PRIMARY_IPv4_ADDRESS = SingletonReference.of(() -> {
+    public static final Singleton<InetAddress> PRIMARY_IPv4_ADDRESS = Singleton.of(() -> {
         try {
             return Arrays.stream(ALL_PRIMARY_ADDRESSES.get()).
                     filter(a -> a.getClass() == Inet4Address.class).
@@ -131,7 +131,7 @@ public class IpAddressUtils {
         if (InetAddressValidator.getInstance().isValid(host)) {
             // No DNS lookup is needed in this case
             InetAddress addr = InetAddress.getByName(host);
-            if (filter.test(addr)) {
+            if (filter == null || filter.test(addr)) {
                 return Collections.singletonList(addr);
             } else {
                 return Collections.emptyList();
@@ -143,38 +143,6 @@ public class IpAddressUtils {
                 addressStream = addressStream.filter(filter);
             }
             return addressStream.collect(Collectors.toList());
-        }
-    }
-
-    /**
-     * Strips the domain part from a host name. Example: for {@code "foo.bar.com"}
-     * then {@code "foo"} will be returned.
-     *
-     * <p>
-     * The method is safe to use even if the input is an IPv4 literal or IPv6
-     * literal. In this case the input will be returned unchanged.
-     *
-     * @param hostname
-     * @return hostname with domain stripped
-     */
-    public static String removeDomain(final String hostname) {
-        if (hostname == null) {
-            return null;
-        }
-        if (InetAddressValidator.getInstance().isValidInet4Address(hostname)) {
-            return hostname;
-        }
-
-        int pos = hostname.indexOf('.');
-        if (pos == -1) {
-            return hostname;
-        } else {
-            int posColon = hostname.indexOf(':');
-            if (posColon >= 0 && posColon < pos) { // It is an IPv6 literal with an embedded IPv4 address
-                return hostname;
-            }
-
-            return hostname.substring(0, pos);
         }
     }
 

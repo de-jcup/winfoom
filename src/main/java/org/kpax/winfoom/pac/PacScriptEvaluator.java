@@ -13,7 +13,7 @@
  */
 package org.kpax.winfoom.pac;
 
-import org.kpax.winfoom.exception.PacFileException;
+import org.kpax.winfoom.exception.PacScriptException;
 
 import java.net.URI;
 
@@ -30,8 +30,8 @@ public interface PacScriptEvaluator {
      *
      * @param uri URI to get proxies for.
      * @return The result of Javascript call as it is.
-     * @throws PacFileException when something does wrong with the JavaScript function's call.
+     * @throws PacScriptException when something does wrong with the JavaScript function's call.
      */
-    String findProxyForURL(URI uri) throws PacFileException;
+    String findProxyForURL(URI uri) throws PacScriptException;
 
 }
