@@ -23,8 +23,9 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.kpax.winfoom.FoomApplicationTest;
 import org.kpax.winfoom.config.ProxyConfig;
+import org.kpax.winfoom.config.ProxySessionScope;
 import org.kpax.winfoom.exception.PacFileException;
-import org.springframework.beans.factory.BeanCreationException;
+import org.kpax.winfoom.pac.DefaultPacScriptEvaluator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -42,13 +43,16 @@ import static org.mockito.Mockito.when;
 @SpringBootTest(classes = FoomApplicationTest.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class ProxyAutoConfigTests {
+class DefaultPacScriptEvaluatorTests {
     @MockBean
     private ProxyConfig proxyConfig;
 
     @Lazy
     @Autowired
-    private ProxyAutoConfig proxyAutoconfig;
+    private DefaultPacScriptEvaluator defaultPacScriptEvaluator;
+
+    @Autowired
+    private ProxySessionScope proxySessionScope;
 
     private HttpServer remoteServer;
 
@@ -69,23 +73,20 @@ class ProxyAutoConfigTests {
     @Test
     void loadPacFileContent_validLocalFile_NoError() throws IOException, PacFileException {
         when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(getClass().getClassLoader().getResource("proxy-simple.pac"));
-        proxyAutoconfig.reset();
-        proxyAutoconfig.getPacScriptEvaluatorSupplier().get();
+        proxySessionScope.close();
     }
 
     @Test
     void loadPacFileContent_validRemoteFile_NoError() throws IOException, PacFileException {
         when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(new URL("http://localhost:" + remoteServer.getLocalPort() + "/pacFile"));
-        proxyAutoconfig.reset();
-        proxyAutoconfig.getPacScriptEvaluatorSupplier().get();
+        proxySessionScope.close();
     }
 
 
     @Test
     void loadPacFileContent_invalidLocalFile_InvalidPacFileException() throws IOException {
         when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(getClass().getClassLoader().getResource("proxy-invalid.pac"));
-        proxyAutoconfig.reset();
-        Assertions.assertThrows(BeanCreationException.class, () -> {proxyAutoconfig.getPacScriptEvaluatorSupplier().get();});
+        proxySessionScope.close();
     }
 
     @AfterAll

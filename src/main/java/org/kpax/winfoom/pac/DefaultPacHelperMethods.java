@@ -111,7 +111,7 @@ public class DefaultPacHelperMethods implements PacHelperMethodsNetscape, PacHel
         try {
             return IpAddressUtils.PRIMARY_IPv4_ADDRESS.get().getHostAddress();
         } catch (Exception e) {
-            logger.warn("Cannot get localhost ip address");
+            logger.warn("Cannot get localhost ip address", e);
             return IpAddressUtils.LOCALHOST;
         }
     }
@@ -209,7 +209,7 @@ public class DefaultPacHelperMethods implements PacHelperMethodsNetscape, PacHel
                     map(InetAddress::getHostAddress).
                     collect(Collectors.joining(";"));
         } catch (Exception e) {
-            logger.warn("Cannot get localhost ip addresses");
+            logger.warn("Cannot get localhost ip addresses", e);
             return IpAddressUtils.LOCALHOST;
         }
     }

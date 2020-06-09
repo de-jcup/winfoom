@@ -14,14 +14,17 @@ package org.kpax.winfoom.proxy;
 
 import org.apache.commons.lang3.StringUtils;
 import org.kpax.winfoom.config.ProxyConfig;
+import org.kpax.winfoom.config.ProxySessionScope;
 import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.util.InputOutputs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import java.io.Closeable;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -32,8 +35,10 @@ import java.net.SocketException;
  *
  * @author Eugen Covaci
  */
+@Order(0)
+@Scope(value = ProxySessionScope.NAME, proxyMode = ScopedProxyMode.TARGET_CLASS)
 @Component
-class LocalProxyServer implements Closeable {
+class LocalProxyServer implements AutoCloseable {
 
     private final Logger logger = LoggerFactory.getLogger(LocalProxyServer.class);
 
@@ -49,9 +54,10 @@ class LocalProxyServer implements Closeable {
     @Autowired
     private ClientConnectionHandler clientConnectionHandler;
 
-    private ServerSocket serverSocket;
+    @Autowired
+    private ProxyLifecycle proxyLifecycle;
 
-    private volatile boolean started;
+    private ServerSocket serverSocket;
 
     /**
      * Start the local proxy server.<br>
@@ -68,19 +74,13 @@ class LocalProxyServer implements Closeable {
      */
     synchronized void start()
             throws Exception {
-        if (started) {
-            throw new IllegalStateException("Server already started!");
-        }
         logger.info("Start local proxy server with userConfig {}", proxyConfig);
 
         try {
             serverSocket = new ServerSocket(proxyConfig.getLocalPort(),
                     systemConfig.getServerSocketBacklog());
-
-            started = true;
-
             proxyContext.executorService().execute(() -> {
-                while (started) {
+                while (true) {
                     try {
                         Socket socket = serverSocket.accept();
                         socket.setSoTimeout(systemConfig.getSocketSoTimeout() * 1000);
@@ -95,7 +95,11 @@ class LocalProxyServer implements Closeable {
                         });
                     } catch (SocketException e) {
 
-                        // Ignore java.net.SocketException: Interrupted function call.
+                        // The ServerSocket has been closed, exit the while loop
+                        if (StringUtils.startsWithIgnoreCase(e.getMessage(), "Socket is closed")) {
+                            break;
+                        }
+
                         // Get this whenever stop the server socket.
                         if (!StringUtils.startsWithIgnoreCase(e.getMessage(), "Interrupted function call")) {
                             logger.debug("Socket error on getting connection", e);
@@ -123,27 +127,13 @@ class LocalProxyServer implements Closeable {
 
     @Override
     public synchronized void close() {
-        if (started) {
-            started = false;
-            logger.info("Now stop running the local proxy server");
-            try {
-                logger.info("Close the server socket");
-                serverSocket.close();
-            } catch (Exception e) {
-                logger.warn("Error on closing server socket", e);
-            }
-        } else {
-            logger.info("Already closed, nothing to do");
+        logger.info("Now stop running the local proxy server");
+        try {
+            logger.info("Close the server socket");
+            serverSocket.close();
+        } catch (Exception e) {
+            logger.warn("Error on closing server socket", e);
         }
-    }
-
-    /**
-     * Getter.
-     *
-     * @return {@code true} iff the local server is started.
-     */
-    synchronized boolean isStarted() {
-        return started;
     }
 
 }

@@ -14,13 +14,27 @@
 package org.kpax.winfoom.pac;
 
 import org.kpax.winfoom.exception.PacScriptException;
+import org.kpax.winfoom.proxy.ProxyInfo;
 
 import java.net.URI;
+import java.util.List;
 
 /**
  * PAC Script evaluator.
  */
 public interface PacScriptEvaluator {
+
+    /**
+     * Main entry point to JavaScript PAC script as defined by Netscape.
+     * This is JavaScript function name {@code FindProxyForURL()}.
+     */
+    String STANDARD_PAC_MAIN_FUNCTION = "FindProxyForURL";
+    /**
+     * Main entry point to JavaScript PAC script for IPv6 support,
+     * as defined by Microsoft.
+     * This is JavaScript function name {@code FindProxyForURLEx()}.
+     */
+    String IPV6_AWARE_PAC_MAIN_FUNCTION = "FindProxyForURLEx";
 
     /**
      * <p>
@@ -29,9 +43,9 @@ public interface PacScriptEvaluator {
      * {@code FindProxyForURLEx(url, host)} function).
      *
      * @param uri URI to get proxies for.
-     * @return The result of Javascript call as it is.
+     * @return The {@link ProxyInfo} list.
      * @throws PacScriptException when something does wrong with the JavaScript function's call.
      */
-    String findProxyForURL(URI uri) throws PacScriptException;
+    List<ProxyInfo> findProxyForURL(URI uri) throws PacScriptException;
 
 }

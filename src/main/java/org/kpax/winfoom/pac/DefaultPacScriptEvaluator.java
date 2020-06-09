@@ -20,13 +20,17 @@ package org.kpax.winfoom.pac;
 
 import org.apache.commons.io.IOUtils;
 import org.kpax.winfoom.config.ProxyConfig;
+import org.kpax.winfoom.config.ProxySessionScope;
 import org.kpax.winfoom.exception.PacFileException;
 import org.kpax.winfoom.exception.PacScriptException;
+import org.kpax.winfoom.proxy.ProxyInfo;
+import org.kpax.winfoom.util.HttpUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -39,24 +43,13 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Objects;
 
+@Order(2)
 @Component
-@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Scope(value = ProxySessionScope.NAME, proxyMode = ScopedProxyMode.INTERFACES)
 public class DefaultPacScriptEvaluator implements PacScriptEvaluator {
-
-    /**
-     * Main entry point to JavaScript PAC script as defined by Netscape.
-     * This is JavaScript function name {@code FindProxyForURL()}.
-     */
-    public static final String STANDARD_PAC_MAIN_FUNCTION = "FindProxyForURL";
-
-    /**
-     * Main entry point to JavaScript PAC script for IPv6 support,
-     * as defined by Microsoft.
-     * This is JavaScript function name {@code FindProxyForURLEx()}.
-     */
-    public static final String IPV6_AWARE_PAC_MAIN_FUNCTION = "FindProxyForURLEx";
 
     private final Logger logger = LoggerFactory.getLogger(DefaultPacScriptEvaluator.class);
 
@@ -67,7 +60,6 @@ public class DefaultPacScriptEvaluator implements PacScriptEvaluator {
     private DefaultPacHelperMethods pacHelperMethods;
 
     private PacScriptEngine scriptEngine;
-
 
     @PostConstruct
     void init () throws IOException, PacFileException {
@@ -154,10 +146,12 @@ public class DefaultPacScriptEvaluator implements PacScriptEvaluator {
     }
 
     @Override
-    public String findProxyForURL(URI uri) throws PacScriptException {
+    public List<ProxyInfo> findProxyForURL(URI uri) throws PacScriptException {
         try {
             Object obj = scriptEngine.findProxyForURL(PacUtils.toStrippedURLStr(uri), uri.getHost());
-            return Objects.toString(obj, null);
+            String proxyLine =  Objects.toString(obj, null);
+            logger.debug("proxyLine [{}]", proxyLine);
+            return HttpUtils.parsePacProxyLine(proxyLine);
         } catch (Exception ex) {
             if (ex.getCause() != null) {
                 if (ex.getCause() instanceof ClassNotFoundException) {
@@ -191,13 +185,13 @@ public class DefaultPacScriptEvaluator implements PacScriptEvaluator {
 
         PacScriptEngine(ScriptEngine scriptEngine) throws PacFileException {
             this.invocable = (Invocable) scriptEngine;
-            if (isJsFunctionAvailable(scriptEngine, IPV6_AWARE_PAC_MAIN_FUNCTION)) {
-                this.jsMainFunction = IPV6_AWARE_PAC_MAIN_FUNCTION;
-            } else if (isJsFunctionAvailable(scriptEngine, STANDARD_PAC_MAIN_FUNCTION)) {
-                this.jsMainFunction = STANDARD_PAC_MAIN_FUNCTION;
+            if (isJsFunctionAvailable(scriptEngine, PacScriptEvaluator.IPV6_AWARE_PAC_MAIN_FUNCTION)) {
+                this.jsMainFunction = PacScriptEvaluator.IPV6_AWARE_PAC_MAIN_FUNCTION;
+            } else if (isJsFunctionAvailable(scriptEngine, PacScriptEvaluator.STANDARD_PAC_MAIN_FUNCTION)) {
+                this.jsMainFunction = PacScriptEvaluator.STANDARD_PAC_MAIN_FUNCTION;
             } else {
-                throw new PacFileException("Function " + STANDARD_PAC_MAIN_FUNCTION +
-                        " or " + IPV6_AWARE_PAC_MAIN_FUNCTION + " not found in PAC Script.");
+                throw new PacFileException("Function " + PacScriptEvaluator.STANDARD_PAC_MAIN_FUNCTION +
+                        " or " + PacScriptEvaluator.IPV6_AWARE_PAC_MAIN_FUNCTION + " not found in PAC Script.");
             }
         }
 

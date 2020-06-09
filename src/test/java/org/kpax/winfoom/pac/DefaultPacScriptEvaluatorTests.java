@@ -8,6 +8,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.kpax.winfoom.FoomApplicationTest;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.exception.PacScriptException;
+import org.kpax.winfoom.proxy.ProxyInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -19,8 +20,10 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest(classes = FoomApplicationTest.class)
@@ -46,7 +49,8 @@ public class DefaultPacScriptEvaluatorTests {
     void findProxyForURL_AllHelperMethods_NoError()
             throws URISyntaxException, PacScriptException {
         System.out.println(proxyConfig.getProxyPacFileLocation());
-        String proxyForURL = defaultPacScriptEvaluator.findProxyForURL(new URI("http://host:80/path?param1=val"));
-        assertEquals("DIRECT", proxyForURL);
+        List<ProxyInfo> proxies = defaultPacScriptEvaluator.findProxyForURL(new URI("http://host:80/path?param1=val"));
+        assertEquals(1, proxies.size());
+        assertTrue(proxies.get(0).getType().isDirect());
     }
 }

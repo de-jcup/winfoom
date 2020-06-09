@@ -36,6 +36,7 @@ import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.exception.InvalidProxySettingsException;
 import org.kpax.winfoom.exception.PacFileException;
 import org.kpax.winfoom.exception.PacScriptException;
+import org.kpax.winfoom.pac.PacScriptEvaluator;
 import org.kpax.winfoom.util.HttpUtils;
 import org.kpax.winfoom.util.Throwables;
 import org.slf4j.Logger;
@@ -67,7 +68,7 @@ public class ProxyValidator {
 
     @Lazy
     @Autowired
-    private ProxyAutoConfig proxyAutoConfig;
+    private PacScriptEvaluator pacScriptEvaluator;
 
     @Autowired
     private ProxyBlacklist proxyBlacklist;
@@ -117,7 +118,7 @@ public class ProxyValidator {
     private List<ProxyInfo> loadPacProxyInfos() throws InvalidProxySettingsException {
         try {
             HttpHost testHost = HttpHost.create(proxyConfig.getProxyTestUrl());
-            return proxyAutoConfig.findProxyForURL(new URI(testHost.toURI()));
+            return pacScriptEvaluator.findProxyForURL(new URI(testHost.toURI()));
         } catch (BeanCreationException e) {
             Throwable actualException = Throwables.getRootCause(e, IOException.class, PacFileException.class);
             if (actualException instanceof IOException) {

@@ -59,7 +59,7 @@ public class SocksProxyClientConnectionTests {
     private ClientConnectionHandler clientConnectionHandler;
 
     @Autowired
-    private ConnectionPoolingManager connectionPoolingManager;
+    private ProxyLifecycle proxyLifecycle;
 
     private ClientAndServer socksRemoteProxyServer;
 
@@ -74,7 +74,7 @@ public class SocksProxyClientConnectionTests {
     }
 
     @BeforeAll
-    void before() throws IOException {
+    void before() throws Exception {
         socksRemoteProxyServer = ClientAndServer.startClientAndServer(PROXY_PORT);
 
         remoteServer = ServerBootstrap.bootstrap().registerHandler("/get", new HttpRequestHandler() {
@@ -89,7 +89,7 @@ public class SocksProxyClientConnectionTests {
         remoteServer.start();
 
         serverSocket = new ServerSocket(TestConstants.LOCAL_PROXY_PORT);
-        connectionPoolingManager.start();
+        proxyLifecycle.start();
         new Thread(() -> {
             while (!serverSocket.isClosed()) {
                 try {

@@ -30,5 +30,11 @@ public class Throwables {
         }
     }
 
+    public static boolean isUnchecked(Throwable throwable) {
+        return throwable instanceof RuntimeException || throwable instanceof Error;
+    }
 
+    public static boolean isChecked(Throwable throwable) {
+        return !isUnchecked(throwable);
+    }
 }

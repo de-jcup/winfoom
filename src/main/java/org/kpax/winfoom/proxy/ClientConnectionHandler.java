@@ -20,6 +20,7 @@ import org.apache.http.RequestLine;
 import org.apache.http.protocol.HTTP;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.exception.PacScriptException;
+import org.kpax.winfoom.pac.PacScriptEvaluator;
 import org.kpax.winfoom.util.HeaderDateGenerator;
 import org.kpax.winfoom.util.HttpUtils;
 import org.kpax.winfoom.util.InputOutputs;
@@ -50,7 +51,7 @@ class ClientConnectionHandler {
     private ProxyConfig proxyConfig;
 
     @Autowired
-    private ProxyAutoConfig proxyAutoconfig;
+    private PacScriptEvaluator pacScriptEvaluator;
 
     @Autowired
     private ProxyBlacklist proxyBlacklist;
@@ -95,7 +96,7 @@ class ClientConnectionHandler {
             if (proxyConfig.isAutoConfig()) {
                 URI requestUri = clientConnection.getRequestUri();
                 logger.debug("Extracted URI from request {}", requestUri);
-                proxyInfoList = proxyAutoconfig.findProxyForURL(requestUri);
+                proxyInfoList = pacScriptEvaluator.findProxyForURL(requestUri);
             } else {
 
                 // Manual proxy case

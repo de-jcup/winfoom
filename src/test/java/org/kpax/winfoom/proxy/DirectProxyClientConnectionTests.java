@@ -58,7 +58,8 @@ public class DirectProxyClientConnectionTests {
     private ClientConnectionHandler clientConnectionHandler;
 
     @Autowired
-    private ConnectionPoolingManager connectionPoolingManager;
+    private ProxyLifecycle proxyLifecycle;
+
 
     private ServerSocket serverSocket;
 
@@ -72,7 +73,7 @@ public class DirectProxyClientConnectionTests {
     }
 
     @BeforeAll
-    void before() throws IOException {
+    void before() throws Exception {
         remoteServer = ServerBootstrap.bootstrap().registerHandler("/get", new HttpRequestHandler() {
 
             @Override
@@ -85,7 +86,7 @@ public class DirectProxyClientConnectionTests {
         remoteServer.start();
 
         serverSocket = new ServerSocket(TestConstants.LOCAL_PROXY_PORT);
-        connectionPoolingManager.start();
+        proxyLifecycle.start();
         new Thread(() -> {
             while (!serverSocket.isClosed()) {
                 try {

@@ -17,6 +17,7 @@ import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.exception.InvalidProxySettingsException;
 import org.kpax.winfoom.proxy.ProxyBlacklist;
 import org.kpax.winfoom.proxy.ProxyContext;
+import org.kpax.winfoom.proxy.ProxyLifecycle;
 import org.kpax.winfoom.proxy.ProxyValidator;
 import org.kpax.winfoom.util.HttpUtils;
 import org.kpax.winfoom.util.SwingUtils;
@@ -64,6 +65,9 @@ public class AppFrame extends JFrame {
 
     @Autowired
     private ProxyBlacklist proxyBlacklist;
+
+    @Autowired
+    private ProxyLifecycle proxyLifecycle;
 
     private JLabel proxyTypeLabel;
     private JComboBox<ProxyConfig.Type> proxyTypeCombo;
@@ -661,7 +665,7 @@ public class AppFrame extends JFrame {
     }
 
     private void stopServer() {
-        if (proxyContext.isStarted() && JOptionPane.showConfirmDialog(this,
+        if (proxyLifecycle.isRunning() && JOptionPane.showConfirmDialog(this,
                 "The local proxy facade is started. \nDo you like to stop the proxy facade?",
                 "Warning", JOptionPane.OK_CANCEL_OPTION) == JOptionPane.YES_OPTION) {
             proxyContext.stop();
@@ -676,7 +680,7 @@ public class AppFrame extends JFrame {
 
 
     private void shutdownApp() {
-        if (!proxyContext.isStarted() || JOptionPane.showConfirmDialog(this,
+        if (!proxyLifecycle.isRunning() || JOptionPane.showConfirmDialog(this,
                 "The local proxy facade is started. \nDo you like to stop the proxy facade and leave the application?",
                 "Warning", JOptionPane.OK_CANCEL_OPTION) == JOptionPane.YES_OPTION) {
             logger.info("Now shutdown application");

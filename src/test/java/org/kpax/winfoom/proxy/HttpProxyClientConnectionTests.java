@@ -50,7 +50,6 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -80,7 +79,7 @@ class HttpProxyClientConnectionTests {
     private ClientConnectionHandler clientConnectionHandler;
 
     @Autowired
-    private ConnectionPoolingManager connectionPoolingManager;
+    private ProxyLifecycle proxyLifecycle;
 
     private ServerSocket serverSocket;
 
@@ -96,7 +95,7 @@ class HttpProxyClientConnectionTests {
     }
 
     @BeforeAll
-    void before() throws IOException {
+    void before() throws Exception {
         remoteProxyServer = DefaultHttpProxyServer.bootstrap()
                 .withPort(PROXY_PORT)
                 .withName("AuthenticatedUpstreamProxy")
@@ -124,7 +123,7 @@ class HttpProxyClientConnectionTests {
         remoteServer.start();
 
         serverSocket = new ServerSocket(TestConstants.LOCAL_PROXY_PORT);
-        connectionPoolingManager.start();
+        proxyLifecycle.start();
         new Thread(() -> {
             while (!serverSocket.isClosed()) {
                 try {

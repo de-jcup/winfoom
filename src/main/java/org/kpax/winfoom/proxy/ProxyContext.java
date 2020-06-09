@@ -13,7 +13,6 @@
 package org.kpax.winfoom.proxy;
 
 import org.kpax.winfoom.config.ProxyConfig;
-import org.kpax.winfoom.config.SystemConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,22 +36,13 @@ public class ProxyContext implements AutoCloseable {
 
 
     @Autowired
-    private LocalProxyServer localProxyServer;
-
-    @Autowired
     private ProxyConfig proxyConfig;
 
     @Autowired
-    private SystemConfig systemConfig;
-
-    @Autowired
-    private ConnectionPoolingManager connectionPoolingManager;
+    private ProxyLifecycle proxyLifecycle;
 
     @Autowired
     private ProxyBlacklist proxyBlacklist;
-
-    @Autowired
-    private ProxyAutoConfig proxyAutoConfig;
 
     private ThreadPoolExecutor threadPool;
 
@@ -70,49 +60,24 @@ public class ProxyContext implements AutoCloseable {
     /**
      * Start the {@link  ConnectionPoolingManager} also the {@link LocalProxyServer}.
      *
-     * @return {@code true} iff it is not aready started.
      * @throws Exception
      */
-    public synchronized boolean start() throws Exception {
-        if (!isStarted()) {
-            connectionPoolingManager.start();
-            localProxyServer.start();
-            return true;
-        }
-        return false;
+    public synchronized void start() throws Exception {
+        proxyLifecycle.start();
     }
 
     /**
      * Stop the {@link  ConnectionPoolingManager} also the {@link LocalProxyServer}.<br>
      * Also, it removes the {@link Authenticator} - if any.
-     *
-     * @return {@code true} iff it is not aready stopped.
      */
-    public synchronized boolean stop() {
-        if (isStarted()) {
-            localProxyServer.close();
-            connectionPoolingManager.stop();
+    public synchronized void stop() {
+        proxyLifecycle.stop();
 
-            // Remove auth for SOCKS proxy
-            if (proxyConfig.getProxyType().isSocks5()) {
-                Authenticator.setDefault(null);
-            }
-
-            proxyBlacklist.clear();
-            proxyAutoConfig.reset();
-
-            return true;
+        // Remove auth for SOCKS proxy
+        if (proxyConfig.getProxyType().isSocks5()) {
+            Authenticator.setDefault(null);
         }
-        return false;
-    }
 
-    /**
-     * Check whether the local proxy server is started.
-     *
-     * @return <code>true</code> iff the local proxy server is started.
-     */
-    public boolean isStarted() {
-        return localProxyServer.isStarted();
     }
 
     public ExecutorService executorService() {
@@ -123,7 +88,6 @@ public class ProxyContext implements AutoCloseable {
     public void close() {
         logger.info("Close all context's resources");
         stop();
-
         try {
             threadPool.shutdownNow();
         } catch (Exception e) {

@@ -14,6 +14,7 @@ import java.util.Arrays;
  * @since 3.0.2
  */
 public class IpAddressMatcher {
+
     private final int nMaskBits;
     private final InetAddress requiredAddress;
 

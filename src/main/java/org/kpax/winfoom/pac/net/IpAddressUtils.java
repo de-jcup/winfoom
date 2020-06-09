@@ -21,8 +21,9 @@ package org.kpax.winfoom.pac.net;
 
 
 import org.apache.commons.validator.routines.InetAddressValidator;
+import org.kpax.winfoom.exception.CheckedExceptionWrapper;
 import org.kpax.winfoom.exception.NativeException;
-import org.kpax.winfoom.util.functional.Singleton;
+import org.kpax.winfoom.util.functional.SingletonSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,21 +46,24 @@ public class IpAddressUtils {
 
     public static final String LOCALHOST = "127.0.0.1";
 
-    public static final Singleton<InetAddress[]> ALL_PRIMARY_ADDRESSES = Singleton.of(() -> {
-        try {
-            return InetAddress.getAllByName(HostnameUtils.removeDomain(HostnameUtils.getHostName()));
-        } catch (NativeException e) {
-            throw new UnknownHostException(e.getMessage() + ", error code : " + e.getErrorCode());
-        }
-    });
+    public static final SingletonSupplier<InetAddress[]> ALL_PRIMARY_ADDRESSES = SingletonSupplier.of(() -> {
+                try {
+                    return InetAddress.getAllByName(HostnameUtils.removeDomain(HostnameUtils.getHostName()));
+                } catch (UnknownHostException e) {
+                    throw new CheckedExceptionWrapper(e);
+                } catch (NativeException e) {
+                    throw new CheckedExceptionWrapper(new UnknownHostException(e.getMessage() + ", error code : " + e.getErrorCode()));
+                }
+            }
+    );
 
-    public static final Singleton<InetAddress> PRIMARY_IPv4_ADDRESS = Singleton.of(() -> {
+    public static final SingletonSupplier<InetAddress> PRIMARY_IPv4_ADDRESS = SingletonSupplier.of(() -> {
         try {
             return Arrays.stream(ALL_PRIMARY_ADDRESSES.get()).
                     filter(a -> a.getClass() == Inet4Address.class).
                     findFirst().orElseThrow(() -> new UnknownHostException("No IPv4 address found"));
-        } catch (NativeException e) {
-            throw new UnknownHostException(e.getMessage() + ", error code : " + e.getErrorCode());
+        } catch (UnknownHostException e) {
+            throw new CheckedExceptionWrapper(e);
         }
     });
 
