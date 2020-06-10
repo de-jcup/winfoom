@@ -36,6 +36,9 @@ public class PacUtils {
             .entryCapacity(GLOB_PATTERN_CACHE_CAPACITY)
             .build();
 
+    private PacUtils() {
+    }
+
     /**
      * Translate a GLOB pattern into a RegExp pattern. GLOB patterns originate
      * from Unix hosts where they are primarily used for file pattern matching.

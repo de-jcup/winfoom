@@ -13,7 +13,7 @@
 package org.kpax.winfoom.proxy;
 
 import org.apache.commons.lang3.StringUtils;
-import org.kpax.winfoom.annotation.ProxySession;
+import org.kpax.winfoom.annotation.ProxySessionScope;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.util.InputOutputs;
@@ -34,7 +34,7 @@ import java.net.SocketException;
  * @author Eugen Covaci
  */
 @Order(0)
-@ProxySession
+@ProxySessionScope
 @Component
 class LocalProxyServer implements AutoCloseable {
 
@@ -51,9 +51,6 @@ class LocalProxyServer implements AutoCloseable {
 
     @Autowired
     private ClientConnectionHandler clientConnectionHandler;
-
-    @Autowired
-    private ProxyLifecycle proxyLifecycle;
 
     private ServerSocket serverSocket;
 

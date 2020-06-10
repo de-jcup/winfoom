@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @see org.kpax.winfoom.proxy.ProxyLifecycle
  * @see ScopeConfiguration
+ * @see org.kpax.winfoom.annotation.ProxySessionScope
  */
 public class ProxySessionScope implements Scope, AutoCloseable {
 
@@ -29,11 +30,6 @@ public class ProxySessionScope implements Scope, AutoCloseable {
      * The beans repository.
      */
     private final Map<String, Object> scopedBeans = new ConcurrentHashMap<>();
-
-    /**
-     * The destruction callbacks repository.
-     */
-    private final Map<String, Runnable> destructionCallbacks = new ConcurrentHashMap<>();
 
     @Override
     public Object get(String name, ObjectFactory<?> objectFactory) {
@@ -53,7 +49,7 @@ public class ProxySessionScope implements Scope, AutoCloseable {
 
     @Override
     public void registerDestructionCallback(String name, Runnable runnable) {
-        destructionCallbacks.put(name, runnable);
+        logger.warn("ProxySessionScope does not support destruction callbacks");
     }
 
     @Override
@@ -78,7 +74,6 @@ public class ProxySessionScope implements Scope, AutoCloseable {
                 InputOutputs.close((AutoCloseable) bean);
             }
         });
-        ;
         scopedBeans.clear();
     }
 }

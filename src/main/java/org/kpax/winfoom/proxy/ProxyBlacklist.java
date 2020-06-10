@@ -12,7 +12,7 @@
 
 package org.kpax.winfoom.proxy;
 
-import org.kpax.winfoom.annotation.ProxySession;
+import org.kpax.winfoom.annotation.ProxySessionScope;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
  * which means it will not be used again until the blacklist timeout happens.
  */
 @Lazy
-@ProxySession
+@ProxySessionScope
 @Component
 public class ProxyBlacklist implements AutoCloseable {
 
@@ -134,7 +134,7 @@ public class ProxyBlacklist implements AutoCloseable {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         logger.debug("Clear the blacklist");
         blacklistMap.clear();
     }

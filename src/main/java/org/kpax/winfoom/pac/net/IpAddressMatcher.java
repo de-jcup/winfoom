@@ -22,7 +22,9 @@ public class IpAddressMatcher {
      * @param ipAddress the address or range of addresses from which the request must come.
      */
     public IpAddressMatcher(String ipAddress) throws UnknownHostException {
-
+        if (StringUtils.isEmpty(ipAddress)) {
+            throw new UnknownHostException("Null or empty address");
+        }
         if (ipAddress.indexOf('/') > 0) {
             String[] addressAndMask = StringUtils.split(ipAddress, "/");
             ipAddress = addressAndMask[0];

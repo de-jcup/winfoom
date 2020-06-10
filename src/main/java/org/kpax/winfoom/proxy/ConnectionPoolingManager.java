@@ -17,7 +17,7 @@ import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.kpax.winfoom.annotation.ProxySession;
+import org.kpax.winfoom.annotation.ProxySessionScope;
 import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.util.InputOutputs;
 import org.kpax.winfoom.util.functional.SingletonSupplier;
@@ -38,7 +38,7 @@ import java.util.concurrent.TimeUnit;
  * Only used for non-CONNECT HTTP requests.
  */
 @Order(1)
-@ProxySession
+@ProxySessionScope
 @Component
 class ConnectionPoolingManager implements AutoCloseable {
 
@@ -53,20 +53,20 @@ class ConnectionPoolingManager implements AutoCloseable {
     /**
      * For HTTP proxy type
      */
-    private SingletonSupplier<PoolingHttpClientConnectionManager> httpClientConnManagerSupplier =
-            new SingletonSupplier(() -> createConnectionManager(null));
+    private final SingletonSupplier<PoolingHttpClientConnectionManager> httpClientConnManagerSupplier =
+            new SingletonSupplier<>(() -> createConnectionManager(null));
 
     /**
      * For SOCKS5 proxy type
      */
-    private SingletonSupplier<PoolingHttpClientConnectionManager> socksConnManagerSupplier =
-            new SingletonSupplier(() -> createSocksConnectionManager(false));
+    private final SingletonSupplier<PoolingHttpClientConnectionManager> socksConnManagerSupplier =
+            new SingletonSupplier<>(() -> createSocksConnectionManager(false));
 
     /**
      * For SOCKS4 proxy type
      */
-    private SingletonSupplier<PoolingHttpClientConnectionManager> socks4ConnManagerSupplier =
-            new SingletonSupplier(() -> createSocksConnectionManager(true));
+    private final SingletonSupplier<PoolingHttpClientConnectionManager> socks4ConnManagerSupplier =
+            new SingletonSupplier<>(() -> createSocksConnectionManager(true));
 
     /**
      * Lazy getter for HTTP proxy.

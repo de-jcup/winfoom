@@ -29,6 +29,9 @@ public class CommandExecutor {
 
     private static final Logger logger = LoggerFactory.getLogger(CommandExecutor.class);
 
+    private CommandExecutor() {
+    }
+
     /**
      * Execute a command with parameters.
      *

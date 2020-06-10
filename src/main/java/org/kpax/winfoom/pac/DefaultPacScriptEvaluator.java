@@ -19,7 +19,7 @@
 package org.kpax.winfoom.pac;
 
 import org.apache.commons.io.IOUtils;
-import org.kpax.winfoom.annotation.ProxySession;
+import org.kpax.winfoom.annotation.ProxySessionScope;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.exception.PacFileException;
 import org.kpax.winfoom.exception.PacScriptException;
@@ -48,7 +48,7 @@ import java.util.Objects;
 @Order(2)
 @Lazy
 @Component
-@ProxySession
+@ProxySessionScope
 public class DefaultPacScriptEvaluator implements PacScriptEvaluator {
 
     private final Logger logger = LoggerFactory.getLogger(DefaultPacScriptEvaluator.class);

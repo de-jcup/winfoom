@@ -9,9 +9,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Mark a Spring managed bean as proxySession scoped.
+ * <p>The target bean is proxied.
+ */
 @Qualifier
 @Scope(value = org.kpax.winfoom.config.ProxySessionScope.NAME, proxyMode = ScopedProxyMode.TARGET_CLASS)
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ProxySession {
+public @interface ProxySessionScope {
 }

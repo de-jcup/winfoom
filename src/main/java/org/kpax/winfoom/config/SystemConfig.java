@@ -15,9 +15,7 @@ package org.kpax.winfoom.config;
 import org.apache.http.client.config.RequestConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
@@ -39,9 +37,6 @@ public class SystemConfig {
     public static final String BACKUP_DIR_NAME = "backup";
 
     private final Logger logger = LoggerFactory.getLogger(SystemConfig.class);
-
-    @Autowired
-    private ConfigurableApplicationContext applicationContext;
 
     /**
      * Connection pool property:  max polled connections per route.

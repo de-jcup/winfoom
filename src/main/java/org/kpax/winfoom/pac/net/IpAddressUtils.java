@@ -50,7 +50,7 @@ public class IpAddressUtils {
      * A supplier for all primary IP addresses of the current Windows machine. The {@link SingletonSupplier#get()}
      * may throw a {@link CheckedExceptionWrapper} exception.
      */
-    public static final SingletonSupplier<InetAddress[]> allPrimaryAddresses = new SingletonSupplier(() -> {
+    public static final SingletonSupplier<InetAddress[]> allPrimaryAddresses = new SingletonSupplier<>(() -> {
         try {
             return InetAddress.getAllByName(HostnameUtils.removeDomain(HostnameUtils.getHostName()));
         } catch (UnknownHostException e) {
@@ -64,7 +64,7 @@ public class IpAddressUtils {
      * A supplier for the primary IPv4 address of the current Windows machine.The {@link SingletonSupplier#get()}
      * may throw a {@link CheckedExceptionWrapper} exception.
      */
-    public static final SingletonSupplier<InetAddress> primaryIPv4Address = new SingletonSupplier(() -> {
+    public static final SingletonSupplier<InetAddress> primaryIPv4Address = new SingletonSupplier<>(() -> {
         try {
             return Arrays.stream(allPrimaryAddresses.get()).
                     filter(a -> a.getClass() == Inet4Address.class).

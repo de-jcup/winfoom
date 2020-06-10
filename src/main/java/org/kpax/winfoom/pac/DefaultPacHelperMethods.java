@@ -173,7 +173,7 @@ public class DefaultPacHelperMethods implements PacHelperMethodsNetscape, PacHel
             List<InetAddress> addresses = IpAddressUtils.resolve(host);
             if (!addresses.isEmpty()) {
                 if (addresses.size() > 1) {
-                    Collections.sort(addresses, IpAddressUtils.addressComparator(systemConfig.isPreferIPv6Addresses()));
+                    addresses.sort(IpAddressUtils.addressComparator(systemConfig.isPreferIPv6Addresses()));
                 }
                 return addresses.get(0).getHostAddress();
             }
