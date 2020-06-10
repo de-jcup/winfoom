@@ -13,13 +13,13 @@
 package org.kpax.winfoom.util;
 
 import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.lang3.Validate;
 import org.apache.http.impl.io.SessionInputBufferImpl;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.config.SystemConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.util.Assert;
 
 import java.io.File;
 import java.io.IOException;
@@ -136,8 +136,8 @@ public final class InputOutputs {
     }
 
     public static boolean isIncluded(Properties who, Properties where) {
-        Validate.notNull(who, "who cannot be null");
-        Validate.notNull(where, "where cannot be null");
+        Assert.notNull(who, "who cannot be null");
+        Assert.notNull(where, "where cannot be null");
         for (String key : who.stringPropertyNames()) {
             if (where.getProperty(key) == null) {
                 return false;
@@ -162,8 +162,14 @@ public final class InputOutputs {
         return file.delete();
     }
 
+    /**
+     * Delete the directory's content.
+     *
+     * @param directory the {@link File} to be emptied
+     * @return {@code true} iff all the contained files were deleted.
+     */
     public static boolean emptyDirectory(File directory) {
-        Validate.isTrue(directory.isDirectory());
+        Assert.isTrue(directory.isDirectory(), "Not a directory");
         File[] files = directory.listFiles();
         for (File file : Objects.requireNonNull(files)) {
             deleteFile(file);
@@ -197,8 +203,17 @@ public final class InputOutputs {
         return true;
     }
 
+    /**
+     * Move the file designated by a {@link Path} to a backup location.
+     *
+     * @param path        the file's {@link Path}
+     * @param withWarning if {@code true} an warning will popup
+     * @param options     the moving {@link CopyOption}s
+     * @return the new {@link Path} or {@code null} if the original file does not exist
+     * @throws IOException
+     */
     public static Path backupFile(Path path, boolean withWarning, CopyOption... options) throws IOException {
-        Validate.notNull(path, "path cannot be null");
+        Assert.notNull(path, "path cannot be null");
         if (Files.exists(path)) {
             Path appHomePath = Paths.get(System.getProperty("user.home"), SystemConfig.APP_HOME_DIR_NAME);
             Path backupDirPath = appHomePath.resolve(SystemConfig.BACKUP_DIR_NAME);

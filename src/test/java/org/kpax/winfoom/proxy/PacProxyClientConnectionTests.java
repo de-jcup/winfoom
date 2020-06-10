@@ -124,7 +124,9 @@ public class PacProxyClientConnectionTests {
         remoteServer.start();
 
         serverSocket = new ServerSocket(TestConstants.LOCAL_PROXY_PORT);
-        proxyLifecycle.start();
+        if (!proxyLifecycle.isRunning()) {
+            proxyLifecycle.start();
+        }
         new Thread(() -> {
             while (!serverSocket.isClosed()) {
                 try {
@@ -485,5 +487,6 @@ public class PacProxyClientConnectionTests {
             // Ignore
         }
         remoteServer.stop();
+        proxyLifecycle.stop();
     }
 }

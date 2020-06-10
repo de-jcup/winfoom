@@ -19,7 +19,6 @@
 package org.kpax.winfoom.pac.net;
 
 import com.sun.jna.Native;
-import org.apache.commons.validator.routines.InetAddressValidator;
 import org.kpax.winfoom.exception.NativeException;
 
 /**
@@ -67,14 +66,14 @@ public class HostnameUtils {
      * The method is safe to use even if the input is an IPv4 literal or IPv6
      * literal. In this case the input will be returned unchanged.
      *
-     * @param hostname
-     * @return hostname with domain stripped
+     * @param hostname the hostname
+     * @return the domain stripped hostname
      */
     public static String removeDomain(final String hostname) {
         if (hostname == null) {
             return null;
         }
-        if (InetAddressValidator.getInstance().isValidInet4Address(hostname)) {
+        if (IpAddressUtils.isValidIPv4Address(hostname)) {
             return hostname;
         }
 

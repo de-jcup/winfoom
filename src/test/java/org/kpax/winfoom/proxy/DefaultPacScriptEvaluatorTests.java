@@ -25,7 +25,7 @@ import org.kpax.winfoom.FoomApplicationTest;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.config.ProxySessionScope;
 import org.kpax.winfoom.exception.PacFileException;
-import org.kpax.winfoom.pac.DefaultPacScriptEvaluator;
+import org.kpax.winfoom.pac.PacScriptEvaluator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -49,7 +49,7 @@ class DefaultPacScriptEvaluatorTests {
 
     @Lazy
     @Autowired
-    private DefaultPacScriptEvaluator defaultPacScriptEvaluator;
+    private PacScriptEvaluator pacScriptEvaluator;
 
     @Autowired
     private ProxySessionScope proxySessionScope;

@@ -13,7 +13,6 @@
 package org.kpax.winfoom.util;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
 import org.apache.http.*;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.client.utils.URLEncodedUtils;
@@ -23,6 +22,7 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicStatusLine;
 import org.apache.http.protocol.HTTP;
 import org.kpax.winfoom.proxy.ProxyInfo;
+import org.springframework.util.Assert;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -186,7 +186,7 @@ public final class HttpUtils {
      * @return a new {@link BasicStatusLine} instance.
      */
     public static BasicStatusLine toStatusLine(ProtocolVersion protocolVersion, int httpCode, String reasonPhrase) {
-        Validate.notNull(protocolVersion, "protocolVersion cannot be null");
+        Assert.notNull(protocolVersion, "protocolVersion cannot be null");
         return new BasicStatusLine(protocolVersion, httpCode,
                 StringUtils.isEmpty(reasonPhrase) ?
                         EnglishReasonPhraseCatalog.INSTANCE.getReason(httpCode, Locale.ENGLISH) : reasonPhrase);
@@ -210,9 +210,9 @@ public final class HttpUtils {
      */
     public static ContentType getContentType(HttpRequest request) {
         Header contentTypeHeader = request.getFirstHeader(HttpHeaders.CONTENT_TYPE);
-        Validate.isTrue(contentTypeHeader != null, "No Content-Type header found");
+        Assert.isTrue(contentTypeHeader != null, "No Content-Type header found");
         String[] tokens = contentTypeHeader.getValue().split(";");
-        Validate.isTrue(tokens.length > 0, "Wrong content-type format");
+        Assert.isTrue(tokens.length > 0, "Wrong content-type format");
         String contentType = tokens[0].trim();
         String charset = null;
         if (tokens.length > 1) {
@@ -283,12 +283,12 @@ public final class HttpUtils {
         List<ProxyInfo> proxyInfos = new ArrayList<>();
         for (String s : proxyLine.split(";")) {
             String[] split = s.trim().split("\\s+");
-            Validate.isTrue(split.length > 0, "Invalid proxy line [%s]: empty", proxyLine);
+            Assert.isTrue(split.length > 0, String.format("Invalid proxy line [%s]: empty", proxyLine));
             ProxyInfo.PacType type = ProxyInfo.PacType.valueOf(split[0].trim());
             if (type == ProxyInfo.PacType.DIRECT) {
                 proxyInfos.add(new ProxyInfo(ProxyInfo.PacType.DIRECT));
             } else {
-                Validate.isTrue(split.length > 1, "Invalid proxy line [%s]: proxy host:port required", proxyLine);
+                Assert.isTrue(split.length > 1, String.format("Invalid proxy line [%s]: proxy host:port required", proxyLine));
                 proxyInfos.add(new ProxyInfo(type, HttpHost.create(split[1].trim())));
             }
         }
@@ -310,8 +310,15 @@ public final class HttpUtils {
                 && StringUtils.startsWithIgnoreCase(e.getMessage(), "Software caused connection abort");
     }
 
+    /**
+     * Create a new Via {@link Header} by appending the winfoom info.
+     *
+     * @param version   the HTTP version
+     * @param viaHeader the existent Via {@link Header} (nullable)
+     * @return a new Via {@link Header}
+     */
     public static Header createViaHeader(final ProtocolVersion version, final Header viaHeader) {
-        Validate.notNull(version, "version cannot be null");
+        Assert.notNull(version, "version cannot be null");
         String value = String.format("%s.%s winfoom", version.getMajor(), version.getMinor())
                 + (viaHeader != null ? ", " + viaHeader.getValue() : "");
         return new BasicHeader(HttpHeaders.VIA, value);

@@ -21,13 +21,11 @@ import org.apache.http.protocol.HTTP;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.exception.PacScriptException;
 import org.kpax.winfoom.pac.PacScriptEvaluator;
-import org.kpax.winfoom.util.HeaderDateGenerator;
-import org.kpax.winfoom.util.HttpUtils;
-import org.kpax.winfoom.util.InputOutputs;
-import org.kpax.winfoom.util.ObjectFormat;
+import org.kpax.winfoom.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -50,9 +48,11 @@ class ClientConnectionHandler {
     @Autowired
     private ProxyConfig proxyConfig;
 
+    @Lazy
     @Autowired
     private PacScriptEvaluator pacScriptEvaluator;
 
+    @Lazy
     @Autowired
     private ProxyBlacklist proxyBlacklist;
 
@@ -124,7 +124,7 @@ class ClientConnectionHandler {
                     // Success, break the iteration
                     break;
                 } catch (Exception e) {
-                    if (e instanceof ConnectException || e.getCause() instanceof ConnectException) {
+                    if (Throwables.getRootCause(e, ConnectException.class).isPresent()) {
                         logger.debug("Connection error", e);
                         if (itr.hasNext()) {
                             logger.debug("Failed to process connection with proxy: {}, retry with the next one",

@@ -86,7 +86,9 @@ public class DirectProxyClientConnectionTests {
         remoteServer.start();
 
         serverSocket = new ServerSocket(TestConstants.LOCAL_PROXY_PORT);
-        proxyLifecycle.start();
+        if (!proxyLifecycle.isRunning()) {
+            proxyLifecycle.start();
+        }
         new Thread(() -> {
             while (!serverSocket.isClosed()) {
                 try {

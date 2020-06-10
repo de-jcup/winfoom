@@ -20,7 +20,7 @@
 package org.kpax.winfoom.pac.net;
 
 
-import org.apache.commons.validator.routines.InetAddressValidator;
+import inet.ipaddr.IPAddressString;
 import org.kpax.winfoom.exception.CheckedExceptionWrapper;
 import org.kpax.winfoom.exception.NativeException;
 import org.kpax.winfoom.util.functional.SingletonSupplier;
@@ -46,20 +46,27 @@ public class IpAddressUtils {
 
     public static final String LOCALHOST = "127.0.0.1";
 
-    public static final SingletonSupplier<InetAddress[]> ALL_PRIMARY_ADDRESSES = SingletonSupplier.of(() -> {
-                try {
-                    return InetAddress.getAllByName(HostnameUtils.removeDomain(HostnameUtils.getHostName()));
-                } catch (UnknownHostException e) {
-                    throw new CheckedExceptionWrapper(e);
-                } catch (NativeException e) {
-                    throw new CheckedExceptionWrapper(new UnknownHostException(e.getMessage() + ", error code : " + e.getErrorCode()));
-                }
-            }
-    );
-
-    public static final SingletonSupplier<InetAddress> PRIMARY_IPv4_ADDRESS = SingletonSupplier.of(() -> {
+    /**
+     * A supplier for all primary IP addresses of the current Windows machine. The {@link SingletonSupplier#get()}
+     * may throw a {@link CheckedExceptionWrapper} exception.
+     */
+    public static final SingletonSupplier<InetAddress[]> allPrimaryAddresses = new SingletonSupplier(() -> {
         try {
-            return Arrays.stream(ALL_PRIMARY_ADDRESSES.get()).
+            return InetAddress.getAllByName(HostnameUtils.removeDomain(HostnameUtils.getHostName()));
+        } catch (UnknownHostException e) {
+            throw new CheckedExceptionWrapper(e);
+        } catch (NativeException e) {
+            throw new CheckedExceptionWrapper(new UnknownHostException(e.getMessage() + ", error code : " + e.getErrorCode()));
+        }
+    });
+
+    /**
+     * A supplier for the primary IPv4 address of the current Windows machine.The {@link SingletonSupplier#get()}
+     * may throw a {@link CheckedExceptionWrapper} exception.
+     */
+    public static final SingletonSupplier<InetAddress> primaryIPv4Address = new SingletonSupplier(() -> {
+        try {
+            return Arrays.stream(allPrimaryAddresses.get()).
                     filter(a -> a.getClass() == Inet4Address.class).
                     findFirst().orElseThrow(() -> new UnknownHostException("No IPv4 address found"));
         } catch (UnknownHostException e) {
@@ -67,6 +74,10 @@ public class IpAddressUtils {
         }
     });
 
+    /**
+     * A {@link Comparator} that favors the {@link Inet6Address} addresses over the  {@link Inet4Address}.
+     * Addresses of same type are not ordered.
+     */
     public static final Comparator<InetAddress> IPv6_FIRST_COMPARATOR = (a1, a2) -> {
         if (a1.getClass() == Inet4Address.class && a2.getClass() == Inet6Address.class) {
             return 1;
@@ -77,6 +88,10 @@ public class IpAddressUtils {
         }
     };
 
+    /**
+     * A {@link Comparator} that favors the {@link Inet4Address} addresses over the  {@link Inet6Address}.
+     * Addresses of same type are not ordered.
+     */
     public static final Comparator<InetAddress> IPv4_FIRST_COMPARATOR = (a1, a2) -> {
         if (a1.getClass() == Inet4Address.class && a2.getClass() == Inet6Address.class) {
             return -1;
@@ -87,6 +102,10 @@ public class IpAddressUtils {
         }
     };
 
+    /**
+     * A {@link Comparator} that favors the {@link Inet6Address} addresses over the  {@link Inet4Address}.
+     * Addresses of same type are ordered by comparing byte to byte {@link #compareByteByByte(InetAddress, InetAddress)}.
+     */
     public static final Comparator<InetAddress> IPv6_FIRST_TOTAL_ORDERING_COMPARATOR = (a1, a2) -> {
         int compareByType = IPv6_FIRST_COMPARATOR.compare(a1, a2);
         if (compareByType == 0) {
@@ -100,7 +119,14 @@ public class IpAddressUtils {
     IpAddressUtils() {
     }
 
-    private static int compareByteByByte(InetAddress a1, InetAddress a2) {
+    /**
+     * A  byte-by-byte {@link InetAddress} comparator.
+     *
+     * @param a1 first address
+     * @param a2 second address
+     * @return {@code 1} if the first address is bigger,  {@code -1} if the second address is bigger or {@code 0} otherwise.
+     */
+    public static int compareByteByByte(InetAddress a1, InetAddress a2) {
         byte[] bArr1 = a1.getAddress();
         byte[] bArr2 = a2.getAddress();
         // Compare byte-by-byte.
@@ -120,23 +146,41 @@ public class IpAddressUtils {
         return 0;
     }
 
+    /**
+     * A selective getter for address comparators.
+     *
+     * @param preferIPv6Addresses whether to prefer the IPv6 addresses.
+     * @return {@link #IPv6_FIRST_COMPARATOR} if prefer the IPv6 addresses, {@link #IPv4_FIRST_COMPARATOR} otherwise
+     */
     public static Comparator<InetAddress> addressComparator(boolean preferIPv6Addresses) {
         return preferIPv6Addresses ? IPv6_FIRST_COMPARATOR : IPv4_FIRST_COMPARATOR;
     }
 
+    /**
+     * @see #resolve(String, Predicate)
+     */
     public static List<InetAddress> resolve(String host)
             throws UnknownHostException {
         return resolve(host, null);
     }
 
+    /**
+     * If the host is an IP address (IPv4 or IPv6), then the corresponding {@link InetAddress} is returned.
+     * Otherwise the host is DNS resolved.
+     *
+     * @param host   the IP address or hostname
+     * @param filter for filtering the result
+     * @return the filtered list (possible empty) of {@link InetAddress} instances
+     * @throws UnknownHostException if no IP address for the host could be found, or if a scope_id was specified for a global IPv6 address
+     */
     public static List<InetAddress> resolve(String host,
                                             Predicate<InetAddress> filter)
             throws UnknownHostException {
-        if (InetAddressValidator.getInstance().isValid(host)) {
+        if (isValidIPAddress(host)) {
             // No DNS lookup is needed in this case
-            InetAddress addr = InetAddress.getByName(host);
-            if (filter == null || filter.test(addr)) {
-                return Collections.singletonList(addr);
+            InetAddress address = InetAddress.getByName(host);
+            if (filter == null || filter.test(address)) {
+                return Collections.singletonList(address);
             } else {
                 return Collections.emptyList();
             }
@@ -147,6 +191,37 @@ public class IpAddressUtils {
                 addressStream = addressStream.filter(filter);
             }
             return addressStream.collect(Collectors.toList());
+        }
+    }
+
+    public static boolean isValidIPAddress(String address) {
+        try {
+            IPAddressString addrString = new IPAddressString(address);
+            addrString.toAddress();
+            return true;
+        } catch (Exception e) {
+            logger.debug("Not a valid IP address", e);
+            return false;
+        }
+    }
+
+    public static boolean isValidIPv4Address(String address) {
+        try {
+            IPAddressString addrString = new IPAddressString(address);
+            return addrString.toAddress().isIPv4();
+        } catch (Exception e) {
+            logger.debug("Not a valid IP address", e);
+            return false;
+        }
+    }
+
+    public static boolean isValidIPv6Address(String address) {
+        try {
+            IPAddressString addrString = new IPAddressString(address);
+            return addrString.toAddress().isIPv6();
+        } catch (Exception e) {
+            logger.debug("Not a valid IP address", e);
+            return false;
         }
     }
 

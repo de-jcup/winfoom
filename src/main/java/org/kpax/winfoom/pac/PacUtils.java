@@ -22,8 +22,6 @@ import java.util.regex.Pattern;
 
 /**
  * Methods and constants useful in PAC script evaluation.
- *
- * @author lbruun
  */
 public class PacUtils {
 
@@ -37,7 +35,6 @@ public class PacUtils {
             .eternal(true)
             .entryCapacity(GLOB_PATTERN_CACHE_CAPACITY)
             .build();
-
 
     /**
      * Translate a GLOB pattern into a RegExp pattern. GLOB patterns originate
@@ -66,7 +63,7 @@ public class PacUtils {
      * translated previously, the result from the cache will be returned.
      *
      * @param glob the GLOB pattern.
-     * @return the pattern.
+     * @return the {@link Pattern} instance.
      */
     public static Pattern createGlobRegexPattern(String glob) {
 

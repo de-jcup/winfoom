@@ -1,16 +1,23 @@
 package org.kpax.winfoom.pac;
 
+import inet.ipaddr.AddressStringException;
+import inet.ipaddr.IPAddress;
+import inet.ipaddr.IPAddressString;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.kpax.winfoom.FoomApplicationTest;
 import org.kpax.winfoom.config.SystemConfig;
+import org.kpax.winfoom.pac.net.IpAddressUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.net.UnknownHostException;
+import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -19,6 +26,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @ActiveProfiles("test")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class DefaultPacHelperMethodsTests {
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
     private DefaultPacHelperMethods defaultPacHelperMethods;
@@ -87,6 +96,18 @@ public class DefaultPacHelperMethodsTests {
     }
 
     @Test
+    void isInNet_ExactMatchIPv4_True() {
+        boolean inNetEx = defaultPacHelperMethods.isInNet("198.95.249.79", "198.95.249.79", "255.255.255.255");
+        assertTrue(inNetEx);
+    }
+
+    @Test
+    void isInNet_MaskMatchIPv4_True() {
+        boolean inNetEx = defaultPacHelperMethods.isInNet("198.95.249.79", "198.95.0.0", "255.255.0.0");
+        assertTrue(inNetEx);
+    }
+
+    @Test
     void isInNetEx_ExactMatchIPv4_True() {
         boolean inNetEx = defaultPacHelperMethods.isInNetEx("198.95.249.79", "198.95.249.79/32");
         assertTrue(inNetEx);
@@ -127,6 +148,35 @@ public class DefaultPacHelperMethodsTests {
     void sortIpAddressList_IPv4_RightOrder() {
         String sorted = defaultPacHelperMethods.sortIpAddressList("127.0.0.1;10.2.3.9");
         assertEquals("10.2.3.9;127.0.0.1", sorted);
+    }
+
+    @Test
+    void myIpAddress_IsIPv4 () {
+        String myIpAddress = defaultPacHelperMethods.myIpAddress();
+        logger.info("myIpAddress {}", myIpAddress);
+        assertTrue(IpAddressUtils.isValidIPv4Address(myIpAddress));
+    }
+
+    @Test
+    void myIpAddressEx_IsIPv4Orv6 () {
+        String myIpAddressEx = defaultPacHelperMethods.myIpAddressEx();
+        logger.info("myIpAddressEx {}", myIpAddressEx);
+        Arrays.stream(myIpAddressEx.split(";")).forEach(address -> {
+            logger.info("address={}", address);
+            assertTrue(IpAddressUtils.isValidIPAddress(address));
+        });
+    }
+
+    @Test
+    void boo () throws AddressStringException {
+        String str = "fe80:0:0:0:a4fe:1ee4:ff09:26ab%3";
+        IPAddressString addrString = new IPAddressString(str);
+        //try {
+            IPAddress addr = addrString.toAddress();
+       /* } catch(AddressStringException e) {
+            //e.getMessage provides validation issue
+
+        }*/
     }
 
 }

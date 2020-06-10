@@ -12,11 +12,11 @@
 
 package org.kpax.winfoom.proxy;
 
-import org.apache.commons.lang3.Validate;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.conn.ManagedHttpClientConnection;
 import org.kpax.winfoom.util.InputOutputs;
+import org.springframework.util.Assert;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -38,8 +38,8 @@ public final class Tunnel implements Closeable {
     private final OutputStream outputStream;
 
     Tunnel(ManagedHttpClientConnection connection, HttpResponse response) throws IOException {
-        Validate.notNull(connection, "connection cannot be null");
-        Validate.notNull(response, "response cannot be null");
+        Assert.notNull(connection, "connection cannot be null");
+        Assert.notNull(response, "response cannot be null");
         this.connection = connection;
         this.response = response;
         this.inputStream = connection.getSocket().getInputStream();

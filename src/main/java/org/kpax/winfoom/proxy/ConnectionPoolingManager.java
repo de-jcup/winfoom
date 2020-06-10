@@ -17,15 +17,13 @@ import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.kpax.winfoom.config.ProxySessionScope;
+import org.kpax.winfoom.annotation.ProxySession;
 import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.util.InputOutputs;
 import org.kpax.winfoom.util.functional.SingletonSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -40,7 +38,7 @@ import java.util.concurrent.TimeUnit;
  * Only used for non-CONNECT HTTP requests.
  */
 @Order(1)
-@Scope(value = ProxySessionScope.NAME, proxyMode = ScopedProxyMode.TARGET_CLASS)
+@ProxySession
 @Component
 class ConnectionPoolingManager implements AutoCloseable {
 
@@ -56,19 +54,19 @@ class ConnectionPoolingManager implements AutoCloseable {
      * For HTTP proxy type
      */
     private SingletonSupplier<PoolingHttpClientConnectionManager> httpClientConnManagerSupplier =
-            SingletonSupplier.of(() -> createConnectionManager(null));
+            new SingletonSupplier(() -> createConnectionManager(null));
 
     /**
      * For SOCKS5 proxy type
      */
     private SingletonSupplier<PoolingHttpClientConnectionManager> socksConnManagerSupplier =
-            SingletonSupplier.of(() -> createSocksConnectionManager(false));
+            new SingletonSupplier(() -> createSocksConnectionManager(false));
 
     /**
      * For SOCKS4 proxy type
      */
     private SingletonSupplier<PoolingHttpClientConnectionManager> socks4ConnManagerSupplier =
-            SingletonSupplier.of(() -> createSocksConnectionManager(true));
+            new SingletonSupplier(() -> createSocksConnectionManager(true));
 
     /**
      * Lazy getter for HTTP proxy.
@@ -181,7 +179,7 @@ class ConnectionPoolingManager implements AutoCloseable {
 
     @Override
     public void close() {
-        logger.debug("Close all active connection managers");
+        logger.debug("Close all active connection managers and reset the suppliers");
         getAllActiveConnectionManagers().forEach((connSupplier) -> {
             InputOutputs.close(connSupplier.get());
             connSupplier.reset();

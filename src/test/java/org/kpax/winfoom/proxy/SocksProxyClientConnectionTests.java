@@ -89,7 +89,9 @@ public class SocksProxyClientConnectionTests {
         remoteServer.start();
 
         serverSocket = new ServerSocket(TestConstants.LOCAL_PROXY_PORT);
-        proxyLifecycle.start();
+        if (!proxyLifecycle.isRunning()) {
+            proxyLifecycle.start();
+        }
         new Thread(() -> {
             while (!serverSocket.isClosed()) {
                 try {
@@ -197,5 +199,6 @@ public class SocksProxyClientConnectionTests {
         }
         socksRemoteProxyServer.stop();
         remoteServer.stop();
+        proxyLifecycle.stop();
     }
 }

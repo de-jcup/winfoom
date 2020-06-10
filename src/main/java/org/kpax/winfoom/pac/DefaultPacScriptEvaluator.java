@@ -19,8 +19,8 @@
 package org.kpax.winfoom.pac;
 
 import org.apache.commons.io.IOUtils;
+import org.kpax.winfoom.annotation.ProxySession;
 import org.kpax.winfoom.config.ProxyConfig;
-import org.kpax.winfoom.config.ProxySessionScope;
 import org.kpax.winfoom.exception.PacFileException;
 import org.kpax.winfoom.exception.PacScriptException;
 import org.kpax.winfoom.proxy.ProxyInfo;
@@ -28,8 +28,7 @@ import org.kpax.winfoom.util.HttpUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -47,8 +46,9 @@ import java.util.List;
 import java.util.Objects;
 
 @Order(2)
+@Lazy
 @Component
-@Scope(value = ProxySessionScope.NAME, proxyMode = ScopedProxyMode.INTERFACES)
+@ProxySession
 public class DefaultPacScriptEvaluator implements PacScriptEvaluator {
 
     private final Logger logger = LoggerFactory.getLogger(DefaultPacScriptEvaluator.class);
@@ -62,7 +62,7 @@ public class DefaultPacScriptEvaluator implements PacScriptEvaluator {
     private PacScriptEngine scriptEngine;
 
     @PostConstruct
-    void init () throws IOException, PacFileException {
+    void init() throws IOException, PacFileException {
         this.scriptEngine = getScriptEngine(loadScript());
     }
 
@@ -149,7 +149,7 @@ public class DefaultPacScriptEvaluator implements PacScriptEvaluator {
     public List<ProxyInfo> findProxyForURL(URI uri) throws PacScriptException {
         try {
             Object obj = scriptEngine.findProxyForURL(PacUtils.toStrippedURLStr(uri), uri.getHost());
-            String proxyLine =  Objects.toString(obj, null);
+            String proxyLine = Objects.toString(obj, null);
             logger.debug("proxyLine [{}]", proxyLine);
             return HttpUtils.parsePacProxyLine(proxyLine);
         } catch (Exception ex) {

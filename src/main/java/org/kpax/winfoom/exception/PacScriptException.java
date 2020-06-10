@@ -1,7 +1,7 @@
 package org.kpax.winfoom.exception;
 
 /**
- * Signal a failed call to {@code FindProxyForURL} method.
+ * Signal a failed call to {@code FindProxyForURL} method of the PAC script.
  */
 public class PacScriptException extends Exception {
 

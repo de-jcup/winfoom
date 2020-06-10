@@ -13,15 +13,13 @@
 package org.kpax.winfoom.proxy;
 
 import org.apache.commons.lang3.StringUtils;
+import org.kpax.winfoom.annotation.ProxySession;
 import org.kpax.winfoom.config.ProxyConfig;
-import org.kpax.winfoom.config.ProxySessionScope;
 import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.util.InputOutputs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -36,7 +34,7 @@ import java.net.SocketException;
  * @author Eugen Covaci
  */
 @Order(0)
-@Scope(value = ProxySessionScope.NAME, proxyMode = ScopedProxyMode.TARGET_CLASS)
+@ProxySession
 @Component
 class LocalProxyServer implements AutoCloseable {
 
@@ -72,8 +70,7 @@ class LocalProxyServer implements AutoCloseable {
      * @throws IllegalStateException if the server had been started.
      * @throws Exception
      */
-    synchronized void start()
-            throws Exception {
+    synchronized void start() throws Exception {
         logger.info("Start local proxy server with userConfig {}", proxyConfig);
 
         try {

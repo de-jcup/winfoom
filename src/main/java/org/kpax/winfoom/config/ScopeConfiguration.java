@@ -8,13 +8,17 @@ import org.springframework.context.annotation.Lazy;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * Provide configuration for custom scopes.<br>
+ * Currently, only {@link ProxySessionScope} is available.
+ */
 @Configuration
 public class ScopeConfiguration {
 
     private static final Map<String, Object> scopes = new LinkedHashMap<>(1);
 
     @Bean
-    public static CustomScopeConfigurer customScopeConfigurer() {
+    static CustomScopeConfigurer customScopeConfigurer() {
         CustomScopeConfigurer configurer = new CustomScopeConfigurer();
         configurer.setScopes(scopes);
         configurer.addScope(ProxySessionScope.NAME, new ProxySessionScope());
@@ -23,8 +27,8 @@ public class ScopeConfiguration {
 
     @Lazy
     @Bean
-    public ProxySessionScope proxySessionScope () {
-        return (ProxySessionScope)scopes.get(ProxySessionScope.NAME);
+    ProxySessionScope proxySessionScope() {
+        return (ProxySessionScope) scopes.get(ProxySessionScope.NAME);
     }
 
 

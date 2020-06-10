@@ -1,7 +1,7 @@
 package org.kpax.winfoom.pac;
 
+import inet.ipaddr.IPAddressString;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.net.util.SubnetUtils;
 import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.pac.datetime.PacUtilsDateTime;
 import org.kpax.winfoom.pac.net.IpAddressMatcher;
@@ -22,20 +22,6 @@ import java.util.stream.Collectors;
 
 /**
  * Default implementation of a the PAC 'helper functions'.
- *
- * <p>
- * This implementation aims to be as complete and compatible as possible. It
- * implements both the original specification from Netscape, plus the additions
- * from Microsoft.
- *
- * <ul>
- *    <li>Complete. Implements all methods from original Netscape specification
- *        as well as all IPv6 aware additions from Microsoft.</li>
- *    <li>Compatible. Aims for maximum compatibility with all browser
- *         implementations and aims to never fail and never stall.</li>
- * </ul>
- *
- * @author lbruun
  */
 @Lazy
 @Component
@@ -48,9 +34,6 @@ public class DefaultPacHelperMethods implements PacHelperMethodsNetscape, PacHel
 
     // *************************************************************
     //  Official helper functions.
-    // 
-    //  These are pure-Java implementations of the JavaScript
-    //  helper functions defined in Netscape's original document.
     // *************************************************************
 
     @Override
@@ -109,7 +92,7 @@ public class DefaultPacHelperMethods implements PacHelperMethodsNetscape, PacHel
     @Override
     public String myIpAddress() {
         try {
-            return IpAddressUtils.PRIMARY_IPv4_ADDRESS.get().getHostAddress();
+            return IpAddressUtils.primaryIPv4Address.get().getHostAddress();
         } catch (Exception e) {
             logger.warn("Cannot get localhost ip address", e);
             return IpAddressUtils.LOCALHOST;
@@ -122,7 +105,7 @@ public class DefaultPacHelperMethods implements PacHelperMethodsNetscape, PacHel
         if (dnsResolve == null) {
             return false;
         }
-        return new SubnetUtils(pattern, mask).getInfo().isInRange(dnsResolve);
+        return new IPAddressString(pattern + "/" + mask).contains(new IPAddressString(host));
     }
 
     @Override
@@ -203,7 +186,7 @@ public class DefaultPacHelperMethods implements PacHelperMethodsNetscape, PacHel
     @Override
     public String myIpAddressEx() {
         try {
-            InetAddress[] addresses = IpAddressUtils.ALL_PRIMARY_ADDRESSES.get();
+            InetAddress[] addresses = IpAddressUtils.allPrimaryAddresses.get();
             return Arrays.stream(addresses).
                     sorted(IpAddressUtils.addressComparator(systemConfig.isPreferIPv6Addresses())).
                     map(InetAddress::getHostAddress).
@@ -224,20 +207,15 @@ public class DefaultPacHelperMethods implements PacHelperMethodsNetscape, PacHel
         // those) but at the same time we have to preserve the way
         // the original input was represented and return in the same
         // format.
-        String[] arrAddresses = ipAddressList.split(";");
-        List<InetAddress> addresses = new ArrayList<>();
-        for (String host : arrAddresses) {
+        TreeMap<InetAddress, String> addresses = new TreeMap<>(IpAddressUtils.IPv6_FIRST_TOTAL_ORDERING_COMPARATOR);
+        for (String host : ipAddressList.split(";")) {
             try {
-                addresses.add(InetAddress.getByName(host.trim()));
+                addresses.put(InetAddress.getByName(host.trim()), host);
             } catch (UnknownHostException ex) {
                 return "";
             }
         }
-
-        return addresses.stream().
-                sorted(IpAddressUtils.IPv6_FIRST_TOTAL_ORDERING_COMPARATOR).
-                map(a -> arrAddresses[addresses.indexOf(a)].trim()).
-                collect(Collectors.joining(";"));
+        return addresses.values().stream().map(String::trim).collect(Collectors.joining(";"));
     }
 
     @Override

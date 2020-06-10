@@ -37,7 +37,7 @@ public class DefaultPacScriptEvaluatorTests {
 
     @Lazy
     @Autowired
-    private DefaultPacScriptEvaluator defaultPacScriptEvaluator;
+    private PacScriptEvaluator pacScriptEvaluator;
 
     @BeforeEach
     void beforeEach () throws IOException {
@@ -49,7 +49,7 @@ public class DefaultPacScriptEvaluatorTests {
     void findProxyForURL_AllHelperMethods_NoError()
             throws URISyntaxException, PacScriptException {
         System.out.println(proxyConfig.getProxyPacFileLocation());
-        List<ProxyInfo> proxies = defaultPacScriptEvaluator.findProxyForURL(new URI("http://host:80/path?param1=val"));
+        List<ProxyInfo> proxies = pacScriptEvaluator.findProxyForURL(new URI("http://host:80/path?param1=val"));
         assertEquals(1, proxies.size());
         assertTrue(proxies.get(0).getType().isDirect());
     }

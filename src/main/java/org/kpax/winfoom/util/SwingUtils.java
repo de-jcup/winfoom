@@ -14,7 +14,7 @@
 
 package org.kpax.winfoom.util;
 
-import org.apache.commons.lang3.Validate;
+import org.springframework.util.Assert;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -66,7 +66,7 @@ public class SwingUtils {
     public static void showMessage(Component parentComponent, String title, String message, int type) {
         JOptionPane.showMessageDialog(parentComponent,
                 String.format("<html><body><p style='max-width: 300px;overflow-wrap: normal;'>%s</p></body></html>",
-                        message) ,
+                        message),
                 title,
                 type);
     }
@@ -102,8 +102,8 @@ public class SwingUtils {
      * @param frame    the current {@link JFrame}
      */
     public static void executeRunnable(final Runnable runnable, final JFrame frame) {
-        Validate.notNull(runnable, "runnable cannot be null");
-        Validate.notNull(frame, "frame cannot be null");
+        Assert.notNull(runnable, "runnable cannot be null");
+        Assert.notNull(frame, "frame cannot be null");
         frame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         Thread thread = new Thread(() -> {
             try {

@@ -12,13 +12,12 @@
 
 package org.kpax.winfoom.proxy;
 
+import org.kpax.winfoom.annotation.ProxySession;
 import org.kpax.winfoom.config.ProxyConfig;
-import org.kpax.winfoom.config.ProxySessionScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -33,9 +32,10 @@ import java.util.stream.Collectors;
  * If a proxy doesn't respond to a connect attempt, it can be blacklisted
  * which means it will not be used again until the blacklist timeout happens.
  */
-@Scope(value = ProxySessionScope.NAME, proxyMode = ScopedProxyMode.TARGET_CLASS)
+@Lazy
+@ProxySession
 @Component
-public class ProxyBlacklist implements AutoCloseable{
+public class ProxyBlacklist implements AutoCloseable {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 

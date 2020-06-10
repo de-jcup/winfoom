@@ -12,7 +12,6 @@
 
 package org.kpax.winfoom.proxy;
 
-import org.apache.commons.lang3.Validate;
 import org.apache.http.*;
 import org.apache.http.config.MessageConstraints;
 import org.apache.http.impl.io.DefaultHttpRequestParser;
@@ -26,6 +25,7 @@ import org.kpax.winfoom.util.InputOutputs;
 import org.kpax.winfoom.util.ObjectFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.Assert;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -80,10 +80,13 @@ final class ClientConnection implements AutoCloseable {
     private final HttpRequest httpRequest;
 
     /**
-     * The request line. We keep a reference here to avoid multiple calling to {@link HttpRequest#getRequestLine()}
+     * The request line. We keep a reference here to avoid multiple calling the {@link HttpRequest#getRequestLine()}
      */
     private final RequestLine requestLine;
 
+    /**
+     * The request URI extracted from the request line.
+     */
     private final URI requestUri;
 
     /**
@@ -148,6 +151,9 @@ final class ClientConnection implements AutoCloseable {
         return httpRequest;
     }
 
+    /**
+     * @return the request URI extracted from the request line.
+     */
     URI getRequestUri() {
         return requestUri;
     }
@@ -206,7 +212,7 @@ final class ClientConnection implements AutoCloseable {
      * @param e               the message of this error becomes the reasonPhrase from the status line.
      */
     void writeErrorResponse(ProtocolVersion protocolVersion, int statusCode, Exception e) {
-        Validate.notNull(e, "Exception cannot be null");
+        Assert.notNull(e, "Exception cannot be null");
         writeErrorResponse(protocolVersion, statusCode, e.getMessage());
     }
 

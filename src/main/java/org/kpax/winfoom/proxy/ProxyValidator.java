@@ -51,6 +51,7 @@ import java.io.IOException;
 import java.net.*;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Responsible with proxy config validation.
@@ -70,6 +71,7 @@ public class ProxyValidator {
     @Autowired
     private PacScriptEvaluator pacScriptEvaluator;
 
+    @Lazy
     @Autowired
     private ProxyBlacklist proxyBlacklist;
 
@@ -120,11 +122,14 @@ public class ProxyValidator {
             HttpHost testHost = HttpHost.create(proxyConfig.getProxyTestUrl());
             return pacScriptEvaluator.findProxyForURL(new URI(testHost.toURI()));
         } catch (BeanCreationException e) {
-            Throwable actualException = Throwables.getRootCause(e, IOException.class, PacFileException.class);
-            if (actualException instanceof IOException) {
-                throw new InvalidProxySettingsException("Cannot load the PAC file", actualException);
-            } else if (actualException instanceof PacFileException) {
-                throw new InvalidProxySettingsException("The PAC file seems to be invalid", actualException);
+            Optional<Throwable> optionalThrowable = Throwables.getRootCause(e, IOException.class, PacFileException.class);
+            if (optionalThrowable.isPresent()) {
+                Throwable actualException = optionalThrowable.get();
+                if (actualException instanceof IOException) {
+                    throw new InvalidProxySettingsException("Cannot load the PAC file", actualException);
+                } else if (actualException instanceof PacFileException) {
+                    throw new InvalidProxySettingsException("The PAC file seems to be invalid", actualException);
+                }
             }
             throw new InvalidProxySettingsException("Cannot load or parse the PAC file", e);
         } catch (PacScriptException e) {

@@ -123,7 +123,9 @@ class HttpProxyClientConnectionTests {
         remoteServer.start();
 
         serverSocket = new ServerSocket(TestConstants.LOCAL_PROXY_PORT);
-        proxyLifecycle.start();
+        if (!proxyLifecycle.isRunning()) {
+            proxyLifecycle.start();
+        }
         new Thread(() -> {
             while (!serverSocket.isClosed()) {
                 try {
@@ -229,6 +231,7 @@ class HttpProxyClientConnectionTests {
         }
         remoteProxyServer.stop();
         remoteServer.stop();
+        proxyLifecycle.stop();
     }
 
 }

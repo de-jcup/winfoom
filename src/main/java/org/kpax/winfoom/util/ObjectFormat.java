@@ -12,7 +12,7 @@
 
 package org.kpax.winfoom.util;
 
-import org.apache.commons.lang3.Validate;
+import org.springframework.util.Assert;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -35,7 +35,7 @@ public final class ObjectFormat {
      * @return The resulted string as bytes.
      */
     public static byte[] toCrlf(Object input, Charset charset) {
-        Validate.notNull(input, "input cannot be null");
+        Assert.notNull(input, "input cannot be null");
         return (input + CRLF).getBytes(charset);
     }
 

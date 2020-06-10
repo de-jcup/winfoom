@@ -9,9 +9,6 @@ import java.util.Arrays;
 /**
  * Matches a request based on IP Address or subnet mask matching against the remote address.
  * The original is <a href="https://github.com/justinedelson/spring-security/blob/master/web/src/main/java/org/springframework/security/web/util/IpAddressMatcher.java">IpAddressMatcher.java</a>
- *
- * @author Luke Taylor
- * @since 3.0.2
  */
 public class IpAddressMatcher {
 

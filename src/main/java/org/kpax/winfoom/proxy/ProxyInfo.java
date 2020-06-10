@@ -12,8 +12,8 @@
 
 package org.kpax.winfoom.proxy;
 
-import org.apache.commons.lang3.Validate;
 import org.apache.http.HttpHost;
+import org.springframework.util.Assert;
 
 import java.util.Objects;
 
@@ -31,7 +31,7 @@ public final class ProxyInfo {
     }
 
     public ProxyInfo(ProxyType type, HttpHost proxyHost) {
-        Validate.notNull(type, "type cannot be null");
+        Assert.notNull(type, "type cannot be null");
         this.type = type;
         this.proxyHost = proxyHost;
     }
