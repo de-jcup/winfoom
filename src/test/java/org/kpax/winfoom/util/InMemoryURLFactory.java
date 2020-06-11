@@ -28,7 +28,7 @@ public class InMemoryURLFactory {
     private static InMemoryURLFactory instance = null;
 
     public static synchronized InMemoryURLFactory getInstance() {
-        if(instance == null)
+        if (instance == null)
             instance = new InMemoryURLFactory();
         return instance;
     }
@@ -59,7 +59,7 @@ public class InMemoryURLFactory {
 
         @Override
         protected URLConnection openConnection(URL u) throws IOException {
-            if(!u.getProtocol().equals("memory")) {
+            if (!u.getProtocol().equals("memory")) {
                 throw new IOException("Cannot handle protocol: " + u.getProtocol());
             }
             return new URLConnection(u) {
@@ -77,7 +77,7 @@ public class InMemoryURLFactory {
                 @Override
                 public long getContentLengthLong() {
                     initDataIfNeeded();
-                    if(data == null)
+                    if (data == null)
                         return 0;
                     return data.length;
                 }
@@ -90,12 +90,12 @@ public class InMemoryURLFactory {
                 }
 
                 private void initDataIfNeeded() {
-                    if(data == null)
+                    if (data == null)
                         data = contents.get(u);
                 }
 
                 private void checkDataAvailability() throws IOException {
-                    if(data == null)
+                    if (data == null)
                         throw new IOException("In-memory data cannot be found for: " + u.getPath());
                 }
 

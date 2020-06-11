@@ -40,7 +40,7 @@ public class DefaultPacScriptEvaluatorTests {
     private PacScriptEvaluator pacScriptEvaluator;
 
     @BeforeEach
-    void beforeEach () throws IOException {
+    void beforeEach() throws IOException {
         when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(new File("./src/test/resources/proxy-simple-all-helpers.pac").toURI().toURL());
 
     }

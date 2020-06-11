@@ -148,14 +148,14 @@ public class DefaultPacHelperMethodsTests {
     }
 
     @Test
-    void myIpAddress_IsIPv4 () {
+    void myIpAddress_IsIPv4() {
         String myIpAddress = defaultPacHelperMethods.myIpAddress();
         logger.info("myIpAddress {}", myIpAddress);
         assertTrue(IpAddressUtils.isValidIPv4Address(myIpAddress));
     }
 
     @Test
-    void myIpAddressEx_IsIPv4Orv6 () {
+    void myIpAddressEx_IsIPv4Orv6() {
         String myIpAddressEx = defaultPacHelperMethods.myIpAddressEx();
         logger.info("myIpAddressEx {}", myIpAddressEx);
         Arrays.stream(myIpAddressEx.split(";")).forEach(address -> {

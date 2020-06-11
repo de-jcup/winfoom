@@ -77,7 +77,7 @@ public class ProxyContext implements AutoCloseable {
 
     }
 
-    public boolean isRunning () {
+    public boolean isRunning() {
         return proxyLifecycle.isRunning();
     }
 
