@@ -9,10 +9,11 @@ import org.junit.jupiter.api.Test;
 import java.util.stream.IntStream;
 
 public class CacheTests {
+
     @Test
     void perft_Cache2k() {
         Cache<String, Integer> cache = Cache2kBuilder.of(new Cache2kConfiguration<String, Integer>())
-                .name("precompiledGlobPattern")
+                .name("bla")
                 .eternal(true)
                 .entryCapacity(200)
                 .build();
