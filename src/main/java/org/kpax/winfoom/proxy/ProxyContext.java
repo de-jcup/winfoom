@@ -24,8 +24,8 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Provide a thread pool for async execution also allows begin/end proxy session.<br/>
- * We rely on the Spring context to close this instance!
+ * Provide a thread pool for async execution also allows begin/end proxy session.
+ * <p>We rely on the Spring context to close this instance!
  *
  * @author Eugen Covaci
  */
@@ -75,6 +75,10 @@ public class ProxyContext implements AutoCloseable {
             Authenticator.setDefault(null);
         }
 
+    }
+
+    public boolean isRunning () {
+        return proxyLifecycle.isRunning();
     }
 
     public ExecutorService executorService() {

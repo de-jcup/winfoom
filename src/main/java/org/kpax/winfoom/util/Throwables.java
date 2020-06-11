@@ -66,4 +66,5 @@ public class Throwables {
     public static boolean isChecked(Throwable throwable) {
         return !isUnchecked(throwable);
     }
+
 }

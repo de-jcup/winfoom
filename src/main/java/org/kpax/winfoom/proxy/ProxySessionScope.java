@@ -1,4 +1,4 @@
-package org.kpax.winfoom.config;
+package org.kpax.winfoom.proxy;
 
 import org.kpax.winfoom.util.InputOutputs;
 import org.slf4j.Logger;
@@ -14,10 +14,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * A proxy session {@link Scope} implementation.
  *
  * @see org.kpax.winfoom.proxy.ProxyLifecycle
- * @see ScopeConfiguration
  * @see org.kpax.winfoom.annotation.ProxySessionScope
  */
-public class ProxySessionScope implements Scope, AutoCloseable {
+public class ProxySessionScope implements Scope {
 
     /**
      * The scope name.
@@ -35,6 +34,7 @@ public class ProxySessionScope implements Scope, AutoCloseable {
     public Object get(String name, ObjectFactory<?> objectFactory) {
         Object scopedObject = scopedBeans.get(name);
         if (scopedObject == null) {
+            logger.debug("Creating shared instance of proxySession bean {}", name);
             scopedObject = objectFactory.getObject();
             scopedBeans.put(name, scopedObject);
         }
@@ -44,12 +44,13 @@ public class ProxySessionScope implements Scope, AutoCloseable {
 
     @Override
     public Object remove(String name) {
+        logger.debug("Remove shared instance of proxySession bean {}", name);
         return scopedBeans.remove(name);
     }
 
     @Override
     public void registerDestructionCallback(String name, Runnable runnable) {
-        logger.warn("ProxySessionScope does not support destruction callbacks");
+        logger.debug("ProxySessionScope does not support destruction callbacks");
     }
 
     @Override
@@ -63,13 +64,12 @@ public class ProxySessionScope implements Scope, AutoCloseable {
     }
 
 
-    @Override
-    public void close() {
+    void clear() {
         logger.debug("Clear the proxySession scope: found {} beans", scopedBeans.size());
 
         // Close all the AutoCloseable beans in ordered fashion
         scopedBeans.values().stream().sorted(AnnotationAwareOrderComparator.INSTANCE).forEach(bean -> {
-            logger.debug("Bean type {}", bean.getClass());
+            logger.debug("proxySession bean type {}", bean.getClass());
             if (bean instanceof AutoCloseable) {
                 InputOutputs.close((AutoCloseable) bean);
             }

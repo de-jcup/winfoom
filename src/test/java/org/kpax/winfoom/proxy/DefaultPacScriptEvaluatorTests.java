@@ -23,7 +23,6 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.kpax.winfoom.FoomApplicationTest;
 import org.kpax.winfoom.config.ProxyConfig;
-import org.kpax.winfoom.config.ProxySessionScope;
 import org.kpax.winfoom.exception.PacFileException;
 import org.kpax.winfoom.pac.PacScriptEvaluator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,20 +72,20 @@ class DefaultPacScriptEvaluatorTests {
     @Test
     void loadPacFileContent_validLocalFile_NoError() throws IOException, PacFileException {
         when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(getClass().getClassLoader().getResource("proxy-simple.pac"));
-        proxySessionScope.close();
+        proxySessionScope.clear();
     }
 
     @Test
     void loadPacFileContent_validRemoteFile_NoError() throws IOException, PacFileException {
         when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(new URL("http://localhost:" + remoteServer.getLocalPort() + "/pacFile"));
-        proxySessionScope.close();
+        proxySessionScope.clear();
     }
 
 
     @Test
     void loadPacFileContent_invalidLocalFile_InvalidPacFileException() throws IOException {
         when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(getClass().getClassLoader().getResource("proxy-invalid.pac"));
-        proxySessionScope.close();
+        proxySessionScope.clear();
     }
 
     @AfterAll

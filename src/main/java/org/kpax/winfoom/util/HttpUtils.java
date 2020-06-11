@@ -311,7 +311,7 @@ public final class HttpUtils {
     }
 
     /**
-     * Create a new Via {@link Header} by appending the winfoom info.
+     * Create a new Via {@link Header} by inserting the winfoom info.
      *
      * @param version   the HTTP version
      * @param viaHeader the existent Via {@link Header} (nullable)

@@ -45,6 +45,9 @@ public class ProxyBlacklist implements AutoCloseable {
      */
     private final Map<ProxyInfo, Instant> blacklistMap = new ConcurrentHashMap<>();
 
+    /**
+     * The temporal unit for measuring the timeout period.
+     */
     private final ChronoUnit temporalUnit = ChronoUnit.MINUTES;
 
     @Autowired

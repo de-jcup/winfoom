@@ -126,7 +126,7 @@ public class IpAddressUtils {
      * @param a2 second address
      * @return {@code 1} if the first address is bigger,  {@code -1} if the second address is bigger or {@code 0} otherwise.
      */
-    public static int compareByteByByte(InetAddress a1, InetAddress a2) {
+    private static int compareByteByByte(InetAddress a1, InetAddress a2) {
         byte[] bArr1 = a1.getAddress();
         byte[] bArr2 = a2.getAddress();
         // Compare byte-by-byte.

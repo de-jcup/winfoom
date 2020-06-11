@@ -6,9 +6,10 @@ import java.util.function.Supplier;
 
 /**
  * A {@link java.util.function.Supplier} decorator that caches a singleton value and
- * makes it available from {@link #get()} (null-safe).<br>
- * The provided {@link java.util.function.Supplier} must not return null.<br>
- * It is also possible to refresh the stored value (see {@link #reset()} method).
+ * makes it available from {@link #get()}.
+ * <p>The provided {@link java.util.function.Supplier} must not return {@code null}.
+ * <p>It is also possible to refresh the stored value (see {@link #reset()} method).
+ * <p>Refreshing might break the null safety of {@link #get()} method in a multi-threaded environment.
  *
  * @param <T> the type of value supplied by this supplier
  */
@@ -25,12 +26,12 @@ public final class SingletonSupplier<T> implements Supplier<T> {
     private final Supplier<T> supplier;
 
     /**
-     * The value
+     * The cached value.
      */
     private volatile T t;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param supplier the not null supplier
      */

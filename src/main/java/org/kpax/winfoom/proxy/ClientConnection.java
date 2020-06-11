@@ -38,10 +38,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * It encapsulates a client's connection.<br>
- * It provides various methods for exchanging data with the client,
- * also some information about the state of the request's processing.<br>
- * <b>Note:</b> This class doesn't have the responsibility to close the underlying socket.
+ * It encapsulates a client's connection.
+ * <p>It provides various methods for exchanging data with the client,
+ * also some information about the state of the request's processing.
+ * <p><b>Note:</b> This class doesn't have the responsibility to close the underlying socket.
  *
  * @author Eugen Covaci
  */

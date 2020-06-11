@@ -1,5 +1,6 @@
 package org.kpax.winfoom.config;
 
+import org.kpax.winfoom.proxy.ProxySessionScope;
 import org.springframework.beans.factory.config.CustomScopeConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,7 +14,7 @@ import java.util.Map;
  * Currently, only {@link ProxySessionScope} is available.
  */
 @Configuration
-public class ScopeConfiguration {
+class ScopeConfiguration {
 
     private static final Map<String, Object> scopes = new LinkedHashMap<>(1);
 

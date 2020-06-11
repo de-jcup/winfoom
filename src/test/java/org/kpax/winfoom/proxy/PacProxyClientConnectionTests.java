@@ -34,7 +34,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.kpax.winfoom.FoomApplicationTest;
 import org.kpax.winfoom.TestConstants;
 import org.kpax.winfoom.config.ProxyConfig;
-import org.kpax.winfoom.config.ProxySessionScope;
 import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.exception.PacFileException;
 import org.kpax.winfoom.pac.PacScriptEvaluator;
@@ -161,7 +160,7 @@ public class PacProxyClientConnectionTests {
             String content = String.format("function FindProxyForURL(url, host) {return \"SOCKS4 localhost:%s\";}", proxyServer.getLocalPort());
             logger.debug("content {}", content);
 
-            proxySessionScope.close();
+            proxySessionScope.clear();
             URL pacFileUrl = InMemoryURLFactory.getInstance().build("/fake/url/to/pac/file", content);
             when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(pacFileUrl);
 
@@ -202,7 +201,7 @@ public class PacProxyClientConnectionTests {
         try {
             String content = String.format("function FindProxyForURL(url, host) {return \"SOCKS5 localhost:%s\";}", proxyServer.getLocalPort());
             logger.debug("content {}", content);
-            proxySessionScope.close();
+            proxySessionScope.clear();
             URL pacFileUrl = InMemoryURLFactory.getInstance().build("/fake/url/to/pac/file", content);
             when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(pacFileUrl);
 
@@ -242,7 +241,7 @@ public class PacProxyClientConnectionTests {
         try {
             String content = String.format("function FindProxyForURL(url, host) {return \"HTTP localhost:%s\";}", proxyServer.getLocalPort());
             logger.debug("content {}", content);
-            proxySessionScope.close();
+            proxySessionScope.clear();
             URL pacFileUrl = InMemoryURLFactory.getInstance().build("/fake/url/to/pac/file", content);
             when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(pacFileUrl);
 
@@ -282,7 +281,7 @@ public class PacProxyClientConnectionTests {
         try {
             String content = String.format("function FindProxyForURL(url, host) {return \"PROXY localhost:%s\";}", proxyServer.getLocalPort());
             logger.debug("content {}", content);
-            proxySessionScope.close();
+            proxySessionScope.clear();
             URL pacFileUrl = InMemoryURLFactory.getInstance().build("/fake/url/to/pac/file", content);
             when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(pacFileUrl);
 
@@ -322,7 +321,7 @@ public class PacProxyClientConnectionTests {
         try {
             String content = String.format("function FindProxyForURL(url, host) {return \"SOCKS localhost:%s\";}", proxyServer.getLocalPort());
             logger.debug("content {}", content);
-            proxySessionScope.close();
+            proxySessionScope.clear();
             URL pacFileUrl = InMemoryURLFactory.getInstance().build("/fake/url/to/pac/file", content);
             when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(pacFileUrl);
 
@@ -360,7 +359,7 @@ public class PacProxyClientConnectionTests {
     void singleProxy_DirectConnectAndNonConnect_CorrectResponse() throws IOException, PacFileException {
         String content = String.format("function FindProxyForURL(url, host) {return \"DIRECT\";}");
         logger.debug("content {}", content);
-        proxySessionScope.close();
+        proxySessionScope.clear();
         URL pacFileUrl = InMemoryURLFactory.getInstance().build("/fake/url/to/pac/file", content);
         when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(pacFileUrl);
 
@@ -401,7 +400,7 @@ public class PacProxyClientConnectionTests {
                     "function FindProxyForURL(url, host) {return \"SOCKS4 192.168.111.000:1234;HTTP localhost:%s\";}",
                     proxyServer.getLocalPort());
             logger.debug("content {}", content);
-            proxySessionScope.close();
+            proxySessionScope.clear();
             URL pacFileUrl = InMemoryURLFactory.getInstance().build("/fake/url/to/pac/file", content);
             when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(pacFileUrl);
 
@@ -449,7 +448,7 @@ public class PacProxyClientConnectionTests {
     void nullProxyLine_DirectConnectAndNonConnect_NoProxyCorrectResponse() throws IOException, PacFileException {
         String content = String.format("function FindProxyForURL(url, host) {return null;}");
         logger.debug("content {}", content);
-        proxySessionScope.close();
+        proxySessionScope.clear();
         URL pacFileUrl = InMemoryURLFactory.getInstance().build("/fake/url/to/pac/file", content);
         when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(pacFileUrl);
 

@@ -44,7 +44,7 @@ public class HostnameUtils {
      * Windows API equivalent: {@code gethostname()} function from
      * {@code Ws2_32} library.
      *
-     * @return host name
+     * @return the hostname
      * @throws NativeException if there was an error executing the
      *                         system call.
      */

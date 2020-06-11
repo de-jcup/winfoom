@@ -1,6 +1,5 @@
 package org.kpax.winfoom.proxy;
 
-import org.kpax.winfoom.config.ProxySessionScope;
 import org.kpax.winfoom.pac.net.IpAddressUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -14,7 +13,7 @@ import org.springframework.util.Assert;
  * @see ProxySessionScope
  */
 @Component
-public class ProxyLifecycle {
+class ProxyLifecycle {
 
     @Autowired
     private ProxySessionScope proxySessionScope;
@@ -45,11 +44,11 @@ public class ProxyLifecycle {
     synchronized void stop() {
         if (started) {
             started = false;
-            proxySessionScope.close();
+            proxySessionScope.clear();
 
             // We reset these suppliers because the network state
-            // might have change meanwhile during the proxy session.
-            // It's unlikely though.
+            // might have changed during the proxy session.
+            // Though unlikely, we take no chances.
             IpAddressUtils.allPrimaryAddresses.reset();
             IpAddressUtils.primaryIPv4Address.reset();
         }

@@ -55,14 +55,14 @@ class LocalProxyServer implements AutoCloseable {
     private ServerSocket serverSocket;
 
     /**
-     * Start the local proxy server.<br>
-     * This means:
+     * Start the local proxy server.
+     * <p>This means:
      * <ul>
      * <li>Opens a {@link ServerSocket} on a local port, then listen for connections</li>
      * <li>When a connection arrives, it delegates the handling to the {@link ClientConnectionHandler}, on a new
      * thread.</li>
      * </ul>
-     * The proxy settings are saved after the local proxy server successfully starts.<br>
+     * The proxy settings are saved after the local proxy server successfully starts.
      *
      * @throws IllegalStateException if the server had been started.
      * @throws Exception

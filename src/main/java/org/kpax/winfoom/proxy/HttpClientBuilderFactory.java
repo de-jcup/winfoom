@@ -24,8 +24,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * A factory for {@link HttpClientBuilder} for different proxy types.<br>
- * <b>Note:</b> The {@link HttpClientBuilder} class is not thread safe.
+ * A factory for {@link HttpClientBuilder} for different proxy types.
+ * <p><b>Note:</b> The {@link HttpClientBuilder} class is not thread safe.
  *
  * @author Eugen Covaci {@literal eugen.covaci.q@gmail.com}
  * Created on 4/10/2020

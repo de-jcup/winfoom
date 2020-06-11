@@ -1,25 +1,47 @@
+/*
+ * Copyright 2002-2019 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.kpax.winfoom.pac.net;
 
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Arrays;
 
 /**
- * Matches a request based on IP Address or subnet mask matching against the remote address.
- * The original is <a href="https://github.com/justinedelson/spring-security/blob/master/web/src/main/java/org/springframework/security/web/util/IpAddressMatcher.java">IpAddressMatcher.java</a>
+ * Matches a request based on IP Address or subnet mask matching against the remote
+ * address.
+ * <p>
+ * Both IPv6 and IPv4 addresses are supported, but a matcher which is configured with an
+ * IPv4 address will never match a request which returns an IPv6 address, and vice-versa.
+ * <p>Modified by ecovaci. The original is <a href="https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/web/util/matcher/IpAddressMatcher.html">org.springframework.security.web.util.matcher.IpAddressMatcher</a>
+ *
+ * @author Luke Taylor
+ * @since 3.0.2
  */
-public class IpAddressMatcher {
-
+public final class IpAddressMatcher {
     private final int nMaskBits;
     private final InetAddress requiredAddress;
 
     /**
-     * Takes a specific IP address or a range specified using the
-     * IP/Netmask (e.g. 192.168.1.0/24 or 202.24.0.0/14).
+     * Takes a specific IP address or a range specified using the IP/Netmask (e.g.
+     * 192.168.1.0/24 or 202.24.0.0/14).
      *
-     * @param ipAddress the address or range of addresses from which the request must come.
+     * @param ipAddress the address or range of addresses from which the request must
+     *                  come.
      */
     public IpAddressMatcher(String ipAddress) throws UnknownHostException {
         if (StringUtils.isEmpty(ipAddress)) {
@@ -30,42 +52,39 @@ public class IpAddressMatcher {
             ipAddress = addressAndMask[0];
             nMaskBits = Integer.parseInt(addressAndMask[1]);
         } else {
-            nMaskBits = 0;
+            nMaskBits = -1;
         }
         requiredAddress = InetAddress.getByName(ipAddress);
+        Assert.isTrue(requiredAddress.getAddress().length * 8 >= nMaskBits,
+                String.format("IP address %s is too short for bitmask of length %d",
+                        ipAddress, nMaskBits));
     }
 
     public boolean matches(String address) throws UnknownHostException {
         InetAddress remoteAddress = InetAddress.getByName(address);
 
         if (!requiredAddress.getClass().equals(remoteAddress.getClass())) {
-            throw new IllegalArgumentException("IP Address in expression must be the same type as " +
-                    "version returned by request");
+            return false;
         }
 
-        if (nMaskBits == 0) {
+        if (nMaskBits < 0) {
             return remoteAddress.equals(requiredAddress);
         }
 
         byte[] remAddr = remoteAddress.getAddress();
         byte[] reqAddr = requiredAddress.getAddress();
 
-        int oddBits = nMaskBits % 8;
-        int nMaskBytes = nMaskBits / 8 + (oddBits == 0 ? 0 : 1);
-        byte[] mask = new byte[nMaskBytes];
+        int nMaskFullBytes = nMaskBits / 8;
+        byte finalByte = (byte) (0xFF00 >> (nMaskBits & 0x07));
 
-        Arrays.fill(mask, 0, oddBits == 0 ? mask.length : mask.length - 1, (byte) 0xFF);
-
-        if (oddBits != 0) {
-            int finalByte = (1 << oddBits) - 1;
-            finalByte <<= 8 - oddBits;
-            mask[mask.length - 1] = (byte) finalByte;
-        }
-
-        for (int i = 0; i < mask.length; i++) {
-            if ((remAddr[i] & mask[i]) != (reqAddr[i] & mask[i])) {
+        for (int i = 0; i < nMaskFullBytes; i++) {
+            if (remAddr[i] != reqAddr[i]) {
                 return false;
             }
+        }
+
+        if (finalByte != 0) {
+            return (remAddr[nMaskFullBytes] & finalByte) == (reqAddr[nMaskFullBytes] & finalByte);
         }
 
         return true;

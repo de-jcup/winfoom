@@ -1,8 +1,5 @@
 package org.kpax.winfoom.pac;
 
-import inet.ipaddr.AddressStringException;
-import inet.ipaddr.IPAddress;
-import inet.ipaddr.IPAddressString;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -165,18 +162,6 @@ public class DefaultPacHelperMethodsTests {
             logger.info("address={}", address);
             assertTrue(IpAddressUtils.isValidIPAddress(address));
         });
-    }
-
-    @Test
-    void boo () throws AddressStringException {
-        String str = "fe80:0:0:0:a4fe:1ee4:ff09:26ab%3";
-        IPAddressString addrString = new IPAddressString(str);
-        //try {
-            IPAddress addr = addrString.toAddress();
-       /* } catch(AddressStringException e) {
-            //e.getMessage provides validation issue
-
-        }*/
     }
 
 }
