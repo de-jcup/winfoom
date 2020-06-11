@@ -21,6 +21,7 @@ import org.kpax.winfoom.util.InputOutputs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -40,7 +41,7 @@ class HttpConnectClientConnectionProcessor implements ClientConnectionProcessor 
     private ProxyContext proxyContext;
 
     @Autowired
-    private TunnelConnection tunnelConnection;
+    private ApplicationContext applicationContext;
 
     @Override
     public void process(final ClientConnection clientConnection, final ProxyInfo proxyInfo)
@@ -50,7 +51,7 @@ class HttpConnectClientConnectionProcessor implements ClientConnectionProcessor 
         HttpHost target = HttpHost.create(requestLine.getUri());
         HttpHost proxy = new HttpHost(proxyInfo.getProxyHost().getHostName(), proxyInfo.getProxyHost().getPort());
 
-        try (Tunnel tunnel = tunnelConnection.open(proxy, target, requestLine.getProtocolVersion())) {
+        try (Tunnel tunnel = applicationContext.getBean(TunnelConnection.class).open(proxy, target, requestLine.getProtocolVersion())) {
             try {
                 // Handle the tunnel response
                 logger.debug("Write status line");
