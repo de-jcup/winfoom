@@ -21,9 +21,9 @@ package org.kpax.winfoom.pac.net;
 
 
 import inet.ipaddr.IPAddressString;
-import org.kpax.winfoom.exception.CheckedExceptionWrapper;
 import org.kpax.winfoom.exception.NativeException;
-import org.kpax.winfoom.util.functional.SingletonSupplier;
+import org.kpax.winfoom.util.functional.SingleExceptionSingletonSupplier;
+import org.kpax.winfoom.util.functional.TripleExceptionSingletonSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,32 +47,24 @@ public class IpAddressUtils {
     public static final String LOCALHOST = "127.0.0.1";
 
     /**
-     * A supplier for all primary IP addresses of the current Windows machine. The {@link SingletonSupplier#get()}
-     * may throw a {@link CheckedExceptionWrapper} exception.
+     * A supplier for all primary IP addresses of the current Windows machine.
      */
-    public static final SingletonSupplier<InetAddress[]> allPrimaryAddresses = new SingletonSupplier<>(() -> {
+    public static final SingleExceptionSingletonSupplier<InetAddress[], UnknownHostException> allPrimaryAddresses = new SingleExceptionSingletonSupplier<>(() -> {
         try {
             return InetAddress.getAllByName(HostnameUtils.removeDomain(HostnameUtils.getHostName()));
-        } catch (UnknownHostException e) {
-            throw new CheckedExceptionWrapper(e);
         } catch (NativeException e) {
-            throw new CheckedExceptionWrapper(new UnknownHostException(e.getMessage() + ", error code : " + e.getErrorCode()));
+            throw new UnknownHostException(e.getMessage() + ", error code : " + e.getErrorCode());
         }
     });
 
     /**
-     * A supplier for the primary IPv4 address of the current Windows machine.The {@link SingletonSupplier#get()}
-     * may throw a {@link CheckedExceptionWrapper} exception.
+     * A supplier for the primary IPv4 address of the current Windows machine.
      */
-    public static final SingletonSupplier<InetAddress> primaryIPv4Address = new SingletonSupplier<>(() -> {
-        try {
-            return Arrays.stream(allPrimaryAddresses.get()).
+    public static final SingleExceptionSingletonSupplier<InetAddress, UnknownHostException> primaryIPv4Address = new SingleExceptionSingletonSupplier<>(() ->
+            Arrays.stream(allPrimaryAddresses.get()).
                     filter(a -> a.getClass() == Inet4Address.class).
-                    findFirst().orElseThrow(() -> new UnknownHostException("No IPv4 address found"));
-        } catch (UnknownHostException e) {
-            throw new CheckedExceptionWrapper(e);
-        }
-    });
+                    findFirst().orElseThrow(() -> new UnknownHostException("No IPv4 address found"))
+    );
 
     /**
      * A {@link Comparator} that favors the {@link Inet6Address} addresses over the  {@link Inet4Address}.
@@ -196,6 +188,7 @@ public class IpAddressUtils {
 
     /**
      * Check for IP address validity (both IPv4 and IPv6).
+     *
      * @param address the address to check.
      * @return {@code true} iff it's a valid IPv4 or IPv6 address.
      */
@@ -212,6 +205,7 @@ public class IpAddressUtils {
 
     /**
      * Check for IP address validity (only IPv4).
+     *
      * @param address the address to check.
      * @return {@code true} iff it's a valid IPv4 address.
      */
@@ -227,6 +221,7 @@ public class IpAddressUtils {
 
     /**
      * Check for IP address validity (only IPv6).
+     *
      * @param address the address to check.
      * @return {@code true} iff it's a valid IPv6 address.
      */

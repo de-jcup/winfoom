@@ -120,18 +120,14 @@ public class ProxyValidator {
         try {
             HttpHost testHost = HttpHost.create(proxyConfig.getProxyTestUrl());
             return pacScriptEvaluator.findProxyForURL(new URI(testHost.toURI()));
-        } catch (BeanCreationException e) {
-            Throwable actualException = e.getCause();
-            if (actualException instanceof IOException) {
-                throw new InvalidProxySettingsException("Cannot load the PAC file", actualException);
-            } else if (actualException instanceof PacFileException) {
-                throw new InvalidProxySettingsException("The PAC file seems to be invalid", actualException);
-            }
-            throw new InvalidProxySettingsException("Cannot load or parse the PAC file", e);
         } catch (PacScriptException e) {
             throw new InvalidProxySettingsException("Error on PAC script execution", e);
         } catch (URISyntaxException e) {
             throw new InvalidProxySettingsException("Invalid test URL", e);
+        } catch (IOException e) {
+            throw new InvalidProxySettingsException("Cannot load the PAC file", e);
+        } catch (PacFileException e) {
+            throw new InvalidProxySettingsException("The PAC file seems to be invalid", e);
         }
     }
 

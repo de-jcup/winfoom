@@ -25,14 +25,16 @@ import org.kpax.winfoom.exception.PacFileException;
 import org.kpax.winfoom.exception.PacScriptException;
 import org.kpax.winfoom.proxy.ProxyInfo;
 import org.kpax.winfoom.util.HttpUtils;
+import org.kpax.winfoom.util.functional.DoubleExceptionSingletonSupplier;
+import org.kpax.winfoom.util.functional.TripleExceptionSingletonSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
-import javax.annotation.PostConstruct;
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -49,7 +51,7 @@ import java.util.Objects;
 @Lazy
 @Component
 @ProxySessionScope
-public class DefaultPacScriptEvaluator implements PacScriptEvaluator {
+public class DefaultPacScriptEvaluator implements PacScriptEvaluator, AutoCloseable {
 
     private final Logger logger = LoggerFactory.getLogger(DefaultPacScriptEvaluator.class);
 
@@ -59,12 +61,8 @@ public class DefaultPacScriptEvaluator implements PacScriptEvaluator {
     @Autowired
     private DefaultPacHelperMethods pacHelperMethods;
 
-    private PacScriptEngine scriptEngine;
-
-    @PostConstruct
-    void init() throws IOException, PacFileException {
-        this.scriptEngine = getScriptEngine(loadScript());
-    }
+    private DoubleExceptionSingletonSupplier<PacScriptEngine, PacFileException, IOException> scriptEngineSupplier =
+            new DoubleExceptionSingletonSupplier<PacScriptEngine, PacFileException, IOException>(this::createScriptEngine);
 
     /**
      * Load and parse the PAC script file.
@@ -85,12 +83,12 @@ public class DefaultPacScriptEvaluator implements PacScriptEvaluator {
         }
     }
 
-    private PacScriptEngine getScriptEngine(String pacSource) throws PacFileException {
+    private PacScriptEngine createScriptEngine() throws PacFileException, IOException {
+        String pacSource = loadScript();
         try {
             ScriptEngine engine = new ScriptEngineManager().getEngineByName("Nashorn");
-            if (engine == null) {
-                throw new PacFileException("Nashorn engine not found");
-            }
+            Assert.notNull(engine, "Nashorn engine not found");
+
             String[] allowedGlobals =
                     ("Object,Function,Array,String,Date,Number,BigInt,"
                             + "Boolean,RegExp,Math,JSON,NaN,Infinity,undefined,"
@@ -146,7 +144,8 @@ public class DefaultPacScriptEvaluator implements PacScriptEvaluator {
     }
 
     @Override
-    public List<ProxyInfo> findProxyForURL(URI uri) throws PacScriptException {
+    public List<ProxyInfo> findProxyForURL(URI uri) throws PacScriptException, PacFileException, IOException {
+        PacScriptEngine scriptEngine = scriptEngineSupplier.get();
         try {
             Object obj = scriptEngine.findProxyForURL(PacUtils.toStrippedURLStr(uri), uri.getHost());
             String proxyLine = Objects.toString(obj, null);
@@ -177,6 +176,11 @@ public class DefaultPacScriptEvaluator implements PacScriptEvaluator {
             logger.warn("Error on testing if the function is there", ex);
             return false;
         }
+    }
+
+    @Override
+    public void close() throws Exception {
+        scriptEngineSupplier.reset();
     }
 
     private class PacScriptEngine {

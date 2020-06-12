@@ -13,9 +13,11 @@
  */
 package org.kpax.winfoom.pac;
 
+import org.kpax.winfoom.exception.PacFileException;
 import org.kpax.winfoom.exception.PacScriptException;
 import org.kpax.winfoom.proxy.ProxyInfo;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 
@@ -46,6 +48,6 @@ public interface PacScriptEvaluator {
      * @return The {@link ProxyInfo} list.
      * @throws PacScriptException when something does wrong with the JavaScript function's call.
      */
-    List<ProxyInfo> findProxyForURL(URI uri) throws PacScriptException;
+    List<ProxyInfo> findProxyForURL(URI uri) throws PacScriptException, PacFileException, IOException;
 
 }

@@ -7,6 +7,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.kpax.winfoom.FoomApplicationTest;
 import org.kpax.winfoom.config.ProxyConfig;
+import org.kpax.winfoom.exception.PacFileException;
 import org.kpax.winfoom.exception.PacScriptException;
 import org.kpax.winfoom.proxy.ProxyInfo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +48,7 @@ public class DefaultPacScriptEvaluatorTests {
 
     @Test
     void findProxyForURL_AllHelperMethods_NoError()
-            throws URISyntaxException, PacScriptException {
+            throws URISyntaxException, PacScriptException, PacFileException, IOException {
         System.out.println(proxyConfig.getProxyPacFileLocation());
         List<ProxyInfo> proxies = pacScriptEvaluator.findProxyForURL(new URI("http://host:80/path?param1=val"));
         assertEquals(1, proxies.size());
