@@ -7,7 +7,7 @@ package org.kpax.winfoom.util.functional;
  * @see DoubleExceptionSingletonSupplier
  * @see TripleExceptionSingletonSupplier
  */
-public class SingleExceptionSingletonSupplier<T, E extends Exception> extends TripleExceptionSingletonSupplier<T, E, E, E> {
+public class SingleExceptionSingletonSupplier<T, E extends Exception> extends DoubleExceptionSingletonSupplier<T, E, E> {
 
 
     /**

@@ -118,7 +118,7 @@ public class SwingUtils {
     }
 
     /**
-     * Load an image from a specified classpath location.
+     * Load an image from the {@code img} folder.
      *
      * @param cls      used to localize the image URL.
      * @param filename the image's filename.

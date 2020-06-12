@@ -48,7 +48,8 @@ public class IpAddressUtils {
     /**
      * A supplier for all primary IP addresses of the current Windows machine.
      */
-    public static final SingleExceptionSingletonSupplier<InetAddress[], UnknownHostException> allPrimaryAddresses = new SingleExceptionSingletonSupplier<>(() -> {
+    public static final SingleExceptionSingletonSupplier<InetAddress[], UnknownHostException> allPrimaryAddresses =
+            new SingleExceptionSingletonSupplier<>(() -> {
         try {
             return InetAddress.getAllByName(HostnameUtils.removeDomain(HostnameUtils.getHostName()));
         } catch (NativeException e) {
@@ -59,7 +60,8 @@ public class IpAddressUtils {
     /**
      * A supplier for the primary IPv4 address of the current Windows machine.
      */
-    public static final SingleExceptionSingletonSupplier<InetAddress, UnknownHostException> primaryIPv4Address = new SingleExceptionSingletonSupplier<>(() ->
+    public static final SingleExceptionSingletonSupplier<InetAddress, UnknownHostException> primaryIPv4Address =
+            new SingleExceptionSingletonSupplier<>(() ->
             Arrays.stream(allPrimaryAddresses.get()).
                     filter(a -> a.getClass() == Inet4Address.class).
                     findFirst().orElseThrow(() -> new UnknownHostException("No IPv4 address found"))

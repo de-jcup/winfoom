@@ -23,6 +23,7 @@ import org.kpax.winfoom.exception.NativeException;
 
 /**
  * Hostname utilities for Microsoft Windows OS.
+ * @author lbruun
  */
 public class HostnameUtils {
 
