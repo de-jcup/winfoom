@@ -2,7 +2,7 @@ package org.kpax.winfoom.util.functional;
 
 
 /**
- * @param <T>  the type of value supplied by this supplier
+ * @param <T> the type of value supplied by this supplier
  * @see TripleExceptionSingletonSupplier
  */
 public final class SingletonSupplier<T> extends SingleExceptionSingletonSupplier<T, RuntimeException> {

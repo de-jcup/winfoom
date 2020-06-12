@@ -23,7 +23,6 @@ package org.kpax.winfoom.pac.net;
 import inet.ipaddr.IPAddressString;
 import org.kpax.winfoom.exception.NativeException;
 import org.kpax.winfoom.util.functional.SingleExceptionSingletonSupplier;
-import org.kpax.winfoom.util.functional.TripleExceptionSingletonSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

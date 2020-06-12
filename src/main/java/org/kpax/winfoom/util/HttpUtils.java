@@ -141,8 +141,9 @@ public final class HttpUtils {
 
     /**
      * Get the first request header for a certain header name.
+     *
      * @param request the {@link HttpRequest} instance
-     * @param name the header's name
+     * @param name    the header's name
      * @return an {@link Optional} containing the header
      */
     public static Optional<String> getFirstHeaderValue(HttpRequest request, String name) {

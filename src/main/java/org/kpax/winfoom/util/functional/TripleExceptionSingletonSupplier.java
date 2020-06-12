@@ -10,7 +10,7 @@ import org.springframework.util.Assert;
  * <p>It is also possible to refresh the stored value (see {@link #reset()} method).
  * <p>Note: Refreshing might break the null safety of {@link #get()} method in a multi-threaded environment.
  *
- * @param <T> the type of value supplied by this supplier
+ * @param <T>  the type of value supplied by this supplier
  * @param <E1> the first {@link Exception} type
  * @param <E2> the second {@link Exception} type
  * @param <E3> the third {@link Exception} type

@@ -269,15 +269,15 @@ public class ProxyConfig {
                 .propertiesBuilder(userProperties);
         Configuration config = propertiesBuilder.getConfiguration();
         config.setProperty("proxy.type", proxyType);
-        
-        if( proxyType.isHttp()  || proxyType.isSocks() ) {
+
+        if (proxyType.isHttp() || proxyType.isSocks()) {
             config.setProperty("proxy.host", proxyHost);
             config.setProperty("proxy.port", proxyPort);
         }
         config.setProperty("local.port", localPort);
         config.setProperty("proxy.test.url", proxyTestUrl);
-        
-        if( proxyType.isSocks5() ) {
+
+        if (proxyType.isSocks5()) {
             config.setProperty("proxy.username", proxyUsername);
             config.setProperty("proxy.storePassword", proxyStorePassword);
             if (proxyStorePassword) {
