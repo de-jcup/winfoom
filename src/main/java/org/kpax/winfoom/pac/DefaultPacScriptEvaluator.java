@@ -21,11 +21,13 @@ package org.kpax.winfoom.pac;
 import org.apache.commons.io.IOUtils;
 import org.kpax.winfoom.annotation.ProxySessionScope;
 import org.kpax.winfoom.config.ProxyConfig;
+import org.kpax.winfoom.exception.MissingResourceException;
 import org.kpax.winfoom.exception.PacFileException;
 import org.kpax.winfoom.exception.PacScriptException;
 import org.kpax.winfoom.proxy.ProxyInfo;
 import org.kpax.winfoom.util.HttpUtils;
 import org.kpax.winfoom.util.functional.DoubleExceptionSingletonSupplier;
+import org.kpax.winfoom.util.functional.SingletonSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,6 +64,15 @@ public class DefaultPacScriptEvaluator implements PacScriptEvaluator, AutoClosea
 
     private DoubleExceptionSingletonSupplier<PacScriptEngine, PacFileException, IOException> scriptEngineSupplier =
             new DoubleExceptionSingletonSupplier<PacScriptEngine, PacFileException, IOException>(this::createScriptEngine);
+
+    private SingletonSupplier<String> helperJSScriptSupplier = new SingletonSupplier<>(() -> {
+        try {
+            return IOUtils.toString(getClass().getClassLoader().
+                    getResourceAsStream("javascript/pacFunctions.js"), StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            throw new MissingResourceException("pacFunctions.js not found in classpath", e);
+        }
+    });
 
     /**
      * Load and parse the PAC script file.
@@ -119,19 +130,11 @@ public class DefaultPacScriptEvaluator implements PacScriptEvaluator, AutoClosea
             } catch (NoSuchMethodException ex) {
                 throw new ScriptException(ex);
             }
+
             engine.eval(pacSource);
 
-            String helperJSScript;
             try {
-                helperJSScript = IOUtils.toString(getClass().getClassLoader().
-                        getResourceAsStream("javascript/pacFunctions.js"), StandardCharsets.UTF_8);
-            } catch (Exception e) {
-                throw new PacFileException("pacFunctions.js not found in classpath", e);
-            }
-
-            logger.debug("PAC Helper JavaScript :\n{}", helperJSScript);
-            try {
-                ((Invocable) engine).invokeMethod(engine.eval(helperJSScript), "call", null, pacHelperMethods);
+                ((Invocable) engine).invokeMethod(engine.eval(helperJSScriptSupplier.get()), "call", null, pacHelperMethods);
             } catch (NoSuchMethodException ex) {
                 throw new ScriptException(ex);
             }

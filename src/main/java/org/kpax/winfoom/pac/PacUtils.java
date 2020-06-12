@@ -16,6 +16,7 @@ package org.kpax.winfoom.pac;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.cache2k.configuration.Cache2kConfiguration;
+import org.kpax.winfoom.util.functional.SingletonSupplier;
 
 import java.net.URI;
 import java.util.regex.Pattern;
@@ -30,11 +31,12 @@ public class PacUtils {
      */
     public static final int GLOB_PATTERN_CACHE_CAPACITY = 100;
 
-    private static final Cache<String, Pattern> cache = Cache2kBuilder.of(new Cache2kConfiguration<String, Pattern>())
-            .name("precompiledGlobPattern")
-            .eternal(true)
-            .entryCapacity(GLOB_PATTERN_CACHE_CAPACITY)
-            .build();
+    private static final SingletonSupplier<Cache<String, Pattern>> cacheSupplier =
+            new SingletonSupplier<>(() -> Cache2kBuilder.of(
+                    new Cache2kConfiguration<String, Pattern>()).name("precompiledGlobPattern")
+                            .eternal(true)
+                            .entryCapacity(GLOB_PATTERN_CACHE_CAPACITY)
+                            .build());
 
     private PacUtils() {
     }
@@ -71,6 +73,7 @@ public class PacUtils {
     public static Pattern createGlobRegexPattern(String glob) {
 
         // First try the cache
+        Cache<String, Pattern> cache = cacheSupplier.get();
         Pattern pattern = cache.get(glob);
         if (pattern != null) {
             return pattern;
