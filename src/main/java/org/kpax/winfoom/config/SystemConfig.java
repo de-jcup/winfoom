@@ -20,8 +20,8 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
 /**
- * The proxy facade system configuration.<br>
- * This settings cannot change once the application is started.
+ * The proxy facade system configuration.
+ * <p>This settings cannot change once the application is started.
  *
  * @author Eugen Covaci
  */

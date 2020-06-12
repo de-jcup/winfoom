@@ -28,8 +28,8 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
 /**
- * A special type of repeatable {@link AbstractHttpEntity}.<br>
- * The data is cached either internally or externally into a temporary file.
+ * A special type of repeatable {@link AbstractHttpEntity}.
+ * <p>The data is cached either internally or externally into a temporary file.
  *
  * @author Eugen Covaci {@literal eugen.covaci.q@gmail.com}
  * Created on 4/6/2020

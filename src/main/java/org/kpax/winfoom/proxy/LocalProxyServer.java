@@ -28,8 +28,8 @@ import java.net.Socket;
 import java.net.SocketException;
 
 /**
- * The local proxy server.<br>
- * We rely on the Spring context to close this instance!
+ * The local proxy server.
+ * <p>Note: We rely on the Spring context to close this instance!
  *
  * @author Eugen Covaci
  */

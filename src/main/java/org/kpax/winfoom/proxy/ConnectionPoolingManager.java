@@ -34,8 +34,8 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
- * It manages the HTTP connection pooling mechanism.<br>
- * Only used for non-CONNECT HTTP requests.
+ * It manages the HTTP connection pooling mechanism.
+ * <p>Only used for non-CONNECT HTTP requests.
  */
 @Order(1)
 @ProxySessionScope

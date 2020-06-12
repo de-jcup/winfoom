@@ -10,8 +10,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Provide configuration for custom scopes.<br>
- * Currently, only {@link ProxySessionScope} is available.
+ * Provide configuration for custom scopes.
+ * <p>Currently, only {@link ProxySessionScope} is available.
  */
 @Configuration
 class ScopeConfiguration {

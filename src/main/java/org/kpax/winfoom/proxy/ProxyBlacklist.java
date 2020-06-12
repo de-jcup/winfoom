@@ -28,8 +28,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
- * It implements the proxy blacklisting mechanism.<br>
- * If a proxy doesn't respond to a connect attempt, it can be blacklisted
+ * It implements the proxy blacklisting mechanism.
+ * <p>If a proxy doesn't respond to a connect attempt, it can be blacklisted
  * which means it will not be used again until the blacklist timeout happens.
  */
 @Lazy

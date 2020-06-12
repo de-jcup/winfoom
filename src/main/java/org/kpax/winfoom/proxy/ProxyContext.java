@@ -64,8 +64,8 @@ public class ProxyContext implements AutoCloseable {
     }
 
     /**
-     * End the proxy session by calling {@link  ProxyLifecycle#stop()}.<br>
-     * Also, it removes the {@link Authenticator} - if any.
+     * End the proxy session by calling {@link  ProxyLifecycle#stop()}.
+     * <p>Also, it removes the {@link Authenticator} - if any.
      */
     public synchronized void stop() {
         proxyLifecycle.stop();
