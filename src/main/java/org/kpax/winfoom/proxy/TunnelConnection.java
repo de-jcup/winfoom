@@ -52,7 +52,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.net.Socket;
 
@@ -63,7 +62,6 @@ import java.net.Socket;
  * @author Eugen Covaci
  */
 @Component
-@Scope(scopeName = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class TunnelConnection {
 
     private final Logger logger = LoggerFactory.getLogger(TunnelConnection.class);
@@ -74,37 +72,27 @@ public class TunnelConnection {
     @Autowired
     private SystemConfig systemConfig;
 
-    private HttpProcessor httpProcessor;
-    private HttpRequestExecutor requestExec;
-    private ProxyAuthenticationStrategy proxyAuthStrategy;
-    private HttpAuthenticator authenticator;
-    private AuthState proxyAuthState;
-    private ConnectionReuseStrategy reuseStrategy;
-
-    private Registry<AuthSchemeProvider> authSchemeRegistry;
-
-    @PostConstruct
-    public void init() {
-        this.httpProcessor = new ImmutableHttpProcessor(new RequestTargetHost(),
-                new RequestClientConnControl(), new RequestUserAgent());
-        this.requestExec = new HttpRequestExecutor();
-        this.proxyAuthStrategy = new ProxyAuthenticationStrategy();
-        this.authenticator = new HttpAuthenticator();
-        this.proxyAuthState = new AuthState();
-        this.reuseStrategy = new DefaultConnectionReuseStrategy();
-        this.authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
-                .register(AuthSchemes.BASIC, new BasicSchemeFactory())
-                .register(AuthSchemes.DIGEST, new DigestSchemeFactory())
-                .register(AuthSchemes.NTLM, new WindowsNTLMSchemeFactory(null))
-                .register(AuthSchemes.SPNEGO, new WindowsNegotiateSchemeFactory(null))
-                .build();
-    }
-
     public Tunnel open(final HttpHost proxy, final HttpHost target,
                        final ProtocolVersion protocolVersion)
             throws IOException, HttpException {
         Args.notNull(proxy, "Proxy host");
         Args.notNull(target, "Target host");
+
+        HttpProcessor httpProcessor = new ImmutableHttpProcessor(new RequestTargetHost(),
+                new RequestClientConnControl(), new RequestUserAgent());
+        HttpRequestExecutor requestExec = new HttpRequestExecutor();
+        ProxyAuthenticationStrategy proxyAuthStrategy = new ProxyAuthenticationStrategy();
+        HttpAuthenticator authenticator = new HttpAuthenticator();
+        AuthState proxyAuthState = new AuthState();
+        ConnectionReuseStrategy reuseStrategy = new DefaultConnectionReuseStrategy();
+
+        Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
+                .register(AuthSchemes.BASIC, new BasicSchemeFactory())
+                .register(AuthSchemes.DIGEST, new DigestSchemeFactory())
+                .register(AuthSchemes.NTLM, new WindowsNTLMSchemeFactory(null))
+                .register(AuthSchemes.SPNEGO, new WindowsNegotiateSchemeFactory(null))
+                .build();
+
         HttpHost host = target;
         if (host.getPort() <= 0) {
             host = new HttpHost(host.getHostName(), 80, host.getSchemeName());
@@ -121,12 +109,12 @@ public class TunnelConnection {
         context.setAttribute(HttpCoreContext.HTTP_CONNECTION, connection);
         context.setAttribute(HttpCoreContext.HTTP_REQUEST, connect);
         context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
-        context.setAttribute(HttpClientContext.PROXY_AUTH_STATE, this.proxyAuthState);
+        context.setAttribute(HttpClientContext.PROXY_AUTH_STATE, proxyAuthState);
         context.setAttribute(HttpClientContext.CREDS_PROVIDER, credentialsProvider);
         context.setAttribute(HttpClientContext.REQUEST_CONFIG, RequestConfig.DEFAULT);
-        context.setAttribute(HttpClientContext.AUTHSCHEME_REGISTRY, this.authSchemeRegistry);
+        context.setAttribute(HttpClientContext.AUTHSCHEME_REGISTRY, authSchemeRegistry);
 
-        this.requestExec.preProcess(connect, this.httpProcessor, context);
+        requestExec.preProcess(connect, httpProcessor, context);
 
         HttpResponse response;
         while (true) {
@@ -136,8 +124,8 @@ public class TunnelConnection {
                 connection.bind(socket);
             }
 
-            this.authenticator.generateAuthResponse(connect, this.proxyAuthState, context);
-            response = this.requestExec.execute(connect, connection, context);
+            authenticator.generateAuthResponse(connect, proxyAuthState, context);
+            response = requestExec.execute(connect, connection, context);
 
             final int status = response.getStatusLine().getStatusCode();
             logger.debug("Tunnel status code: {}", status);
@@ -145,12 +133,12 @@ public class TunnelConnection {
                 throw new HttpException("Unexpected response to CONNECT request: " + response.getStatusLine());
             }
 
-            if (this.authenticator.isAuthenticationRequested(
-                    proxy, response, this.proxyAuthStrategy, this.proxyAuthState, context)) {
-                if (this.authenticator.handleAuthChallenge(
-                        proxy, response, this.proxyAuthStrategy, this.proxyAuthState, context)) {
+            if (authenticator.isAuthenticationRequested(
+                    proxy, response, proxyAuthStrategy, proxyAuthState, context)) {
+                if (authenticator.handleAuthChallenge(
+                        proxy, response, proxyAuthStrategy, proxyAuthState, context)) {
                     // Retry request
-                    if (this.reuseStrategy.keepAlive(response, context)) {
+                    if (reuseStrategy.keepAlive(response, context)) {
                         // Consume response content
                         logger.debug("Now consume entity");
                         EntityUtils.consume(response.getEntity());

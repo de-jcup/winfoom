@@ -70,7 +70,7 @@ public final class HttpUtils {
         Assert.notNull(uri, "uri cannot be null");
         StringBuilder stringBuilder = new StringBuilder(uri);
 
-        // Replace the dangling ? character
+        // Delete the dangling ? character
         if (stringBuilder.charAt(uri.length() - 1) == '?') {
             stringBuilder.deleteCharAt(uri.length() - 1);
         }

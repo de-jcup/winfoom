@@ -194,6 +194,11 @@ public class IpAddressUtils {
         }
     }
 
+    /**
+     * Check for IP address validity (both IPv4 and IPv6).
+     * @param address the address to check.
+     * @return {@code true} iff it's a valid IPv4 or IPv6 address.
+     */
     public static boolean isValidIPAddress(String address) {
         try {
             IPAddressString addrString = new IPAddressString(address);
@@ -205,6 +210,11 @@ public class IpAddressUtils {
         }
     }
 
+    /**
+     * Check for IP address validity (only IPv4).
+     * @param address the address to check.
+     * @return {@code true} iff it's a valid IPv4 address.
+     */
     public static boolean isValidIPv4Address(String address) {
         try {
             IPAddressString addrString = new IPAddressString(address);
@@ -215,6 +225,11 @@ public class IpAddressUtils {
         }
     }
 
+    /**
+     * Check for IP address validity (only IPv6).
+     * @param address the address to check.
+     * @return {@code true} iff it's a valid IPv6 address.
+     */
     public static boolean isValidIPv6Address(String address) {
         try {
             IPAddressString addrString = new IPAddressString(address);

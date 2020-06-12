@@ -41,7 +41,7 @@ class HttpConnectClientConnectionProcessor implements ClientConnectionProcessor 
     private ProxyContext proxyContext;
 
     @Autowired
-    private ApplicationContext applicationContext;
+    private TunnelConnection tunnelConnection;
 
     @Override
     public void process(final ClientConnection clientConnection, final ProxyInfo proxyInfo)
@@ -51,7 +51,7 @@ class HttpConnectClientConnectionProcessor implements ClientConnectionProcessor 
         HttpHost target = HttpHost.create(requestLine.getUri());
         HttpHost proxy = new HttpHost(proxyInfo.getProxyHost().getHostName(), proxyInfo.getProxyHost().getPort());
 
-        try (Tunnel tunnel = applicationContext.getBean(TunnelConnection.class).open(proxy, target, requestLine.getProtocolVersion())) {
+        try (Tunnel tunnel = tunnelConnection.open(proxy, target, requestLine.getProtocolVersion())) {
             try {
                 // Handle the tunnel response
                 logger.debug("Write status line");
