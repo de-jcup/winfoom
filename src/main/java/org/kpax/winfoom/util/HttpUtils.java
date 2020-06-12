@@ -13,9 +13,8 @@
 package org.kpax.winfoom.util;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.*;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.entity.ContentType;
 import org.apache.http.impl.EnglishReasonPhraseCatalog;
 import org.apache.http.message.BasicHeader;
@@ -28,10 +27,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.net.Socket;
-import java.net.SocketException;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -43,10 +39,19 @@ import java.util.stream.Collectors;
  */
 public final class HttpUtils {
 
+    /**
+     * The CONNECT HTTP method.
+     */
     public static final String HTTP_CONNECT = "CONNECT";
 
+    /**
+     * The context's key for the SOCKS proxy.
+     */
     public static final String SOCKS_ADDRESS = "socks.address";
 
+    /**
+     * The maximum value of a success HTTP code.
+     */
     public static final int MAX_HTTP_SUCCESS_CODE = 299;
 
     private HttpUtils() {
@@ -54,21 +59,36 @@ public final class HttpUtils {
 
     /**
      * Parse a {@link String} value into an {@link URI} instance.
+     * <p>Some URI may contain non-standard encoded Unicode characters (%uxxxx format).
+     * We replace them with the standard encoded equivalent.
      *
      * @param uri the input value.
      * @return the {@link URI} instance.
      * @throws URISyntaxException
      */
     public static URI toUri(String uri) throws URISyntaxException {
-        int index = uri.indexOf("?");
-        if (index > -1) {
-            URIBuilder uriBuilder = new URIBuilder(uri.substring(0, index));
-            List<NameValuePair> nameValuePairs = URLEncodedUtils.parse(uri.substring(index + 1),
-                    StandardCharsets.UTF_8);
-            uriBuilder.addParameters(nameValuePairs);
-            return uriBuilder.build();
+        Assert.notNull(uri, "uri cannot be null");
+        StringBuilder stringBuilder = new StringBuilder(uri);
+
+        // Replace the dangling ? character
+        if (stringBuilder.charAt(uri.length() - 1) == '?') {
+            stringBuilder.deleteCharAt(uri.length() - 1);
         }
-        return new URIBuilder(uri).build();
+
+        // Search for %uxxxx groups and replace
+        // them with the standard encoded equivalent
+        int index = stringBuilder.indexOf("%u");
+        while (index > -1) {
+            try {
+                String substring = stringBuilder.substring(index, index + 6).replaceAll("%u", "\\\\u");
+                String encoded = URLEncoder.encode(StringEscapeUtils.unescapeJava(substring), StandardCharsets.UTF_8);
+                stringBuilder.replace(index, index + 6, encoded);
+                index = stringBuilder.indexOf("%u", index + 6);
+            } catch (Exception e) {// Possible IndexOutOfBoundExceptions
+                throw new URISyntaxException(uri, e.getMessage());
+            }
+        }
+        return new URI(stringBuilder.toString());
     }
 
     /**
@@ -119,6 +139,12 @@ public final class HttpUtils {
         return Optional.ofNullable(request.getFirstHeader(name));
     }
 
+    /**
+     * Get the first request header for a certain header name.
+     * @param request the {@link HttpRequest} instance
+     * @param name the header's name
+     * @return an {@link Optional} containing the header
+     */
     public static Optional<String> getFirstHeaderValue(HttpRequest request, String name) {
         return getFirstHeader(request, name).map(NameValuePair::getValue);
     }

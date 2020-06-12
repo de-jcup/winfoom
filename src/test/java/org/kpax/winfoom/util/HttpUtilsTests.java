@@ -62,6 +62,27 @@ class HttpUtilsTests {
     }
 
     @Test
+    void toUri_NonStandardUnicodeOneGroup_NoError() throws URISyntaxException {
+        String urlStr = "http://host?xyz=abc%u021B";
+        URI uri = HttpUtils.toUri(urlStr);
+        assertEquals("http://host?xyz=abc%C8%9B", uri.toString());
+    }
+
+    @Test
+    void toUri_NonStandardUnicodeTwoGroups_NoError() throws URISyntaxException {
+        String urlStr = "http://host?xyz=abc%u021B&bb=%u021B";
+        URI uri = HttpUtils.toUri(urlStr);
+        assertEquals("http://host?xyz=abc%C8%9B&bb=%C8%9B", uri.toString());
+    }
+
+    @Test
+    void toUri_NonStandardUnicodeTwoGroupsConnected_NoError() throws URISyntaxException {
+        String urlStr = "http://host?xyz=abc%u021B%u021B";
+        URI uri = HttpUtils.toUri(urlStr);
+        assertEquals("http://host?xyz=abc%C8%9B%C8%9B", uri.toString());
+    }
+
+    @Test
     void toUri_noQueryParamQuestionMark_ParseOk() throws URISyntaxException {
         String uri = "http://happy/people?";
         URI result = HttpUtils.toUri(uri);
