@@ -192,7 +192,7 @@ public class IpAddresses {
             addrString.toAddress();
             return true;
         } catch (Exception e) {
-            logger.debug("Not a valid IP address", e);
+            logger.debug("Not a valid IP address", e.getMessage());
             return false;
         }
     }

@@ -284,10 +284,13 @@ public class ProxyConfig {
                 config.setProperty("proxy.password", proxyPassword);
             } else {
                 // Clear the stored password
-                if (StringUtils.isNotEmpty(proxyPassword)) {
-                    config.setProperty("proxy.password", null);
-                    proxyPassword = null;
-                }
+                config.setProperty("proxy.password", null);
+            }
+        } else {
+            // Make sure we nullify the proxy password
+            // if it is not stored
+            if (!proxyStorePassword) {
+                proxyPassword = null;
             }
         }
 
@@ -297,16 +300,6 @@ public class ProxyConfig {
         }
 
         propertiesBuilder.save();
-
-        //
-        // Refresh config values
-        //
-        setProxyHost(config.getString("proxy.host"));
-        setProxyPort(config.getInt("proxy.port"));
-        setProxyUsername(config.getString("proxy.username"));
-        setProxyStorePassword(config.getBoolean("proxy.storePassword"));
-        setProxyPacFileLocation(config.getString("proxy.pac.fileLocation"));
-        proxyPassword = config.getString("proxy.password");
     }
 
     @Override

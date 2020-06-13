@@ -81,7 +81,6 @@ public class ProxyContext implements AutoCloseable {
         if (proxyConfig.getProxyType().isSocks5()) {
             Authenticator.setDefault(null);
         }
-
     }
 
     public boolean isRunning() {
@@ -101,7 +100,6 @@ public class ProxyContext implements AutoCloseable {
         } catch (Exception e) {
             logger.warn("Error on closing thread pool", e);
         }
-
     }
 
     public static class DefaultThreadFactory implements ThreadFactory {

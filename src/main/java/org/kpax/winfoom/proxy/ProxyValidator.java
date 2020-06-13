@@ -212,6 +212,11 @@ public class ProxyValidator {
         } catch (HttpHostConnectException | ConnectTimeoutException e) {
             throw e;
         } catch (IOException e) {
+            if (e instanceof SocketException) {
+                if (StringUtils.equalsIgnoreCase(e.getMessage(), "SOCKS : authentication failed")) {
+                    throw new InvalidProxySettingsException("Wrong user/password");
+                }
+            }
             throw new InvalidProxySettingsException("Error on validation proxy settings", e);
         }
     }
