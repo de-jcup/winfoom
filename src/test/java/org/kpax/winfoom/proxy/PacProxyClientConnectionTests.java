@@ -34,6 +34,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.kpax.winfoom.FoomApplicationTest;
 import org.kpax.winfoom.TestConstants;
 import org.kpax.winfoom.config.ProxyConfig;
+import org.kpax.winfoom.config.ScopeConfiguration;
 import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.exception.PacFileException;
 import org.kpax.winfoom.pac.PacScriptEvaluator;
@@ -44,6 +45,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -60,6 +62,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.kpax.winfoom.TestConstants.LOCAL_PROXY_PORT;
 import static org.mockito.Mockito.when;
 
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @ExtendWith(SpringExtension.class)
 @ActiveProfiles("test")
 @SpringBootTest(classes = FoomApplicationTest.class)
@@ -90,7 +93,7 @@ public class PacProxyClientConnectionTests {
     private ProxyBlacklist proxyBlacklist;
 
     @Autowired
-    private ProxySessionScope proxySessionScope;
+    private ScopeConfiguration scopeConfiguration;
 
     @Autowired
     private ProxyContext proxyContext;
@@ -108,7 +111,6 @@ public class PacProxyClientConnectionTests {
 
     @BeforeAll
     void before() throws Exception {
-
         ReflectionTestUtils.setField(systemConfig, "socketConnectTimeout", connectTimeout);
 
         remoteServer = ServerBootstrap.bootstrap().registerHandler("/get", new HttpRequestHandler() {
@@ -123,9 +125,11 @@ public class PacProxyClientConnectionTests {
         remoteServer.start();
 
         serverSocket = new ServerSocket(TestConstants.LOCAL_PROXY_PORT);
+
         if (!proxyContext.isRunning()) {
             proxyContext.start();
         }
+
         new Thread(() -> {
             while (!serverSocket.isClosed()) {
                 try {
@@ -149,18 +153,17 @@ public class PacProxyClientConnectionTests {
                 }
             }
         }).start();
-
     }
 
     @Order(1)
     @Test
-    void singleProxy_socks4ConnectAndNonConnect_CorrectResponse() throws IOException, PacFileException {
+    void singleProxy_socks4ConnectAndNonConnect_CorrectResponse() throws IOException {
         ClientAndServer proxyServer = ClientAndServer.startClientAndServer();
         try {
             String content = String.format("function FindProxyForURL(url, host) {return \"SOCKS4 localhost:%s\";}", proxyServer.getLocalPort());
             logger.debug("content {}", content);
 
-            proxySessionScope.clear();
+            scopeConfiguration.getProxySessionScope().clear();
             URL pacFileUrl = InMemoryURLFactory.getInstance().build("/fake/url/to/pac/file", content);
             when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(pacFileUrl);
 
@@ -196,12 +199,12 @@ public class PacProxyClientConnectionTests {
 
     @Order(2)
     @Test
-    void singleProxy_Socks5ConnectAndNonConnect_CorrectResponse() throws IOException, PacFileException {
+    void singleProxy_Socks5ConnectAndNonConnect_CorrectResponse() throws IOException {
         ClientAndServer proxyServer = ClientAndServer.startClientAndServer();
         try {
             String content = String.format("function FindProxyForURL(url, host) {return \"SOCKS5 localhost:%s\";}", proxyServer.getLocalPort());
             logger.debug("content {}", content);
-            proxySessionScope.clear();
+            scopeConfiguration.getProxySessionScope().clear();
             URL pacFileUrl = InMemoryURLFactory.getInstance().build("/fake/url/to/pac/file", content);
             when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(pacFileUrl);
 
@@ -236,12 +239,12 @@ public class PacProxyClientConnectionTests {
 
     @Order(3)
     @Test
-    void singleProxy_HttpConnectAndNonConnect_CorrectResponse() throws IOException, PacFileException {
+    void singleProxy_HttpConnectAndNonConnect_CorrectResponse() throws IOException {
         ClientAndServer proxyServer = ClientAndServer.startClientAndServer();
         try {
             String content = String.format("function FindProxyForURL(url, host) {return \"HTTP localhost:%s\";}", proxyServer.getLocalPort());
             logger.debug("content {}", content);
-            proxySessionScope.clear();
+            scopeConfiguration.getProxySessionScope().clear();
             URL pacFileUrl = InMemoryURLFactory.getInstance().build("/fake/url/to/pac/file", content);
             when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(pacFileUrl);
 
@@ -276,12 +279,12 @@ public class PacProxyClientConnectionTests {
 
     @Order(4)
     @Test
-    void singleProxy_ProxyConnectAndNonConnect_CorrectResponse() throws IOException, PacFileException {
+    void singleProxy_ProxyConnectAndNonConnect_CorrectResponse() throws IOException {
         ClientAndServer proxyServer = ClientAndServer.startClientAndServer();
         try {
             String content = String.format("function FindProxyForURL(url, host) {return \"PROXY localhost:%s\";}", proxyServer.getLocalPort());
             logger.debug("content {}", content);
-            proxySessionScope.clear();
+            scopeConfiguration.getProxySessionScope().clear();
             URL pacFileUrl = InMemoryURLFactory.getInstance().build("/fake/url/to/pac/file", content);
             when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(pacFileUrl);
 
@@ -316,12 +319,12 @@ public class PacProxyClientConnectionTests {
 
     @Order(5)
     @Test
-    void singleProxy_SocksConnectAndNonConnect_CorrectResponse() throws IOException, PacFileException {
+    void singleProxy_SocksConnectAndNonConnect_CorrectResponse() throws IOException {
         ClientAndServer proxyServer = ClientAndServer.startClientAndServer();
         try {
             String content = String.format("function FindProxyForURL(url, host) {return \"SOCKS localhost:%s\";}", proxyServer.getLocalPort());
             logger.debug("content {}", content);
-            proxySessionScope.clear();
+            scopeConfiguration.getProxySessionScope().clear();
             URL pacFileUrl = InMemoryURLFactory.getInstance().build("/fake/url/to/pac/file", content);
             when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(pacFileUrl);
 
@@ -356,10 +359,10 @@ public class PacProxyClientConnectionTests {
 
     @Order(6)
     @Test
-    void singleProxy_DirectConnectAndNonConnect_CorrectResponse() throws IOException, PacFileException {
+    void singleProxy_DirectConnectAndNonConnect_CorrectResponse() throws IOException {
         String content = String.format("function FindProxyForURL(url, host) {return \"DIRECT\";}");
         logger.debug("content {}", content);
-        proxySessionScope.clear();
+        scopeConfiguration.getProxySessionScope().clear();
         URL pacFileUrl = InMemoryURLFactory.getInstance().build("/fake/url/to/pac/file", content);
         when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(pacFileUrl);
 
@@ -392,7 +395,7 @@ public class PacProxyClientConnectionTests {
     @Order(7)
     @Test
     void multipleProxiesFirstDown_socks4AndHttpConnectAndNonConnect_CorrectResponse()
-            throws IOException, PacFileException {
+            throws IOException {
         ClientAndServer proxyServer = ClientAndServer.startClientAndServer();
         proxyBlacklist.clear();
         try {
@@ -400,7 +403,7 @@ public class PacProxyClientConnectionTests {
                     "function FindProxyForURL(url, host) {return \"SOCKS4 192.168.111.000:1234;HTTP localhost:%s\";}",
                     proxyServer.getLocalPort());
             logger.debug("content {}", content);
-            proxySessionScope.clear();
+            scopeConfiguration.getProxySessionScope().clear();
             URL pacFileUrl = InMemoryURLFactory.getInstance().build("/fake/url/to/pac/file", content);
             when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(pacFileUrl);
 
@@ -445,10 +448,10 @@ public class PacProxyClientConnectionTests {
 
     @Order(8)
     @Test
-    void nullProxyLine_DirectConnectAndNonConnect_NoProxyCorrectResponse() throws IOException, PacFileException {
+    void nullProxyLine_DirectConnectAndNonConnect_NoProxyCorrectResponse() throws IOException {
         String content = String.format("function FindProxyForURL(url, host) {return null;}");
         logger.debug("content {}", content);
-        proxySessionScope.clear();
+        scopeConfiguration.getProxySessionScope().clear();
         URL pacFileUrl = InMemoryURLFactory.getInstance().build("/fake/url/to/pac/file", content);
         when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(pacFileUrl);
 
@@ -486,6 +489,7 @@ public class PacProxyClientConnectionTests {
             // Ignore
         }
         remoteServer.stop();
+        when(proxyConfig.getProxyType()).thenReturn(ProxyConfig.Type.PAC);
         proxyContext.stop();
     }
 }

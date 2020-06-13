@@ -23,7 +23,9 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.kpax.winfoom.FoomApplicationTest;
 import org.kpax.winfoom.config.ProxyConfig;
+import org.kpax.winfoom.config.ScopeConfiguration;
 import org.kpax.winfoom.exception.PacFileException;
+import org.kpax.winfoom.pac.DefaultPacScriptEvaluator;
 import org.kpax.winfoom.pac.PacScriptEvaluator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -48,10 +50,10 @@ class DefaultPacScriptEvaluatorTests {
 
     @Lazy
     @Autowired
-    private PacScriptEvaluator pacScriptEvaluator;
+    private DefaultPacScriptEvaluator pacScriptEvaluator;
 
     @Autowired
-    private ProxySessionScope proxySessionScope;
+    private ScopeConfiguration scopeConfiguration;
 
     private HttpServer remoteServer;
 
@@ -72,20 +74,20 @@ class DefaultPacScriptEvaluatorTests {
     @Test
     void loadPacFileContent_validLocalFile_NoError() throws IOException, PacFileException {
         when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(getClass().getClassLoader().getResource("proxy-simple.pac"));
-        proxySessionScope.clear();
+        scopeConfiguration.getProxySessionScope().clear();
     }
 
     @Test
     void loadPacFileContent_validRemoteFile_NoError() throws IOException, PacFileException {
         when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(new URL("http://localhost:" + remoteServer.getLocalPort() + "/pacFile"));
-        proxySessionScope.clear();
+        scopeConfiguration.getProxySessionScope().clear();
     }
 
 
     @Test
     void loadPacFileContent_invalidLocalFile_InvalidPacFileException() throws IOException {
         when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(getClass().getClassLoader().getResource("proxy-invalid.pac"));
-        proxySessionScope.clear();
+        scopeConfiguration.getProxySessionScope().clear();
     }
 
     @AfterAll

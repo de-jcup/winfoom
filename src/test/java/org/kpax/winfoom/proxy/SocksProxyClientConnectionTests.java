@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -53,6 +54,7 @@ import static org.kpax.winfoom.TestConstants.LOCAL_PROXY_PORT;
 import static org.kpax.winfoom.TestConstants.PROXY_PORT;
 import static org.mockito.Mockito.when;
 
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @ExtendWith(SpringExtension.class)
 @ActiveProfiles("test")
 @SpringBootTest(classes = FoomApplicationTest.class)
@@ -127,7 +129,6 @@ public class SocksProxyClientConnectionTests {
                 }
             }
         }).start();
-
     }
 
     @Test
@@ -211,6 +212,7 @@ public class SocksProxyClientConnectionTests {
         }
         socksRemoteProxyServer.stop();
         remoteServer.stop();
+        when(proxyConfig.getProxyType()).thenReturn(ProxyConfig.Type.SOCKS4);
         proxyContext.stop();
     }
 }

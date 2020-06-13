@@ -43,6 +43,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -60,6 +61,7 @@ import static org.mockito.Mockito.when;
  * @author Eugen Covaci {@literal eugen.covaci.q@gmail.com}
  * Created on 3/3/2020
  */
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @ExtendWith(SpringExtension.class)
 @ActiveProfiles("test")
 @SpringBootTest(classes = FoomApplicationTest.class)
@@ -123,9 +125,11 @@ class HttpProxyClientConnectionTests {
         remoteServer.start();
 
         serverSocket = new ServerSocket(TestConstants.LOCAL_PROXY_PORT);
+
         if (!proxyContext.isRunning()) {
             proxyContext.start();
         }
+
         new Thread(() -> {
             while (!serverSocket.isClosed()) {
                 try {
@@ -149,7 +153,6 @@ class HttpProxyClientConnectionTests {
                 }
             }
         }).start();
-
     }
 
     @Test
@@ -231,6 +234,7 @@ class HttpProxyClientConnectionTests {
         }
         remoteProxyServer.stop();
         remoteServer.stop();
+        when(proxyConfig.getProxyType()).thenReturn(ProxyConfig.Type.HTTP);
         proxyContext.stop();
     }
 
