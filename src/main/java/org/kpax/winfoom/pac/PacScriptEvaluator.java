@@ -22,7 +22,7 @@ import java.net.URI;
 import java.util.List;
 
 /**
- * PAC Script evaluator.
+ * PAC Script evaluator and executor.
  */
 public interface PacScriptEvaluator {
 

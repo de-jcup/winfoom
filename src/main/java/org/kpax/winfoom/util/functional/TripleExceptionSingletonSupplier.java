@@ -6,7 +6,7 @@ import org.springframework.util.Assert;
 /**
  * A {@link TripleExceptionSupplier} decorator that caches a singleton value and
  * makes it available from {@link #get()}.
- * <p>The provided {@link java.util.function.Supplier} must not return {@code null}.
+ * <p>The provided {@link TripleExceptionSupplier} must not return {@code null}.
  * <p>It is also possible to refresh the stored value (see {@link #reset()} method).
  * <p>Note: Refreshing might break the null safety of {@link #get()} method in a multi-threaded environment.
  *
