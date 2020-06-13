@@ -13,6 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+/*
+ * Modifications copyright (c) 2020. Eugen Covaci
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
+ */
+
 package org.kpax.winfoom.pac.net;
 
 import org.springframework.util.Assert;
@@ -27,7 +40,7 @@ import java.net.UnknownHostException;
  * <p>
  * Both IPv6 and IPv4 addresses are supported, but a matcher which is configured with an
  * IPv4 address will never match a request which returns an IPv6 address, and vice-versa.
- * <p>Modified by ecovaci. The original is <a href="https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/web/util/matcher/IpAddressMatcher.html">org.springframework.security.web.util.matcher.IpAddressMatcher</a>
+ * <p><i>Note:</i> Modified by ecovaci. The original is <a href="https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/web/util/matcher/IpAddressMatcher.html">org.springframework.security.web.util.matcher.IpAddressMatcher</a>
  *
  * @author Luke Taylor
  * @since 3.0.2

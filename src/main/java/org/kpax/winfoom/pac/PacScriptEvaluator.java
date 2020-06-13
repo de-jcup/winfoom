@@ -39,13 +39,15 @@ public interface PacScriptEvaluator {
 
     /**
      * <p>
-     * The method calls the JavaScript {@code FindProxyForURL(url, host)}
+     * Call the JavaScript {@code FindProxyForURL(url, host)}
      * function in the PAC script (or alternatively the
      * {@code FindProxyForURLEx(url, host)} function).
      *
      * @param uri URI to get proxies for.
      * @return The {@link ProxyInfo} list.
-     * @throws PacScriptException when something does wrong with the JavaScript function's call.
+     * @throws PacScriptException when something goes wrong with the JavaScript function's call.
+     * @throws PacFileException   when the PAC file is invalid.
+     * @throws IOException        when the PAC file cannot be loaded.
      */
     List<ProxyInfo> findProxyForURL(URI uri) throws PacScriptException, PacFileException, IOException;
 

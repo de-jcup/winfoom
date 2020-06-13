@@ -25,7 +25,6 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * A proxy session {@link Scope} implementation.
  *
- * @see org.kpax.winfoom.proxy.ProxyLifecycle
  * @see org.kpax.winfoom.annotation.ProxySessionScope
  */
 public class ProxySessionScope implements Scope {
@@ -46,7 +45,7 @@ public class ProxySessionScope implements Scope {
     public Object get(String name, ObjectFactory<?> objectFactory) {
         Object scopedObject = scopedBeans.get(name);
         if (scopedObject == null) {
-            logger.debug("Creating shared instance of proxySession bean {}", name);
+            logger.debug("Creating an instance of proxySession bean {}", name);
             scopedObject = objectFactory.getObject();
             scopedBeans.put(name, scopedObject);
         }
@@ -56,7 +55,7 @@ public class ProxySessionScope implements Scope {
 
     @Override
     public Object remove(String name) {
-        logger.debug("Remove shared instance of proxySession bean {}", name);
+        logger.debug("Remove the instance of proxySession bean {}", name);
         return scopedBeans.remove(name);
     }
 

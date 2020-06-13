@@ -137,7 +137,7 @@ public class ProxyContext implements AutoCloseable {
         }
     }
 
-     /**
+    /**
      * Manage a proxy session (start/stop).
      * <p>The proxy session begins with {@link #start()}
      * and ends with {@link #stop()}.

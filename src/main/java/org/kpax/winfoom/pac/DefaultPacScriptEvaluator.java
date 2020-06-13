@@ -149,7 +149,7 @@ public class DefaultPacScriptEvaluator implements PacScriptEvaluator, AutoClosea
     public List<ProxyInfo> findProxyForURL(URI uri) throws PacScriptException, PacFileException, IOException {
         PacScriptEngine scriptEngine = scriptEngineSupplier.get();
         try {
-            Object obj = scriptEngine.findProxyForURL(PacUtils.toStrippedURLStr(uri), uri.getHost());
+            Object obj = scriptEngine.findProxyForURL(HttpUtils.toStrippedURLStr(uri), uri.getHost());
             String proxyLine = Objects.toString(obj, null);
             logger.debug("proxyLine [{}]", proxyLine);
             return HttpUtils.parsePacProxyLine(proxyLine);

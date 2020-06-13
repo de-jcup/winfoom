@@ -16,7 +16,6 @@ import org.kpax.winfoom.proxy.ProxySessionScope;
 import org.springframework.beans.factory.config.CustomScopeConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -38,7 +37,7 @@ public class ScopeConfiguration {
         return configurer;
     }
 
-    public ProxySessionScope getProxySessionScope () {
+    public ProxySessionScope getProxySessionScope() {
         return (ProxySessionScope) scopes.get(ProxySessionScope.NAME);
     }
 

@@ -43,22 +43,22 @@ public class IpAddresses {
      */
     public static final SingleExceptionSingletonSupplier<InetAddress[], UnknownHostException> allPrimaryAddresses =
             new SingleExceptionSingletonSupplier<>(() -> {
-        try {
-            return InetAddress.getAllByName(Hostnames.removeDomain(Hostnames.getHostName()));
-        } catch (NativeException e) {
-            throw new UnknownHostException(e.getMessage() + ", error code : " + e.getErrorCode());
-        }
-    });
+                try {
+                    return InetAddress.getAllByName(Hostnames.stripDomain(Hostnames.getHostName()));
+                } catch (NativeException e) {
+                    throw new UnknownHostException(e.getMessage() + ", error code : " + e.getErrorCode());
+                }
+            });
 
     /**
      * A supplier for the primary IPv4 address of the current Windows machine.
      */
     public static final SingleExceptionSingletonSupplier<InetAddress, UnknownHostException> primaryIPv4Address =
             new SingleExceptionSingletonSupplier<>(() ->
-            Arrays.stream(allPrimaryAddresses.get()).
-                    filter(a -> a.getClass() == Inet4Address.class).
-                    findFirst().orElseThrow(() -> new UnknownHostException("No IPv4 address found"))
-    );
+                    Arrays.stream(allPrimaryAddresses.get()).
+                            filter(a -> a.getClass() == Inet4Address.class).
+                            findFirst().orElseThrow(() -> new UnknownHostException("No IPv4 address found"))
+            );
 
     /**
      * A {@link Comparator} that favors the {@link Inet6Address} addresses over the  {@link Inet4Address}.

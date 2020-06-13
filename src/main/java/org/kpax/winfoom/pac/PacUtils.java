@@ -11,6 +11,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+/*
+ * Modifications copyright (c) 2020. Eugen Covaci
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
+ */
+
 package org.kpax.winfoom.pac;
 
 import org.cache2k.Cache;
@@ -18,7 +31,6 @@ import org.cache2k.Cache2kBuilder;
 import org.cache2k.configuration.Cache2kConfiguration;
 import org.kpax.winfoom.util.functional.SingletonSupplier;
 
-import java.net.URI;
 import java.util.regex.Pattern;
 
 /**
@@ -34,9 +46,9 @@ public class PacUtils {
     private static final SingletonSupplier<Cache<String, Pattern>> cacheSupplier =
             new SingletonSupplier<>(() -> Cache2kBuilder.of(
                     new Cache2kConfiguration<String, Pattern>()).name("precompiledGlobPattern")
-                            .eternal(true)
-                            .entryCapacity(GLOB_PATTERN_CACHE_CAPACITY)
-                            .build());
+                    .eternal(true)
+                    .entryCapacity(GLOB_PATTERN_CACHE_CAPACITY)
+                    .build());
 
     private PacUtils() {
     }
@@ -49,7 +61,7 @@ public class PacUtils {
      *
      * <p>
      * This method supports all GLOB wildcards, such as
-     * <table border="0" style="order-collapse: separate;border-spacing: 50px 0;" summary="">
+     * <table>
      * <tr align="left"><td>{@code *}</td><td>matches any number of any
      * characters including none</td>
      * <tr align="left"><td>{@code ?}</td><td>matches any single character</td>
@@ -111,53 +123,6 @@ public class PacUtils {
         pattern = Pattern.compile(out.toString());
         cache.put(glob, pattern);
         return pattern;
-    }
-
-    /**
-     * Cleans a URI into a format suitable for passing to the PAC script.
-     * (meaning suitable for passing as {@code url} argument to
-     * {@code FindProxyForURL(url, host)} or {@code FindProxyForURLEx(url, host)}
-     * functions).
-     * <p>
-     * Because a PAC script is downloaded from a potentially malicious source it
-     * may contain harmful code. Therefore, the amount of information passed to
-     * the script should be limited to what is strictly necessary for the script
-     * to make decisions about choice of proxy. Anything in the URL which can
-     * potentially identity the user or which may contain session specific
-     * information should be removed before passing to script.
-     *
-     * <p>
-     * The following is removed:
-     * <ul>
-     *   <li><i>{@code user-info}</i></li>
-     *   <li><i>{@code path}</i> and everything that follows after</li>
-     * </ul>
-     *
-     * <p>
-     * Example:
-     * <pre>
-     *    https://mary@netbeans.apache.org:8081/path/to/something?x1=Christmas&amp;user=unknown
-     * becomes
-     *    https://netbeans.apache.org:8081/
-     * </pre>
-     *
-     * <p>
-     * Note that the majority of PAC scripts out there do not make use of the
-     * {@code url} parameter at all. Instead they only use the {@code host}
-     * parameter. The stripping of information means that the {@code url}
-     * parameter only has two pieces of information that the {@code host}
-     * parameter doesn't have: protocol and port number.
-     * <br>
-     *
-     * @param uri URL to be cleansed
-     * @return stripped URL string
-     */
-    public static String toStrippedURLStr(URI uri) {
-        return uri.getScheme() +
-                "://" +
-                uri.getHost() +
-                (uri.getPort() == -1 ? "" : ":" + uri.getPort()) +
-                "/";  // Chrome seems to always append the slash so we do it too
     }
 
 }
