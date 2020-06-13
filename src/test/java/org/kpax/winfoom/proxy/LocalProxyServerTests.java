@@ -46,7 +46,7 @@ class LocalProxyServerTests {
     private LocalProxyServer localProxyServer;
 
     @Autowired
-    private ProxyLifecycle proxyLifecycle;
+    private ProxyContext proxyContext;
 
     @BeforeEach
     void before() {

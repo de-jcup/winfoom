@@ -70,7 +70,7 @@ public class DirectProxyClientConnectionTests {
     private ClientConnectionHandler clientConnectionHandler;
 
     @Autowired
-    private ProxyLifecycle proxyLifecycle;
+    private ProxyContext proxyContext;
 
 
     private ServerSocket serverSocket;
@@ -98,8 +98,8 @@ public class DirectProxyClientConnectionTests {
         remoteServer.start();
 
         serverSocket = new ServerSocket(TestConstants.LOCAL_PROXY_PORT);
-        if (!proxyLifecycle.isRunning()) {
-            proxyLifecycle.start();
+        if (!proxyContext.isRunning()) {
+            proxyContext.start();
         }
         new Thread(() -> {
             while (!serverSocket.isClosed()) {

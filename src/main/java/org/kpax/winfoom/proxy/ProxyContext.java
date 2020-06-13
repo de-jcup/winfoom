@@ -13,10 +13,13 @@
 package org.kpax.winfoom.proxy;
 
 import org.kpax.winfoom.config.ProxyConfig;
+import org.kpax.winfoom.config.ScopeConfiguration;
+import org.kpax.winfoom.pac.net.IpAddresses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 import javax.annotation.PostConstruct;
 import java.net.Authenticator;
@@ -34,12 +37,16 @@ public class ProxyContext implements AutoCloseable {
 
     private final Logger logger = LoggerFactory.getLogger(ProxyContext.class);
 
+    private final ProxyLifecycle proxyLifecycle = new ProxyLifecycle();
 
     @Autowired
     private ProxyConfig proxyConfig;
 
     @Autowired
-    private ProxyLifecycle proxyLifecycle;
+    private ScopeConfiguration scopeConfiguration;
+
+    @Autowired
+    private LocalProxyServer localProxyServer;
 
     private ThreadPoolExecutor threadPool;
 
@@ -129,4 +136,57 @@ public class ProxyContext implements AutoCloseable {
             return thread;
         }
     }
+
+     /**
+     * Manage a proxy session (start/stop).
+     * <p>The proxy session begins with {@link #start()}
+     * and ends with {@link #stop()}.
+     *
+     * @see ProxySessionScope
+     */
+    private class ProxyLifecycle {
+
+        /**
+         * Whether this manager is started or not.
+         */
+        private volatile boolean started;
+
+        /**
+         * Begin a proxy session.
+         *
+         * @throws Exception
+         */
+        void start() throws Exception {
+            Assert.state(!started, "Already started");
+            localProxyServer.start();
+            started = true;
+        }
+
+        /**
+         * <p>End the current proxy session, if any.
+         * <p>Does nothing if it's not running.
+         */
+        void stop() {
+            if (started) {
+                started = false;
+                scopeConfiguration.getProxySessionScope().clear();
+
+                // We reset these suppliers because the network state
+                // might have changed during the proxy session.
+                // Though unlikely, we take no chances.
+                IpAddresses.allPrimaryAddresses.reset();
+                IpAddresses.primaryIPv4Address.reset();
+            }
+        }
+
+        /**
+         * Check if there is an active proxy session.
+         *
+         * @return {@code true} iff there is an active proxy session
+         */
+        public boolean isRunning() {
+            return started;
+        }
+    }
+
 }

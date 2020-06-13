@@ -107,7 +107,7 @@ class NonConnectClientConnectionProcessor implements ClientConnectionProcessor {
                     entity.setChunked(true);
 
                     // Apache HttpClient adds a Transfer-Encoding header's chunk directive
-                    // so remove or strip the existent one of chunk directive
+                    // so remove or strip the existent one from chunk directive
                     request.removeHeader(transferEncoding);
                     String nonChunkedTransferEncoding = HttpUtils.stripChunked(transferEncoding.getValue());
                     if (StringUtils.isNotEmpty(nonChunkedTransferEncoding)) {

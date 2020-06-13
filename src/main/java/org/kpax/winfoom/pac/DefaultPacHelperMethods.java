@@ -15,9 +15,9 @@ package org.kpax.winfoom.pac;
 import inet.ipaddr.IPAddressString;
 import org.apache.commons.lang3.StringUtils;
 import org.kpax.winfoom.config.SystemConfig;
-import org.kpax.winfoom.pac.datetime.PacUtilsDateTime;
+import org.kpax.winfoom.pac.datetime.PacDateTimeUtils;
 import org.kpax.winfoom.pac.net.IpAddressMatcher;
-import org.kpax.winfoom.pac.net.IpAddressUtils;
+import org.kpax.winfoom.pac.net.IpAddresses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,7 +83,7 @@ public class DefaultPacHelperMethods implements PacHelperMethodsNetscape, PacHel
     @Override
     public boolean isResolvable(String host) {
         try {
-            return !IpAddressUtils.resolve(host, a -> a.getClass() == Inet4Address.class).isEmpty();
+            return !IpAddresses.resolve(host, a -> a.getClass() == Inet4Address.class).isEmpty();
         } catch (UnknownHostException ex) {
             logger.debug("Error on resolving host [{}]", host);
             return false;
@@ -93,7 +93,7 @@ public class DefaultPacHelperMethods implements PacHelperMethodsNetscape, PacHel
     @Override
     public String dnsResolve(String host) {
         try {
-            List<InetAddress> addresses = IpAddressUtils.resolve(host, a -> a.getClass() == Inet4Address.class);
+            List<InetAddress> addresses = IpAddresses.resolve(host, a -> a.getClass() == Inet4Address.class);
             if (!addresses.isEmpty()) {
                 return addresses.get(0).getHostAddress();
             }
@@ -107,10 +107,10 @@ public class DefaultPacHelperMethods implements PacHelperMethodsNetscape, PacHel
     @Override
     public String myIpAddress() {
         try {
-            return IpAddressUtils.primaryIPv4Address.get().getHostAddress();
+            return IpAddresses.primaryIPv4Address.get().getHostAddress();
         } catch (Exception e) {
             logger.warn("Cannot get localhost ip address", e);
-            return IpAddressUtils.LOCALHOST;
+            return IpAddresses.LOCALHOST;
         }
     }
 
@@ -138,8 +138,8 @@ public class DefaultPacHelperMethods implements PacHelperMethodsNetscape, PacHel
     @Override
     public boolean weekdayRange(Object... args) {
         try {
-            return PacUtilsDateTime.isInWeekdayRange(new Date(), args);
-        } catch (PacUtilsDateTime.PacDateTimeInputException ex) {
+            return PacDateTimeUtils.isInWeekdayRange(new Date(), args);
+        } catch (PacDateTimeUtils.PacDateTimeInputException ex) {
             logger.warn("PAC script error : arguments passed to weekdayRange() function {} are faulty: {}",
                     Arrays.toString(args), ex.getMessage());
             return false;
@@ -149,8 +149,8 @@ public class DefaultPacHelperMethods implements PacHelperMethodsNetscape, PacHel
     @Override
     public boolean dateRange(Object... args) {
         try {
-            return PacUtilsDateTime.isInDateRange(new Date(), args);
-        } catch (PacUtilsDateTime.PacDateTimeInputException ex) {
+            return PacDateTimeUtils.isInDateRange(new Date(), args);
+        } catch (PacDateTimeUtils.PacDateTimeInputException ex) {
             logger.warn("PAC script error : arguments passed to dateRange() function {} are faulty: {}",
                     Arrays.toString(args), ex.getMessage());
             return false;
@@ -160,8 +160,8 @@ public class DefaultPacHelperMethods implements PacHelperMethodsNetscape, PacHel
     @Override
     public boolean timeRange(Object... args) {
         try {
-            return PacUtilsDateTime.isInTimeRange(new Date(), args);
-        } catch (PacUtilsDateTime.PacDateTimeInputException ex) {
+            return PacDateTimeUtils.isInTimeRange(new Date(), args);
+        } catch (PacDateTimeUtils.PacDateTimeInputException ex) {
             logger.warn("PAC script error : arguments passed to timeRange() function {} are faulty: {}",
                     Arrays.toString(args), ex.getMessage());
             return false;
@@ -176,7 +176,7 @@ public class DefaultPacHelperMethods implements PacHelperMethodsNetscape, PacHel
     @Override
     public boolean isResolvableEx(String host) {
         try {
-            return !IpAddressUtils.resolve(host).isEmpty();
+            return !IpAddresses.resolve(host).isEmpty();
         } catch (UnknownHostException ex) {
             return false;
         }
@@ -185,10 +185,10 @@ public class DefaultPacHelperMethods implements PacHelperMethodsNetscape, PacHel
     @Override
     public String dnsResolveEx(String host) {
         try {
-            List<InetAddress> addresses = IpAddressUtils.resolve(host);
+            List<InetAddress> addresses = IpAddresses.resolve(host);
             if (!addresses.isEmpty()) {
                 if (addresses.size() > 1) {
-                    addresses.sort(IpAddressUtils.addressComparator(systemConfig.isPreferIPv6Addresses()));
+                    addresses.sort(IpAddresses.addressComparator(systemConfig.isPreferIPv6Addresses()));
                 }
                 return addresses.get(0).getHostAddress();
             }
@@ -201,14 +201,14 @@ public class DefaultPacHelperMethods implements PacHelperMethodsNetscape, PacHel
     @Override
     public String myIpAddressEx() {
         try {
-            InetAddress[] addresses = IpAddressUtils.allPrimaryAddresses.get();
+            InetAddress[] addresses = IpAddresses.allPrimaryAddresses.get();
             return Arrays.stream(addresses).
-                    sorted(IpAddressUtils.addressComparator(systemConfig.isPreferIPv6Addresses())).
+                    sorted(IpAddresses.addressComparator(systemConfig.isPreferIPv6Addresses())).
                     map(InetAddress::getHostAddress).
                     collect(Collectors.joining(";"));
         } catch (Exception e) {
             logger.warn("Cannot get localhost ip addresses", e);
-            return IpAddressUtils.LOCALHOST;
+            return IpAddresses.LOCALHOST;
         }
     }
 
@@ -222,7 +222,7 @@ public class DefaultPacHelperMethods implements PacHelperMethodsNetscape, PacHel
         // those) but at the same time we have to preserve the way
         // the original input was represented and return in the same
         // format.
-        TreeMap<InetAddress, String> addresses = new TreeMap<>(IpAddressUtils.IPv6_FIRST_TOTAL_ORDERING_COMPARATOR);
+        TreeMap<InetAddress, String> addresses = new TreeMap<>(IpAddresses.IPv6_FIRST_TOTAL_ORDERING_COMPARATOR);
         for (String host : ipAddressList.split(";")) {
             try {
                 addresses.put(InetAddress.getByName(host.trim()), host);

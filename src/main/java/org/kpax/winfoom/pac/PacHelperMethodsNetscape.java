@@ -13,7 +13,7 @@
  */
 package org.kpax.winfoom.pac;
 
-import org.kpax.winfoom.pac.datetime.PacUtilsDateTime;
+import org.kpax.winfoom.pac.datetime.PacDateTimeUtils;
 
 /**
  * Netscape's original PAC script helper functions. In their original
@@ -264,7 +264,7 @@ public interface PacHelperMethodsNetscape {
      *
      * @param args up to max 3 arguments
      * @return
-     * @see PacUtilsDateTime#WEEKDAY_NAMES
+     * @see PacDateTimeUtils#WEEKDAY_NAMES
      */
     boolean weekdayRange(Object... args);
 
@@ -330,7 +330,7 @@ public interface PacHelperMethodsNetscape {
      *
      * @param args
      * @return
-     * @see PacUtilsDateTime#MONTH_NAMES
+     * @see PacDateTimeUtils#MONTH_NAMES
      */
     boolean dateRange(Object... args);
 

@@ -17,7 +17,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.kpax.winfoom.FoomApplicationTest;
 import org.kpax.winfoom.config.SystemConfig;
-import org.kpax.winfoom.pac.net.IpAddressUtils;
+import org.kpax.winfoom.pac.net.IpAddresses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -163,7 +163,7 @@ public class DefaultPacHelperMethodsTests {
     void myIpAddress_IsIPv4() {
         String myIpAddress = defaultPacHelperMethods.myIpAddress();
         logger.info("myIpAddress {}", myIpAddress);
-        assertTrue(IpAddressUtils.isValidIPv4Address(myIpAddress));
+        assertTrue(IpAddresses.isValidIPv4Address(myIpAddress));
     }
 
     @Test
@@ -172,7 +172,7 @@ public class DefaultPacHelperMethodsTests {
         logger.info("myIpAddressEx {}", myIpAddressEx);
         Arrays.stream(myIpAddressEx.split(";")).forEach(address -> {
             logger.info("address={}", address);
-            assertTrue(IpAddressUtils.isValidIPAddress(address));
+            assertTrue(IpAddresses.isValidIPAddress(address));
         });
     }
 

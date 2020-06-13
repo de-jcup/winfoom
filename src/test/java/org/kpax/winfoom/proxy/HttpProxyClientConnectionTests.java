@@ -79,7 +79,7 @@ class HttpProxyClientConnectionTests {
     private ClientConnectionHandler clientConnectionHandler;
 
     @Autowired
-    private ProxyLifecycle proxyLifecycle;
+    private ProxyContext proxyContext;
 
     private ServerSocket serverSocket;
 
@@ -123,8 +123,8 @@ class HttpProxyClientConnectionTests {
         remoteServer.start();
 
         serverSocket = new ServerSocket(TestConstants.LOCAL_PROXY_PORT);
-        if (!proxyLifecycle.isRunning()) {
-            proxyLifecycle.start();
+        if (!proxyContext.isRunning()) {
+            proxyContext.start();
         }
         new Thread(() -> {
             while (!serverSocket.isClosed()) {
@@ -231,7 +231,7 @@ class HttpProxyClientConnectionTests {
         }
         remoteProxyServer.stop();
         remoteServer.stop();
-        proxyLifecycle.stop();
+        proxyContext.stop();
     }
 
 }

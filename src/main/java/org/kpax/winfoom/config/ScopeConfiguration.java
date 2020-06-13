@@ -26,7 +26,7 @@ import java.util.Map;
  * <p>Currently, only {@link ProxySessionScope} is available.
  */
 @Configuration
-class ScopeConfiguration {
+public class ScopeConfiguration {
 
     private static final Map<String, Object> scopes = new LinkedHashMap<>(1);
 
@@ -38,11 +38,8 @@ class ScopeConfiguration {
         return configurer;
     }
 
-    @Lazy
-    @Bean
-    ProxySessionScope proxySessionScope() {
+    public ProxySessionScope getProxySessionScope () {
         return (ProxySessionScope) scopes.get(ProxySessionScope.NAME);
     }
-
 
 }

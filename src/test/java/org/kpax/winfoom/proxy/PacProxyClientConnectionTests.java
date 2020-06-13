@@ -93,7 +93,7 @@ public class PacProxyClientConnectionTests {
     private ProxySessionScope proxySessionScope;
 
     @Autowired
-    private ProxyLifecycle proxyLifecycle;
+    private ProxyContext proxyContext;
 
     private ServerSocket serverSocket;
 
@@ -123,8 +123,8 @@ public class PacProxyClientConnectionTests {
         remoteServer.start();
 
         serverSocket = new ServerSocket(TestConstants.LOCAL_PROXY_PORT);
-        if (!proxyLifecycle.isRunning()) {
-            proxyLifecycle.start();
+        if (!proxyContext.isRunning()) {
+            proxyContext.start();
         }
         new Thread(() -> {
             while (!serverSocket.isClosed()) {
@@ -486,6 +486,6 @@ public class PacProxyClientConnectionTests {
             // Ignore
         }
         remoteServer.stop();
-        proxyLifecycle.stop();
+        proxyContext.stop();
     }
 }

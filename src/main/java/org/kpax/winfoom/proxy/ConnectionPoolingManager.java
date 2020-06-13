@@ -48,7 +48,7 @@ class ConnectionPoolingManager implements AutoCloseable {
     private SystemConfig systemConfig;
 
     @Autowired
-    private ProxyLifecycle proxyLifecycle;
+    private ProxyContext proxyContext;
 
     /**
      * For HTTP proxy type
@@ -117,7 +117,7 @@ class ConnectionPoolingManager implements AutoCloseable {
      */
     @Scheduled(fixedRateString = "#{systemConfig.connectionManagerCleanInterval * 1000}")
     void cleanUpConnectionManager() {
-        if (proxyLifecycle.isRunning()) {
+        if (proxyContext.isRunning()) {
             logger.debug("Execute connection manager pool clean up task");
             for (SingletonSupplier<PoolingHttpClientConnectionManager> connectionManagerSupplier : getAllActiveConnectionManagers()) {
                 try {
@@ -145,7 +145,7 @@ class ConnectionPoolingManager implements AutoCloseable {
      * @throws IllegalStateException when this manager is not started.
      */
     private PoolingHttpClientConnectionManager createConnectionManager(Registry<ConnectionSocketFactory> socketFactoryRegistry) {
-        Assert.state(proxyLifecycle.isRunning(), "Cannot create connectionManagers: ConnectionPoolingManager is not started");
+        Assert.state(proxyContext.isRunning(), "Cannot create connectionManagers: ConnectionPoolingManager is not started");
         PoolingHttpClientConnectionManager connectionManager = socketFactoryRegistry != null
                 ? new PoolingHttpClientConnectionManager(socketFactoryRegistry) :
                 new PoolingHttpClientConnectionManager();

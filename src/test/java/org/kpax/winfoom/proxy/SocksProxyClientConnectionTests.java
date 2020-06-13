@@ -71,7 +71,7 @@ public class SocksProxyClientConnectionTests {
     private ClientConnectionHandler clientConnectionHandler;
 
     @Autowired
-    private ProxyLifecycle proxyLifecycle;
+    private ProxyContext proxyContext;
 
     private ClientAndServer socksRemoteProxyServer;
 
@@ -101,8 +101,8 @@ public class SocksProxyClientConnectionTests {
         remoteServer.start();
 
         serverSocket = new ServerSocket(TestConstants.LOCAL_PROXY_PORT);
-        if (!proxyLifecycle.isRunning()) {
-            proxyLifecycle.start();
+        if (!proxyContext.isRunning()) {
+            proxyContext.start();
         }
         new Thread(() -> {
             while (!serverSocket.isClosed()) {
@@ -211,6 +211,6 @@ public class SocksProxyClientConnectionTests {
         }
         socksRemoteProxyServer.stop();
         remoteServer.stop();
-        proxyLifecycle.stop();
+        proxyContext.stop();
     }
 }

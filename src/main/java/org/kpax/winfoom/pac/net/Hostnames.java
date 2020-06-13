@@ -25,7 +25,7 @@ import org.kpax.winfoom.exception.NativeException;
  * Hostname utilities for Microsoft Windows OS.
  * @author lbruun
  */
-public class HostnameUtils {
+public class Hostnames {
 
     /**
      * Gets the local host name.
@@ -74,7 +74,7 @@ public class HostnameUtils {
         if (hostname == null) {
             return null;
         }
-        if (IpAddressUtils.isValidIPv4Address(hostname)) {
+        if (IpAddresses.isValidIPv4Address(hostname)) {
             return hostname;
         }
 
