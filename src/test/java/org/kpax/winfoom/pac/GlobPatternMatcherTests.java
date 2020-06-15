@@ -24,7 +24,7 @@ public class GlobPatternMatcherTests {
     @Test
     void convertGlobToRegEx_StartWithStar_Matches () {
         Pattern pattern = Pattern.compile(globPatternMatcher.convertGlobToRegEx("*.java"));
-        boolean matches = pattern.matcher("bla.java").matches();
+        boolean matches = pattern.matcher("bla/bla.java").matches();
         Assertions.assertTrue(matches);
     }
 
@@ -44,15 +44,15 @@ public class GlobPatternMatcherTests {
 
     @Test
     void convertGlobToRegEx_Range_Matches () {
-        Pattern pattern = Pattern.compile(globPatternMatcher.convertGlobToRegEx("x[abc].java"));
-        boolean matches = pattern.matcher("xb.java").matches();
+        Pattern pattern = Pattern.compile(globPatternMatcher.convertGlobToRegEx("bla/x[abc].java"));
+        boolean matches = pattern.matcher("bla/xb.java").matches();
         Assertions.assertTrue(matches);
     }
 
     @Test
     void convertGlobToRegEx_Range_NotMatches () {
-        Pattern pattern = Pattern.compile(globPatternMatcher.convertGlobToRegEx("x[abc].java"));
-        boolean matches = pattern.matcher("xbc.java").matches();
+        Pattern pattern = Pattern.compile(globPatternMatcher.convertGlobToRegEx("bla/x[abc].java"));
+        boolean matches = pattern.matcher("bla/xbc.java").matches();
         Assertions.assertFalse(matches);
     }
 
@@ -79,5 +79,11 @@ public class GlobPatternMatcherTests {
         Assertions.assertTrue(matches);
     }
 
+    @Test
+    void convertGlobToRegEx_Star_NotMatches () {
+        Pattern pattern = Pattern.compile(globPatternMatcher.convertGlobToRegEx("*.java"));
+        boolean matches = pattern.matcher("xbc/abc/bla/foo.exe").matches();
+        Assertions.assertFalse(matches);
+    }
 
 }

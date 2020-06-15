@@ -41,7 +41,6 @@ public class GlobPatternMatcher {
      * For example, {@code {ab,cd/ef}/*.js} is valid and would match ab/file.js as well as {@code cd/ef/file.js}.</li>
      * <li>  The use of {@code [abc]} matches a range of characters.
      *  If the first character of the range is {@code !} or {@code ^} then it matches any character not in the range.</li>
-     * <li> When {@code **}, the "globstar", is used it matches zero or more directories and subdirectories. This allows for recursive directory searching easily.</li>
      *</ul>
      * <p>
      * <b>Note:</b> The result is cached.
