@@ -33,20 +33,12 @@ public class GlobPatternMatcher {
 
     /**
      * Translate a GLOB pattern into a {@link Pattern} instance.
-     * <ul>
-     * <li> The {@code *} character matches zero or more characters.</li>
-     * <li> {@code ?} matches exactly one character.</li>
-     * <li> {@code {ab,cd,ef} }matches exactly one of the "parts" provided.
-     *  These "parts" can also span multiple "sections" of the glob, so you can include directory separators in them.
-     * For example, {@code {ab,cd/ef}/*.js} is valid and would match ab/file.js as well as {@code cd/ef/file.js}.</li>
-     * <li>  The use of {@code [abc]} matches a range of characters.
-     *  If the first character of the range is {@code !} or {@code ^} then it matches any character not in the range.</li>
-     *</ul>
      * <p>
      * <b>Note:</b> The result is cached.
      *
      * @param glob the GLOB pattern.
      * @return the {@link Pattern} instance.
+     * @see #convertGlobToRegEx(String)
      */
     @Cacheable("precompiledGlobPattern")
     public Pattern toPattern(String glob) {
@@ -57,6 +49,18 @@ public class GlobPatternMatcher {
         return Pattern.compile(regexPattern);
     }
 
+    /**
+     * <ul>
+     *  <li> The {@code *} character matches zero or more characters.</li>
+     *  <li> {@code ?} matches exactly one character.</li>
+     *  <li> {@code (ab|cd|ef)}matches one of the "parts" provided.
+     *  <li>  The use of {@code [abc]} matches a range of characters.
+     *        If the first character of the range is {@code !} or {@code ^} then it matches any character not in the range.</li>
+     *   </ul>
+     *
+     * @param globExpression  the GLOB expression.
+     * @return the regex
+     */
     public static String convertGlobToRegEx(String globExpression) {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("^");
