@@ -49,7 +49,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.TreeMap;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 
@@ -64,6 +63,10 @@ public class DefaultPacHelperMethods implements PacHelperMethodsNetscape, PacHel
 
     @Autowired
     private SystemConfig systemConfig;
+
+    @Lazy
+    @Autowired
+    private GlobPatternMatcher globPatternMatcher;
 
     // *************************************************************
     //  Official helper functions.
@@ -148,10 +151,8 @@ public class DefaultPacHelperMethods implements PacHelperMethodsNetscape, PacHel
 
     @Override
     public boolean shExpMatch(String str, String shexp) {
-        Pattern pattern = PacUtils.createGlobRegexPattern(shexp);
-        return pattern.matcher(str).matches();
+        return globPatternMatcher.toPattern(shexp).matcher(str).matches();
     }
-
 
     @Override
     public boolean weekdayRange(Object... args) {

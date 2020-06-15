@@ -1,19 +1,5 @@
 /*
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-/*
- * Modifications copyright (c) 2020. Eugen Covaci
+ * Copyright (c) 2020. Eugen Covaci
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -26,39 +12,26 @@
 
 package org.kpax.winfoom.pac;
 
-import org.cache2k.Cache;
-import org.cache2k.Cache2kBuilder;
-import org.cache2k.configuration.Cache2kConfiguration;
-import org.kpax.winfoom.util.functional.SingletonSupplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
 import java.util.regex.Pattern;
 
 /**
- * Methods and constants useful in PAC script evaluation.
+ * GLOB pattern matcher.
  */
-public class PacUtils {
+@Lazy
+@Component
+public class GlobPatternMatcher {
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+
 
     /**
-     * Size of the cache used for precompiled GLOBs.
-     */
-    public static final int GLOB_PATTERN_CACHE_CAPACITY = 100;
-
-    private static final SingletonSupplier<Cache<String, Pattern>> cacheSupplier =
-            new SingletonSupplier<>(() -> Cache2kBuilder.of(
-                    new Cache2kConfiguration<String, Pattern>()).name("precompiledGlobPattern")
-                    .eternal(true)
-                    .entryCapacity(GLOB_PATTERN_CACHE_CAPACITY)
-                    .build());
-
-    private PacUtils() {
-    }
-
-    /**
-     * Translate a GLOB pattern into a RegExp pattern. GLOB patterns originate
-     * from Unix hosts where they are primarily used for file pattern matching.
-     * In the original PAC specification from Netscape a GLOB pattern is
-     * referred to as a 'shell expression'.
-     *
+     * Translate a GLOB pattern into a {@link Pattern} instance.
      * <p>
      * This method supports all GLOB wildcards, such as
      * <table>
@@ -76,21 +49,14 @@ public class PacUtils {
      * </table>
      *
      * <p>
-     * A cache is used so that if a glob pattern has already been
-     * translated previously, the result from the cache will be returned.
+     * <b>Note:</b> The result is cached.
      *
      * @param glob the GLOB pattern.
      * @return the {@link Pattern} instance.
      */
-    public static Pattern createGlobRegexPattern(String glob) {
-
-        // First try the cache
-        Cache<String, Pattern> cache = cacheSupplier.get();
-        Pattern pattern = cache.get(glob);
-        if (pattern != null) {
-            return pattern;
-        }
-
+    @Cacheable("precompiledGlobPattern")
+    public Pattern toPattern(String glob) {
+        logger.debug("Create Pattern for {}", glob);
         StringBuilder out = new StringBuilder();
         out.append("^");
         for (int i = 0; i < glob.length(); ++i) {
@@ -120,9 +86,7 @@ public class PacUtils {
             }
         }
         out.append("$");
-        pattern = Pattern.compile(out.toString());
-        cache.put(glob, pattern);
-        return pattern;
+        return Pattern.compile(out.toString());
     }
 
 }

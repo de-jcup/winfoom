@@ -94,9 +94,7 @@ public class DefaultPacScriptEvaluator implements PacScriptEvaluator, AutoClosea
      */
     private String loadScript() throws IOException {
         URL url = proxyConfig.getProxyPacFileLocationAsURL();
-        if (url == null) {
-            throw new IllegalStateException("No proxy PAC file location found");
-        }
+        Assert.state(url != null, "No proxy PAC file location found");
         logger.info("Get PAC file from: {}", url);
         try (InputStream inputStream = url.openStream()) {
             String content = IOUtils.toString(inputStream, StandardCharsets.UTF_8);

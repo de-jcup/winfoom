@@ -105,6 +105,12 @@ public class SystemConfig {
     @Value("${java.net.preferIPv6Addresses:false}")
     private boolean preferIPv6Addresses;
 
+    /**
+     * The cache2k default capacity.
+     */
+    @Value("${cache.globPattern.capacity:100}")
+    private Integer cacheGlobPatternCapacity;
+
     public Integer getMaxConnectionsPerRoute() {
         return maxConnectionsPerRoute;
     }
@@ -143,6 +149,10 @@ public class SystemConfig {
 
     public boolean isPreferIPv6Addresses() {
         return preferIPv6Addresses;
+    }
+
+    public Integer getCacheGlobPatternCapacity() {
+        return cacheGlobPatternCapacity;
     }
 
     public RequestConfig.Builder applyConfig(final RequestConfig.Builder configBuilder) {
