@@ -57,7 +57,7 @@ public class GlobPatternMatcher {
         return Pattern.compile(regexPattern);
     }
 
-    public String convertGlobToRegEx(String globExpression) {
+    public static String convertGlobToRegEx(String globExpression) {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("^");
         for (int i = 0; i < globExpression.length(); ++i) {
