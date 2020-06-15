@@ -26,7 +26,6 @@ import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.config.ScopeConfiguration;
 import org.kpax.winfoom.exception.PacFileException;
 import org.kpax.winfoom.pac.DefaultPacScriptEvaluator;
-import org.kpax.winfoom.pac.PacScriptEvaluator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;

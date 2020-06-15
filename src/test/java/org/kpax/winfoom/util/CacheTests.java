@@ -12,15 +12,12 @@
 
 package org.kpax.winfoom.util;
 
-import org.apache.commons.text.StringEscapeUtils;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.cache2k.configuration.Cache2kConfiguration;
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
-import java.io.UnsupportedEncodingException;
-import java.net.*;
 import java.util.stream.IntStream;
 
 public class CacheTests {

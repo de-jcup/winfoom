@@ -19,7 +19,7 @@ import org.kpax.winfoom.pac.net.Hostnames;
 public class HostnamesTests {
 
     @Test
-    void getHostName_NoError () throws NativeException {
+    void getHostName_NoError() throws NativeException {
         String hostname = Hostnames.getHostName();
         System.out.println(hostname);
     }
