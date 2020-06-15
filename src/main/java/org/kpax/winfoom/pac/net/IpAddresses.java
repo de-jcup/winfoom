@@ -119,13 +119,9 @@ public class IpAddresses {
         for (int i = 0; i < bArr1.length; i++) {
             int x1 = Byte.toUnsignedInt(bArr1[i]);
             int x2 = Byte.toUnsignedInt(bArr2[i]);
-
-            if (x1 == x2) {
-                continue;
-            }
             if (x1 < x2) {
                 return -1;
-            } else {
+            } else if (x1 > x2) {
                 return 1;
             }
         }

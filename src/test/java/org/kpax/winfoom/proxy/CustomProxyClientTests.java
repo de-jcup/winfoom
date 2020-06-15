@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -45,6 +46,7 @@ import static org.mockito.Mockito.when;
  * @author Eugen Covaci {@literal eugen.covaci.q@gmail.com}
  * Created on 3/2/2020
  */
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @SpringBootTest(classes = FoomApplicationTest.class)
 @ExtendWith(SpringExtension.class)
 @ActiveProfiles("test")

@@ -18,6 +18,7 @@ import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 @Configuration
 @EnableCaching
@@ -26,6 +27,7 @@ public class CacheConfiguration {
     @Autowired
     private SystemConfig systemConfig;
 
+    @Profile("!test")
     @Bean
     public CacheManager cacheManager() {
         return new SpringCache2kCacheManager().addCaches(

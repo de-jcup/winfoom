@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -39,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @SpringBootTest(classes = FoomApplicationTest.class)
 @ExtendWith(SpringExtension.class)
 @ActiveProfiles("test")
@@ -54,8 +56,8 @@ public class DefaultPacScriptEvaluatorTests {
 
     @BeforeEach
     void beforeEach() throws IOException {
-        when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(new File("./src/test/resources/proxy-simple-all-helpers.pac").toURI().toURL());
-
+        when(proxyConfig.getProxyPacFileLocationAsURL()).
+                thenReturn(new File("./src/test/resources/proxy-simple-all-helpers.pac").toURI().toURL());
     }
 
     @Test
