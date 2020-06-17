@@ -53,19 +53,19 @@ class ConnectionPoolingManager implements AutoCloseable {
     /**
      * For HTTP proxy type
      */
-    private final SingletonSupplier<PoolingHttpClientConnectionManager> httpClientConnManagerSupplier =
+    private final SingletonSupplier<PoolingHttpClientConnectionManager> httpSupplier =
             new SingletonSupplier<>(() -> createConnectionManager(null));
 
     /**
      * For SOCKS5 proxy type
      */
-    private final SingletonSupplier<PoolingHttpClientConnectionManager> socksConnManagerSupplier =
+    private final SingletonSupplier<PoolingHttpClientConnectionManager> socksSupplier =
             new SingletonSupplier<>(() -> createSocksConnectionManager(false));
 
     /**
      * For SOCKS4 proxy type
      */
-    private final SingletonSupplier<PoolingHttpClientConnectionManager> socks4ConnManagerSupplier =
+    private final SingletonSupplier<PoolingHttpClientConnectionManager> socks4Supplier =
             new SingletonSupplier<>(() -> createSocksConnectionManager(true));
 
     /**
@@ -74,7 +74,7 @@ class ConnectionPoolingManager implements AutoCloseable {
      * @return the existent {@link PoolingHttpClientConnectionManager} instance or a new one if {@code null}.
      */
     HttpClientConnectionManager getHttpConnectionManager() {
-        return httpClientConnManagerSupplier.get();
+        return httpSupplier.get();
     }
 
     /**
@@ -83,7 +83,7 @@ class ConnectionPoolingManager implements AutoCloseable {
      * @return the existent {@link PoolingHttpClientConnectionManager} instance or a new one if {@code null}.
      */
     HttpClientConnectionManager getSocksConnectionManager() {
-        return socksConnManagerSupplier.get();
+        return socksSupplier.get();
     }
 
     /**
@@ -92,7 +92,7 @@ class ConnectionPoolingManager implements AutoCloseable {
      * @return the existent {@link PoolingHttpClientConnectionManager} instance or a new one if {@code null}.
      */
     HttpClientConnectionManager getSocks4ConnectionManager() {
-        return socks4ConnManagerSupplier.get();
+        return socks4Supplier.get();
     }
 
     /**
@@ -100,14 +100,14 @@ class ConnectionPoolingManager implements AutoCloseable {
      */
     private List<SingletonSupplier<PoolingHttpClientConnectionManager>> getAllActiveConnectionManagers() {
         List<SingletonSupplier<PoolingHttpClientConnectionManager>> activeConnectionManagers = new ArrayList<>();
-        if (httpClientConnManagerSupplier.hasValue()) {
-            activeConnectionManagers.add(httpClientConnManagerSupplier);
+        if (httpSupplier.hasValue()) {
+            activeConnectionManagers.add(httpSupplier);
         }
-        if (socksConnManagerSupplier.hasValue()) {
-            activeConnectionManagers.add(socksConnManagerSupplier);
+        if (socksSupplier.hasValue()) {
+            activeConnectionManagers.add(socksSupplier);
         }
-        if (socks4ConnManagerSupplier.hasValue()) {
-            activeConnectionManagers.add(socks4ConnManagerSupplier);
+        if (socks4Supplier.hasValue()) {
+            activeConnectionManagers.add(socks4Supplier);
         }
         return activeConnectionManagers;
     }
@@ -142,7 +142,7 @@ class ConnectionPoolingManager implements AutoCloseable {
      * @param socketFactoryRegistry the {@link Registry} instance used to configure the
      *                              {@link PoolingHttpClientConnectionManager}.
      * @return the new {@link PoolingHttpClientConnectionManager} instance.
-     * @throws IllegalStateException when this manager is not started.
+     * @throws IllegalStateException when the proxy is not started.
      */
     private PoolingHttpClientConnectionManager createConnectionManager(Registry<ConnectionSocketFactory> socketFactoryRegistry) {
         Assert.state(proxyContext.isRunning(), "Cannot create connectionManagers: ConnectionPoolingManager is not started");
@@ -164,7 +164,7 @@ class ConnectionPoolingManager implements AutoCloseable {
      *
      * @param isSocks4 whether the SOCKS version is {@code 4} or not.
      * @return the new {@link PoolingHttpClientConnectionManager} instance.
-     * @throws IllegalStateException when this manager is not started.
+     * @throws IllegalStateException when the proxy is not started.
      */
     private PoolingHttpClientConnectionManager createSocksConnectionManager(boolean isSocks4) {
         ConnectionSocketFactory connectionSocketFactory = isSocks4

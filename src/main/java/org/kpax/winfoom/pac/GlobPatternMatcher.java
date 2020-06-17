@@ -50,6 +50,7 @@ public class GlobPatternMatcher {
     }
 
     /**
+     * Create a regex out of a GLOB expression.
      * <ul>
      *  <li> The {@code *} character matches zero or more characters.</li>
      *  <li> {@code ?} matches exactly one character.</li>

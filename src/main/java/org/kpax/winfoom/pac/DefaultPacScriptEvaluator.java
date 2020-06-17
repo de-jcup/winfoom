@@ -74,10 +74,10 @@ public class DefaultPacScriptEvaluator implements PacScriptEvaluator, AutoClosea
     @Autowired
     private DefaultPacHelperMethods pacHelperMethods;
 
-    private DoubleExceptionSingletonSupplier<PacScriptEngine, PacFileException, IOException> scriptEngineSupplier =
+    private final DoubleExceptionSingletonSupplier<PacScriptEngine, PacFileException, IOException> scriptEngineSupplier =
             new DoubleExceptionSingletonSupplier<PacScriptEngine, PacFileException, IOException>(this::createScriptEngine);
 
-    private SingletonSupplier<String> helperJSScriptSupplier = new SingletonSupplier<>(() -> {
+    private final SingletonSupplier<String> helperJSScriptSupplier = new SingletonSupplier<>(() -> {
         try {
             return IOUtils.toString(getClass().getClassLoader().
                     getResourceAsStream("javascript/pacFunctions.js"), StandardCharsets.UTF_8);
