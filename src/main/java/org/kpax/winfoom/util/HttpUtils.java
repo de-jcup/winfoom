@@ -356,38 +356,8 @@ public final class HttpUtils {
      * (meaning suitable for passing as {@code url} argument to
      * {@code FindProxyForURL(url, host)} or {@code FindProxyForURLEx(url, host)}
      * functions).
-     * <p>
-     * Because a PAC script is downloaded from a potentially malicious source it
-     * may contain harmful code. Therefore, the amount of information passed to
-     * the script should be limited to what is strictly necessary for the script
-     * to make decisions about choice of proxy. Anything in the URL which can
-     * potentially identity the user or which may contain session specific
-     * information should be removed before passing to script.
-     *
-     * <p>
-     * The following is removed:
-     * <ul>
-     *   <li><i>{@code user-info}</i></li>
-     *   <li><i>{@code path}</i> and everything that follows after</li>
-     * </ul>
-     *
-     * <p>
-     * Example:
-     * <pre>
-     *    https://mary@netbeans.apache.org:8081/path/to/something?x1=Christmas&amp;user=unknown
-     * becomes
-     *    https://netbeans.apache.org:8081/
-     * </pre>
-     *
-     * <p>
-     * Note that the majority of PAC scripts out there do not make use of the
-     * {@code url} parameter at all. Instead they only use the {@code host}
-     * parameter. The stripping of information means that the {@code url}
-     * parameter only has two pieces of information that the {@code host}
-     * parameter doesn't have: protocol and port number.
-     * <br>
-     *
-     * @param uri URL to be cleansed
+
+     * @param uri URL to be stripped
      * @return stripped URL string
      */
     public static String toStrippedURLStr(URI uri) {

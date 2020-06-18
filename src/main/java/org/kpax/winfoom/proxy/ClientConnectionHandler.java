@@ -79,6 +79,7 @@ class ClientConnectionHandler {
             // Most likely a bad request
             // even though might not always be the case
             // Still, we give something back to the client
+            // so the connection won't hang
             OutputStream outputStream = socket.getOutputStream();
             outputStream.write(
                     ObjectFormat.toCrlf(HttpUtils.toStatusLine(HttpStatus.SC_BAD_REQUEST, e.getMessage())));
