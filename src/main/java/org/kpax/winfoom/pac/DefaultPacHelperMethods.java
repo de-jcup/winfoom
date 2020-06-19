@@ -49,6 +49,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.TreeMap;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 
@@ -60,6 +61,8 @@ import java.util.stream.Collectors;
 public class DefaultPacHelperMethods implements PacHelperMethodsNetscape, PacHelperMethodsMicrosoft {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultPacHelperMethods.class);
+
+    private static final Predicate<InetAddress> isIPv4Predicate = a -> a.getClass() == Inet4Address.class;
 
     @Autowired
     private SystemConfig systemConfig;
@@ -104,7 +107,8 @@ public class DefaultPacHelperMethods implements PacHelperMethodsNetscape, PacHel
     @Override
     public boolean isResolvable(String host) {
         try {
-            return !IpAddresses.resolve(host, a -> a.getClass() == Inet4Address.class).isEmpty();
+
+            return !IpAddresses.resolve(host, isIPv4Predicate).isEmpty();
         } catch (UnknownHostException ex) {
             logger.debug("Error on resolving host [{}]", host);
             return false;
@@ -114,7 +118,7 @@ public class DefaultPacHelperMethods implements PacHelperMethodsNetscape, PacHel
     @Override
     public String dnsResolve(String host) {
         try {
-            List<InetAddress> addresses = IpAddresses.resolve(host, a -> a.getClass() == Inet4Address.class);
+            List<InetAddress> addresses = IpAddresses.resolve(host, isIPv4Predicate);
             if (!addresses.isEmpty()) {
                 return addresses.get(0).getHostAddress();
             }

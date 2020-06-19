@@ -175,7 +175,7 @@ class NonConnectClientConnectionProcessor implements ClientConnectionProcessor {
     }
 
     /**
-     * Handles the Http response for non-CONNECT requests.<br>
+     * Handles the Http response for non-CONNECT requests.
      *
      * @param response The Http response.
      */
