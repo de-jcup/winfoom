@@ -12,6 +12,7 @@
 
 package org.kpax.winfoom.view;
 
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.exception.InvalidProxySettingsException;
@@ -73,6 +74,9 @@ public class AppFrame extends JFrame {
     private JLabel testUrlLabel;
     private JTextField testUrlJTextField;
 
+    private JLabel autostartLabel;
+    private JCheckBox autostartCheckBox;
+
     private JButton btnStart;
     private JButton btnStop;
     private JButton btnCancelBlacklist;
@@ -93,7 +97,7 @@ public class AppFrame extends JFrame {
      * Create the frame.
      */
     @PostConstruct
-    public void init() {
+    void init() {
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         setResizable(false);
 
@@ -114,6 +118,7 @@ public class AppFrame extends JFrame {
             trayIcon.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
+                    tray.remove(trayIcon);
                     setVisible(true);
                     setState(Frame.NORMAL);
                 }
@@ -134,6 +139,7 @@ public class AppFrame extends JFrame {
                     tray.remove(trayIcon);
                     setExtendedState(getExtendedState() & ~Frame.ICONIFIED);
                     setVisible(true);
+                    setState(Frame.NORMAL);
                 }
             });
         }
@@ -150,6 +156,17 @@ public class AppFrame extends JFrame {
 
     public void focusOnStartButton() {
         getBtnStart().requestFocus();
+    }
+
+    public void activate() {
+        if (proxyConfig.isAutostart()) {
+            getBtnStart().doClick();
+            dispatchEvent(new WindowEvent(
+                    this, WindowEvent.WINDOW_ICONIFIED));
+        } else {
+            focusOnStartButton();
+            setVisible(true);
+        }
     }
 
     // ---------- Labels
@@ -198,6 +215,13 @@ public class AppFrame extends JFrame {
 
     private JLabel getBlacklistTimeoutLabel() {
         return new JLabel("Blacklist timeout* ");
+    }
+
+    private JLabel getAutostartLabel() {
+        if (autostartLabel == null) {
+            autostartLabel = new JLabel("Autostart ");
+        }
+        return autostartLabel;
     }
 
     // ------- End Labels
@@ -294,8 +318,8 @@ public class AppFrame extends JFrame {
     private JCheckBox getStorePasswordJCheckBox() {
         JCheckBox storePasswordJCheckBox = new JCheckBox();
         storePasswordJCheckBox.setSelected(proxyConfig.isProxyStorePassword());
-        storePasswordJCheckBox.setToolTipText("Whether to store the password or not." +
-                "\nThe password is stored in a text file, encoded but not encrypted.");
+        storePasswordJCheckBox.setToolTipText(HttpUtils.toHtml("Whether to store the password or not." +
+                "<br>The password is stored in a text file, encoded but not encrypted."));
         storePasswordJCheckBox.addActionListener((e -> {
             if (storePasswordJCheckBox.isSelected()) {
                 int option = JOptionPane.showConfirmDialog(AppFrame.this,
@@ -314,6 +338,26 @@ public class AppFrame extends JFrame {
         return storePasswordJCheckBox;
     }
 
+    private JCheckBox getAutostartCheckBox() {
+        if (autostartCheckBox == null) {
+            autostartCheckBox = new JCheckBox();
+            autostartCheckBox.setSelected(proxyConfig.isAutostart());
+            autostartCheckBox.setToolTipText(HttpUtils.toHtml("When checked, next time you start the application " +
+                    "<br>it will automatically start the proxy and minimize the window to tray."));
+            autostartCheckBox.addActionListener((event -> {
+                proxyConfig.setAutostart(autostartCheckBox.isSelected());
+                if (!proxyConfig.isAutostart()) {
+                    try {
+                        proxyConfig.saveAutostart();
+                    } catch (ConfigurationException e) {
+                        logger.error("Error on saving autostart option", e);
+                        SwingUtils.showErrorMessage(AppFrame.this, "Failed to save autostart option: " + e.getMessage());
+                    }
+                }
+            }));
+        }
+        return autostartCheckBox;
+    }
 
     private JSpinner getBlacklistTimeoutJSpinner() {
         JSpinner proxyPortJSpinner = createJSpinner(proxyConfig.getBlacklistTimeout());
@@ -433,11 +477,13 @@ public class AppFrame extends JFrame {
         labelPanel.add(getProxyPortLabel());
         labelPanel.add(getLocalPortLabel());
         labelPanel.add(getTestUrlLabel());
+        labelPanel.add(getAutostartLabel());
 
         fieldPanel.add(getProxyHostJTextField());
         fieldPanel.add(wrapToPanel(getProxyPortJSpinner()));
         fieldPanel.add(wrapToPanel(getLocalPortJSpinner()));
         fieldPanel.add(getTestUrlJTextField());
+        fieldPanel.add(getAutostartCheckBox());
     }
 
     private void configureForPac() {
@@ -445,12 +491,14 @@ public class AppFrame extends JFrame {
         labelPanel.add(getBlacklistTimeoutLabel());
         labelPanel.add(getLocalPortLabel());
         labelPanel.add(getTestUrlLabel());
+        labelPanel.add(getAutostartLabel());
 
         fieldPanel.add(getPacFileJTextField());
         fieldPanel.add(wrapToPanel(getBlacklistTimeoutJSpinner(),
                 new JLabel(" (" + proxyBlacklist.getTemporalUnit().toString().toLowerCase() + ")")));
         fieldPanel.add(wrapToPanel(getLocalPortJSpinner()));
         fieldPanel.add(getTestUrlJTextField());
+        fieldPanel.add(getAutostartCheckBox());
 
         getBtnCancelBlacklist().setEnabled(false);
         getBtnCancelBlacklist().setVisible(true);
@@ -460,9 +508,11 @@ public class AppFrame extends JFrame {
     private void configureForDirect() {
         labelPanel.add(getLocalPortLabel());
         labelPanel.add(getTestUrlLabel());
+        labelPanel.add(getAutostartLabel());
 
         fieldPanel.add(wrapToPanel(getLocalPortJSpinner()));
         fieldPanel.add(getTestUrlJTextField());
+        fieldPanel.add(getAutostartCheckBox());
     }
 
     private void configureForSocks5() {
@@ -473,6 +523,7 @@ public class AppFrame extends JFrame {
         labelPanel.add(getStorePasswordLabel());
         labelPanel.add(getLocalPortLabel());
         labelPanel.add(getTestUrlLabel());
+        labelPanel.add(getAutostartLabel());
 
         fieldPanel.add(getProxyHostJTextField());
         fieldPanel.add(wrapToPanel(getProxyPortJSpinner()));
@@ -481,6 +532,7 @@ public class AppFrame extends JFrame {
         fieldPanel.add(getStorePasswordJCheckBox());
         fieldPanel.add(wrapToPanel(getLocalPortJSpinner()));
         fieldPanel.add(getTestUrlJTextField());
+        fieldPanel.add(getAutostartCheckBox());
     }
 
 

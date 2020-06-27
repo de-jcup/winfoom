@@ -84,6 +84,9 @@ public class ProxyConfig {
     @Value("${blacklist.timeout:30}")// minutes
     private Integer blacklistTimeout;
 
+    @Value("${autostart:false}")
+    private boolean autostart;
+
     private Path tempDirectory;
 
     @PostConstruct
@@ -252,6 +255,14 @@ public class ProxyConfig {
         return this.proxyType.isPac();
     }
 
+    public void setAutostart(boolean autostart) {
+        this.autostart = autostart;
+    }
+
+    public boolean isAutostart() {
+        return autostart;
+    }
+
     @Autowired
     private void setTempDirectory(@Value("${user.home}") String userHome) {
         tempDirectory = Paths.get(userHome, SystemConfig.APP_HOME_DIR_NAME, "temp");
@@ -274,6 +285,7 @@ public class ProxyConfig {
             config.setProperty("proxy.host", proxyHost);
             config.setProperty("proxy.port", proxyPort);
         }
+
         config.setProperty("local.port", localPort);
         config.setProperty("proxy.test.url", proxyTestUrl);
 
@@ -299,6 +311,17 @@ public class ProxyConfig {
             config.setProperty("blacklist.timeout", blacklistTimeout);
         }
 
+        config.setProperty("autostart", autostart);
+        propertiesBuilder.save();
+    }
+
+    public void saveAutostart() throws ConfigurationException {
+        File userProperties = Paths.get(System.getProperty("user.home"), SystemConfig.APP_HOME_DIR_NAME,
+                ProxyConfig.FILENAME).toFile();
+        FileBasedConfigurationBuilder<PropertiesConfiguration> propertiesBuilder = new Configurations()
+                .propertiesBuilder(userProperties);
+        Configuration config = propertiesBuilder.getConfiguration();
+        config.setProperty("autostart", autostart);
         propertiesBuilder.save();
     }
 
@@ -315,6 +338,7 @@ public class ProxyConfig {
                 ", proxyStorePassword=" + proxyStorePassword +
                 ", proxyPacFileLocation='" + proxyPacFileLocation + '\'' +
                 ", blacklistTimeout=" + blacklistTimeout +
+                ", autostart=" + autostart +
                 ", tempDirectory=" + tempDirectory +
                 '}';
     }
