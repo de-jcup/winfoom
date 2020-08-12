@@ -27,7 +27,7 @@ public class CacheConfiguration {
     @Autowired
     private SystemConfig systemConfig;
 
-    @Profile("!test")
+    @Profile("prod")
     @Bean
     public CacheManager cacheManager() {
         return new SpringCache2kCacheManager().addCaches(

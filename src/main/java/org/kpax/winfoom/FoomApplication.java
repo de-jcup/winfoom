@@ -67,6 +67,11 @@ public class FoomApplication {
             System.exit(1);
         }
 
+        // Start in production mode, unless instructed otherwise
+        if (System.getProperty("spring.profiles.active") == null) {
+            System.setProperty("spring.profiles.active", "prod,gui");
+        }
+
         logger.info("Bootstrap Spring's application context");
         ApplicationContext applicationContext = SpringApplication.run(FoomApplication.class, args);
 

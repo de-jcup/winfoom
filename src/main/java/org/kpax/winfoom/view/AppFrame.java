@@ -40,7 +40,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Objects;
 
-@Profile("!test")
+@Profile("gui")
 @Component
 public class AppFrame extends JFrame {
     private static final long serialVersionUID = 4009799697210970761L;

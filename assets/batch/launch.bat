@@ -1,6 +1,6 @@
 :: Launcher for Winfoom - Basic Proxy Facade
 
-echo off
+@echo off
 
 setlocal EnableDelayedExpansion
 
@@ -24,8 +24,5 @@ FOR %%a IN (%*) DO (
 )
 
 IF NOT DEFINED JAVA_EXE set JAVA_EXE=jdk/bin/javaw
-
-echo JAVA_EXE=%JAVA_EXE%
-echo ARGS=%ARGS%
 
 start %JAVA_EXE% %ARGS% -cp . -jar winfoom.jar
