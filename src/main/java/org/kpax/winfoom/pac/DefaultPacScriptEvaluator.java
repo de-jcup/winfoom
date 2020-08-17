@@ -191,7 +191,7 @@ public class DefaultPacScriptEvaluator implements PacScriptEvaluator, AutoClosea
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         scriptEngineSupplier.reset();
     }
 

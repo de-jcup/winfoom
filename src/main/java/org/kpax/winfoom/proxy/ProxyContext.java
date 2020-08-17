@@ -182,7 +182,7 @@ public class ProxyContext implements AutoCloseable {
          *
          * @return {@code true} iff there is an active proxy session
          */
-        public boolean isRunning() {
+        boolean isRunning() {
             return started;
         }
     }

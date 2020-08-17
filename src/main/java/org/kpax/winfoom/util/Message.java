@@ -13,7 +13,7 @@
 package org.kpax.winfoom.util;
 
 /**
- * It encapsulates a GUI message.
+ * An immutable class that encapsulates a GUI message.
  *
  * @author Eugen Covaci {@literal eugen.covaci.q@gmail.com}
  * Created on 2/28/2020

@@ -92,8 +92,6 @@ class NonConnectClientConnectionProcessor implements ClientConnectionProcessor {
                     entity = new InputStreamEntity(clientConnection.getInputStream(),
                             HttpUtils.getContentLength(request),
                             HttpUtils.getContentType(request));
-                    // Is this necessary?
-                    //entity.setContentEncoding(request.getFirstHeader(HttpHeaders.CONTENT_ENCODING));
                 } else {
                     entity = new RepeatableHttpEntity(clientConnection.getSessionInputBuffer(),
                             proxyConfig.getTempDirectory(),
