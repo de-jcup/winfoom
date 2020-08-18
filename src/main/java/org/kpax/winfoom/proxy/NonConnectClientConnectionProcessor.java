@@ -82,8 +82,8 @@ class NonConnectClientConnectionProcessor implements ClientConnectionProcessor {
         if (!clientConnection.isRequestPrepared()) {
 
             // Prepare the request for execution
-            AbstractHttpEntity entity;
             if (request instanceof HttpEntityEnclosingRequest) {
+                AbstractHttpEntity entity;
                 logger.debug("Set enclosing entity");
                 if (proxyConfig.getProxyType().isSocks()) {
 
