@@ -151,7 +151,20 @@ public class AppFrame extends JFrame {
         ToolTipManager.sharedInstance().setDismissDelay(TOOLTIP_TIMEOUT * 1000);
 
         getProxyTypeCombo().setSelectedItem(proxyConfig.getProxyType());
+        pack();
+        setLocationRelativeTo(null);
 
+        logger.info("Launch the GUI");
+        EventQueue.invokeLater(() -> {
+            try {
+                activate();
+            } catch (Exception e) {
+                logger.error("GUI error", e);
+                SwingUtils.showErrorMessage(null, "Failed to load the graphical interface." +
+                        "<br>Please check the application's log file.");
+                System.exit(1);
+            }
+        });
     }
 
     public void focusOnStartButton() {

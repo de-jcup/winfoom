@@ -73,21 +73,14 @@ public class FoomApplication {
         }
 
         logger.info("Bootstrap Spring's application context");
-        ApplicationContext applicationContext = SpringApplication.run(FoomApplication.class, args);
+        try {
+            SpringApplication.run(FoomApplication.class, args);
+        } catch (Exception e) {
+            logger.error("Error on bootstrapping Spring's application context", e);
+            SwingUtils.showErrorMessage(null, "Failed to launch the application." +
+                    "<br>Please check the application's log file.");
+        }
 
-        logger.info("Launch the GUI");
-        final AppFrame frame = applicationContext.getBean(AppFrame.class);
-        EventQueue.invokeLater(() -> {
-            try {
-                frame.pack();
-                frame.setLocationRelativeTo(null);
-                frame.activate();
-            } catch (Exception e) {
-                logger.error("GUI error", e);
-                SwingUtils.showErrorMessage(null, "Failed to load the graphical interface." +
-                        "<br>Please check the application's log file.");
-            }
-        });
     }
 
     /**
