@@ -86,7 +86,7 @@ class SocketConnectClientConnectionProcessor implements ClientConnectionProcesso
                 // The proxy facade mediates the full duplex communication
                 // between the client and the remote proxy
                 // This usually ends on connection reset, timeout or any other error
-                InputOutputs.duplex(proxyContext.executorService(),
+                proxyContext.duplex(
                         socket.getInputStream(),
                         socket.getOutputStream(),
                         clientConnection.getInputStream(),

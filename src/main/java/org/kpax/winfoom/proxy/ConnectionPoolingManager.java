@@ -30,6 +30,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -68,6 +70,9 @@ class ConnectionPoolingManager implements AutoCloseable {
     private final SingletonSupplier<PoolingHttpClientConnectionManager> socks4Supplier =
             new SingletonSupplier<>(() -> createSocksConnectionManager(true));
 
+    private final List<SingletonSupplier<PoolingHttpClientConnectionManager>> poolingHttpSuppliers =
+            Arrays.asList(httpSupplier, socksSupplier, socks4Supplier);
+
     /**
      * Lazy getter for HTTP proxy.
      *
@@ -96,30 +101,13 @@ class ConnectionPoolingManager implements AutoCloseable {
     }
 
     /**
-     * @return all active {@link PoolingHttpClientConnectionManager} suppliers.
-     */
-    private List<SingletonSupplier<PoolingHttpClientConnectionManager>> getAllActiveConnectionManagers() {
-        List<SingletonSupplier<PoolingHttpClientConnectionManager>> activeConnectionManagers = new ArrayList<>();
-        if (httpSupplier.hasValue()) {
-            activeConnectionManagers.add(httpSupplier);
-        }
-        if (socksSupplier.hasValue()) {
-            activeConnectionManagers.add(socksSupplier);
-        }
-        if (socks4Supplier.hasValue()) {
-            activeConnectionManagers.add(socks4Supplier);
-        }
-        return activeConnectionManagers;
-    }
-
-    /**
      * A job that closes the idle/expired HTTP connections.
      */
     @Scheduled(fixedRateString = "#{systemConfig.connectionManagerCleanInterval * 1000}")
     void cleanUpConnectionManager() {
         if (proxyContext.isRunning()) {
             logger.debug("Execute connection manager pool clean up task");
-            for (SingletonSupplier<PoolingHttpClientConnectionManager> connectionManagerSupplier : getAllActiveConnectionManagers()) {
+            poolingHttpSuppliers.stream().filter(SingletonSupplier::hasValue).forEach((connectionManagerSupplier) -> {
                 try {
                     PoolingHttpClientConnectionManager connectionManager = connectionManagerSupplier.get();
                     connectionManager.closeExpiredConnections();
@@ -132,7 +120,7 @@ class ConnectionPoolingManager implements AutoCloseable {
                 } catch (Exception e) {
                     logger.debug("Error on cleaning connection pool", e);
                 }
-            }
+            });
         }
     }
 
@@ -180,9 +168,9 @@ class ConnectionPoolingManager implements AutoCloseable {
     @Override
     public void close() {
         logger.debug("Close all active connection managers and reset the suppliers");
-        getAllActiveConnectionManagers().forEach((connSupplier) -> {
-            InputOutputs.close(connSupplier.get());
-            connSupplier.reset();
+        poolingHttpSuppliers.stream().filter(SingletonSupplier::hasValue).forEach((supplier) -> {
+            InputOutputs.close(supplier.get());
+            supplier.reset();
         });
     }
 }

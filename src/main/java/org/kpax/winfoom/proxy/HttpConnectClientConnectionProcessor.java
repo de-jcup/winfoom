@@ -65,7 +65,7 @@ class HttpConnectClientConnectionProcessor implements ClientConnectionProcessor 
                 // The proxy facade mediates the full duplex communication
                 // between the client and the remote proxy.
                 // This usually ends on connection reset, timeout or any other error
-                InputOutputs.duplex(proxyContext.executorService(),
+                proxyContext.duplex(
                         tunnel.getInputStream(),
                         tunnel.getOutputStream(),
                         clientConnection.getInputStream(),

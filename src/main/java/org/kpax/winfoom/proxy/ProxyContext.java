@@ -15,6 +15,7 @@ package org.kpax.winfoom.proxy;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.config.ScopeConfiguration;
 import org.kpax.winfoom.pac.net.IpAddresses;
+import org.kpax.winfoom.util.functional.SingletonSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +23,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 import javax.annotation.PostConstruct;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.Authenticator;
+import java.net.SocketTimeoutException;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -39,6 +43,11 @@ public class ProxyContext implements AutoCloseable {
 
     private final ProxyLifecycle proxyLifecycle = new ProxyLifecycle();
 
+    private final SingletonSupplier<ThreadPoolExecutor> threadPoolSupplier =
+            new SingletonSupplier<>(() -> new ThreadPoolExecutor(0, Integer.MAX_VALUE,
+                    60L, TimeUnit.SECONDS, new SynchronousQueue<>(),
+                    new DefaultThreadFactory()));
+
     @Autowired
     private ProxyConfig proxyConfig;
 
@@ -48,18 +57,6 @@ public class ProxyContext implements AutoCloseable {
     @Autowired
     private LocalProxyServer localProxyServer;
 
-    private ThreadPoolExecutor threadPool;
-
-    @PostConstruct
-    private void init() {
-        logger.info("Create thread pool");
-
-        this.threadPool = new ThreadPoolExecutor(0, Integer.MAX_VALUE,
-                60L, TimeUnit.SECONDS, new SynchronousQueue<>(),
-                new DefaultThreadFactory());
-
-        logger.info("Done proxy context's initialization");
-    }
 
     /**
      * Begin a proxy session by calling {@link  ProxyLifecycle#start()} .
@@ -87,19 +84,59 @@ public class ProxyContext implements AutoCloseable {
         return proxyLifecycle.isRunning();
     }
 
-    public ExecutorService executorService() {
-        return threadPool;
+    public void submit (Runnable runnable) {
+        threadPoolSupplier.get().submit(runnable);
+    }
+
+    /**
+     * Transfer bytes between two sources.
+     *
+     * @param firstInputSource   The input of the first source.
+     * @param firstOutputSource  The output of the first source.
+     * @param secondInputSource  The input of the second source.
+     * @param secondOutputSource The output of the second source.
+     */
+    public void duplex(InputStream firstInputSource, OutputStream firstOutputSource,
+                       InputStream secondInputSource, OutputStream secondOutputSource) {
+
+        logger.debug("Start full duplex communication");
+        Future<?> secondToFirst = threadPoolSupplier.get().submit(
+                () -> secondInputSource.transferTo(firstOutputSource));
+        try {
+            firstInputSource.transferTo(secondOutputSource);
+            if (!secondToFirst.isDone()) {
+
+                // Wait for the async transfer to finish
+                try {
+                    secondToFirst.get();
+                } catch (ExecutionException e) {
+                    if (e.getCause() instanceof SocketTimeoutException) {
+                        logger.debug("Second to first transfer cancelled due to timeout");
+                    } else {
+                        logger.debug("Error on executing second to first transfer", e.getCause());
+                    }
+                } catch (InterruptedException e) {
+                    logger.debug("Transfer from second to first interrupted", e);
+                } catch (CancellationException e) {
+                    logger.debug("Transfer from second to first cancelled", e);
+                }
+            }
+        } catch (Exception e) {
+            secondToFirst.cancel(true);
+            if (e instanceof SocketTimeoutException) {
+                logger.debug("Second to first transfer cancelled due to timeout");
+            } else {
+                logger.debug("Error on executing second to first transfer", e);
+            }
+        }
+        logger.debug("End full duplex communication");
     }
 
     @Override
     public void close() {
         logger.info("Close all context's resources");
         stop();
-        try {
-            threadPool.shutdownNow();
-        } catch (Exception e) {
-            logger.warn("Error on closing thread pool", e);
-        }
+
     }
 
     public static class DefaultThreadFactory implements ThreadFactory {
@@ -168,6 +205,15 @@ public class ProxyContext implements AutoCloseable {
             if (started) {
                 started = false;
                 scopeConfiguration.getProxySessionScope().clear();
+
+                if (threadPoolSupplier.hasValue()) {
+                    try {
+                        threadPoolSupplier.get().shutdownNow();
+                    } catch (Exception e) {
+                        logger.warn("Error on closing the current thread pool", e);
+                    }
+                    threadPoolSupplier.reset();
+                }
 
                 // We reset these suppliers because the network state
                 // might have changed during the proxy session.

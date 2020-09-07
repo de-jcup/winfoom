@@ -89,51 +89,6 @@ public final class InputOutputs {
     }
 
 
-    /**
-     * Transfer bytes between two sources.
-     *
-     * @param executorService    The executor service for async support.
-     * @param firstInputSource   The input of the first source.
-     * @param firstOutputSource  The output of the first source.
-     * @param secondInputSource  The input of the second source.
-     * @param secondOutputSource The output of the second source.
-     */
-    public static void duplex(ExecutorService executorService,
-                              InputStream firstInputSource, OutputStream firstOutputSource,
-                              InputStream secondInputSource, OutputStream secondOutputSource) {
-
-        logger.debug("Start full duplex communication");
-        Future<?> secondToFirst = executorService.submit(
-                () -> secondInputSource.transferTo(firstOutputSource));
-        try {
-            firstInputSource.transferTo(secondOutputSource);
-            if (!secondToFirst.isDone()) {
-
-                // Wait for the async transfer to finish
-                try {
-                    secondToFirst.get();
-                } catch (ExecutionException e) {
-                    if (e.getCause() instanceof SocketTimeoutException) {
-                        logger.debug("Second to first transfer cancelled due to timeout");
-                    } else {
-                        logger.debug("Error on executing second to first transfer", e.getCause());
-                    }
-                } catch (InterruptedException e) {
-                    logger.debug("Transfer from second to first interrupted", e);
-                } catch (CancellationException e) {
-                    logger.debug("Transfer from second to first cancelled", e);
-                }
-            }
-        } catch (Exception e) {
-            secondToFirst.cancel(true);
-            if (e instanceof SocketTimeoutException) {
-                logger.debug("Second to first transfer cancelled due to timeout");
-            } else {
-                logger.debug("Error on executing second to first transfer", e);
-            }
-        }
-        logger.debug("End full duplex communication");
-    }
 
     public static boolean isIncluded(Properties who, Properties where) {
         Assert.notNull(who, "who cannot be null");
