@@ -19,7 +19,6 @@ import org.apache.http.protocol.HTTP;
 import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.util.HeaderDateGenerator;
 import org.kpax.winfoom.util.HttpUtils;
-import org.kpax.winfoom.util.InputOutputs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +41,7 @@ class SocketConnectClientConnectionProcessor implements ClientConnectionProcesso
     private SystemConfig systemConfig;
 
     @Autowired
-    private ProxyContext proxyContext;
+    private ProxyController proxyController;
 
     @Override
     public void process(final ClientConnection clientConnection, final ProxyInfo proxyInfo)
@@ -86,7 +85,7 @@ class SocketConnectClientConnectionProcessor implements ClientConnectionProcesso
                 // The proxy facade mediates the full duplex communication
                 // between the client and the remote proxy
                 // This usually ends on connection reset, timeout or any other error
-                proxyContext.duplex(
+                proxyController.duplex(
                         socket.getInputStream(),
                         socket.getOutputStream(),
                         clientConnection.getInputStream(),

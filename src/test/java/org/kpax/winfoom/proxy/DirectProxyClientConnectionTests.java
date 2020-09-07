@@ -72,7 +72,7 @@ public class DirectProxyClientConnectionTests {
     private ClientConnectionHandler clientConnectionHandler;
 
     @Autowired
-    private ProxyContext proxyContext;
+    private ProxyController proxyController;
 
 
     private ServerSocket serverSocket;
@@ -100,8 +100,8 @@ public class DirectProxyClientConnectionTests {
         remoteServer.start();
 
         serverSocket = new ServerSocket(TestConstants.LOCAL_PROXY_PORT);
-        if (!proxyContext.isRunning()) {
-            proxyContext.start();
+        if (!proxyController.isRunning()) {
+            proxyController.start();
         }
         new Thread(() -> {
             while (!serverSocket.isClosed()) {
@@ -171,6 +171,6 @@ public class DirectProxyClientConnectionTests {
         }
         remoteServer.stop();
         when(proxyConfig.getProxyType()).thenReturn(ProxyConfig.Type.DIRECT);
-        proxyContext.stop();
+        proxyController.stop();
     }
 }

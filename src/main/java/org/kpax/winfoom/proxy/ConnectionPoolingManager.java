@@ -29,9 +29,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -50,7 +48,7 @@ class ConnectionPoolingManager implements AutoCloseable {
     private SystemConfig systemConfig;
 
     @Autowired
-    private ProxyContext proxyContext;
+    private ProxyController proxyController;
 
     /**
      * For HTTP proxy type
@@ -105,7 +103,7 @@ class ConnectionPoolingManager implements AutoCloseable {
      */
     @Scheduled(fixedRateString = "#{systemConfig.connectionManagerCleanInterval * 1000}")
     void cleanUpConnectionManager() {
-        if (proxyContext.isRunning()) {
+        if (proxyController.isRunning()) {
             logger.debug("Execute connection manager pool clean up task");
             poolingHttpSuppliers.stream().filter(SingletonSupplier::hasValue).forEach((connectionManagerSupplier) -> {
                 try {
@@ -133,7 +131,7 @@ class ConnectionPoolingManager implements AutoCloseable {
      * @throws IllegalStateException when the proxy is not started.
      */
     private PoolingHttpClientConnectionManager createConnectionManager(Registry<ConnectionSocketFactory> socketFactoryRegistry) {
-        Assert.state(proxyContext.isRunning(), "Cannot create connectionManagers: ConnectionPoolingManager is not started");
+        Assert.state(proxyController.isRunning(), "Cannot create connectionManagers: ConnectionPoolingManager is not started");
         PoolingHttpClientConnectionManager connectionManager = socketFactoryRegistry != null
                 ? new PoolingHttpClientConnectionManager(socketFactoryRegistry) :
                 new PoolingHttpClientConnectionManager();

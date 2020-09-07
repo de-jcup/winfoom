@@ -73,7 +73,7 @@ public class SocksProxyClientConnectionTests {
     private ClientConnectionHandler clientConnectionHandler;
 
     @Autowired
-    private ProxyContext proxyContext;
+    private ProxyController proxyController;
 
     private ClientAndServer socksRemoteProxyServer;
 
@@ -103,8 +103,8 @@ public class SocksProxyClientConnectionTests {
         remoteServer.start();
 
         serverSocket = new ServerSocket(TestConstants.LOCAL_PROXY_PORT);
-        if (!proxyContext.isRunning()) {
-            proxyContext.start();
+        if (!proxyController.isRunning()) {
+            proxyController.start();
         }
         new Thread(() -> {
             while (!serverSocket.isClosed()) {
@@ -213,6 +213,6 @@ public class SocksProxyClientConnectionTests {
         socksRemoteProxyServer.stop();
         remoteServer.stop();
         when(proxyConfig.getProxyType()).thenReturn(ProxyConfig.Type.SOCKS4);
-        proxyContext.stop();
+        proxyController.stop();
     }
 }

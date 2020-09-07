@@ -81,7 +81,7 @@ class HttpProxyClientConnectionTests {
     private ClientConnectionHandler clientConnectionHandler;
 
     @Autowired
-    private ProxyContext proxyContext;
+    private ProxyController proxyController;
 
     private ServerSocket serverSocket;
 
@@ -126,8 +126,8 @@ class HttpProxyClientConnectionTests {
 
         serverSocket = new ServerSocket(TestConstants.LOCAL_PROXY_PORT);
 
-        if (!proxyContext.isRunning()) {
-            proxyContext.start();
+        if (!proxyController.isRunning()) {
+            proxyController.start();
         }
 
         new Thread(() -> {
@@ -235,7 +235,7 @@ class HttpProxyClientConnectionTests {
         remoteProxyServer.stop();
         remoteServer.stop();
         when(proxyConfig.getProxyType()).thenReturn(ProxyConfig.Type.HTTP);
-        proxyContext.stop();
+        proxyController.stop();
     }
 
 }

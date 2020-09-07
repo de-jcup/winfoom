@@ -17,7 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.exception.InvalidProxySettingsException;
 import org.kpax.winfoom.proxy.ProxyBlacklist;
-import org.kpax.winfoom.proxy.ProxyContext;
+import org.kpax.winfoom.proxy.ProxyController;
 import org.kpax.winfoom.proxy.ProxyValidator;
 import org.kpax.winfoom.util.HttpUtils;
 import org.kpax.winfoom.util.SwingUtils;
@@ -58,7 +58,7 @@ public class AppFrame extends JFrame {
     private ProxyConfig proxyConfig;
 
     @Autowired
-    private ProxyContext proxyContext;
+    private ProxyController proxyController;
 
     @Autowired
     private ProxyValidator proxyValidator;
@@ -707,7 +707,7 @@ public class AppFrame extends JFrame {
         SwingUtils.executeRunnable(() -> {
             if (isValidInput()) {
                 try {
-                    proxyContext.start();
+                    proxyController.start();
                     getBtnStop().setEnabled(true);
                     if (proxyConfig.isAutoConfig()) {
                         getBtnCancelBlacklist().setEnabled(true);
@@ -726,10 +726,10 @@ public class AppFrame extends JFrame {
     }
 
     private void stopServer() {
-        if (proxyContext.isRunning() && JOptionPane.showConfirmDialog(this,
+        if (proxyController.isRunning() && JOptionPane.showConfirmDialog(this,
                 "The local proxy facade is started. \nDo you like to stop the proxy facade?",
                 "Warning", JOptionPane.OK_CANCEL_OPTION) == JOptionPane.YES_OPTION) {
-            proxyContext.stop();
+            proxyController.stop();
             enableInput();
         }
     }
@@ -741,7 +741,7 @@ public class AppFrame extends JFrame {
 
 
     private void shutdownApp() {
-        if (!proxyContext.isRunning() || JOptionPane.showConfirmDialog(this,
+        if (!proxyController.isRunning() || JOptionPane.showConfirmDialog(this,
                 "The local proxy facade is started. \nDo you like to stop the proxy facade and leave the application?",
                 "Warning", JOptionPane.OK_CANCEL_OPTION) == JOptionPane.YES_OPTION) {
             logger.info("Now shutdown application");

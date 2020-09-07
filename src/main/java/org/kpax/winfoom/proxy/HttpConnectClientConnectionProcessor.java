@@ -17,7 +17,6 @@ import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.RequestLine;
 import org.apache.http.impl.execchain.TunnelRefusedException;
-import org.kpax.winfoom.util.InputOutputs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +36,7 @@ class HttpConnectClientConnectionProcessor implements ClientConnectionProcessor 
     private final Logger logger = LoggerFactory.getLogger(HttpConnectClientConnectionProcessor.class);
 
     @Autowired
-    private ProxyContext proxyContext;
+    private ProxyController proxyController;
 
     @Autowired
     private TunnelConnection tunnelConnection;
@@ -65,7 +64,7 @@ class HttpConnectClientConnectionProcessor implements ClientConnectionProcessor 
                 // The proxy facade mediates the full duplex communication
                 // between the client and the remote proxy.
                 // This usually ends on connection reset, timeout or any other error
-                proxyContext.duplex(
+                proxyController.duplex(
                         tunnel.getInputStream(),
                         tunnel.getOutputStream(),
                         clientConnection.getInputStream(),

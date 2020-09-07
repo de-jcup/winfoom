@@ -22,7 +22,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
-import javax.annotation.PostConstruct;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Authenticator;
@@ -31,15 +30,15 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Provide a thread pool for async execution also allows begin/end proxy session.
+ * Provide some methods for async execution also allows begin/end proxy session.
  * <p>We rely on the Spring context to close this instance!
  *
  * @author Eugen Covaci
  */
 @Component
-public class ProxyContext implements AutoCloseable {
+public class ProxyController implements AutoCloseable {
 
-    private final Logger logger = LoggerFactory.getLogger(ProxyContext.class);
+    private final Logger logger = LoggerFactory.getLogger(ProxyController.class);
 
     private final ProxyLifecycle proxyLifecycle = new ProxyLifecycle();
 
@@ -208,6 +207,7 @@ public class ProxyContext implements AutoCloseable {
 
                 if (threadPoolSupplier.hasValue()) {
                     try {
+                        logger.debug("Shutdown the thread pool");
                         threadPoolSupplier.get().shutdownNow();
                     } catch (Exception e) {
                         logger.warn("Error on closing the current thread pool", e);

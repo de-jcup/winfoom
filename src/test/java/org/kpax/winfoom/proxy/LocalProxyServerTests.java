@@ -48,7 +48,7 @@ class LocalProxyServerTests {
     private LocalProxyServer localProxyServer;
 
     @Autowired
-    private ProxyContext proxyContext;
+    private ProxyController proxyController;
 
     @BeforeEach
     void before() {

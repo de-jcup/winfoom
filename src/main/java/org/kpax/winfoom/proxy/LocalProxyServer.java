@@ -47,7 +47,7 @@ class LocalProxyServer implements AutoCloseable {
     private ProxyConfig proxyConfig;
 
     @Autowired
-    private ProxyContext proxyContext;
+    private ProxyController proxyController;
 
     @Autowired
     private ClientConnectionHandler clientConnectionHandler;
@@ -73,12 +73,12 @@ class LocalProxyServer implements AutoCloseable {
         try {
             serverSocket = new ServerSocket(proxyConfig.getLocalPort(),
                     systemConfig.getServerSocketBacklog());
-            proxyContext.submit(() -> {
+            proxyController.submit(() -> {
                 while (true) {
                     try {
                         Socket socket = serverSocket.accept();
                         socket.setSoTimeout(systemConfig.getSocketSoTimeout() * 1000);
-                        proxyContext.submit(() -> {
+                        proxyController.submit(() -> {
                             try {
                                 clientConnectionHandler.handleConnection(socket);
                             } catch (Exception e) {

@@ -95,7 +95,7 @@ public class PacProxyClientConnectionTests {
     private ScopeConfiguration scopeConfiguration;
 
     @Autowired
-    private ProxyContext proxyContext;
+    private ProxyController proxyController;
 
     private ServerSocket serverSocket;
 
@@ -125,8 +125,8 @@ public class PacProxyClientConnectionTests {
 
         serverSocket = new ServerSocket(TestConstants.LOCAL_PROXY_PORT);
 
-        if (!proxyContext.isRunning()) {
-            proxyContext.start();
+        if (!proxyController.isRunning()) {
+            proxyController.start();
         }
 
         new Thread(() -> {
@@ -489,6 +489,6 @@ public class PacProxyClientConnectionTests {
         }
         remoteServer.stop();
         when(proxyConfig.getProxyType()).thenReturn(ProxyConfig.Type.PAC);
-        proxyContext.stop();
+        proxyController.stop();
     }
 }
