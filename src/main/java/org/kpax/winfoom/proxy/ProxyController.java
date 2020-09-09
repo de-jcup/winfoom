@@ -205,15 +205,15 @@ public class ProxyController implements AutoCloseable {
                 started = false;
                 scopeConfiguration.getProxySessionScope().clear();
 
-                if (threadPoolSupplier.hasValue()) {
+                threadPoolSupplier.value().ifPresent((threadPool) -> {
                     try {
                         logger.debug("Shutdown the thread pool");
-                        threadPoolSupplier.get().shutdownNow();
+                        threadPool.shutdownNow();
                     } catch (Exception e) {
                         logger.warn("Error on closing the current thread pool", e);
                     }
                     threadPoolSupplier.reset();
-                }
+                });
 
                 // We reset these suppliers because the network state
                 // might have changed during the proxy session.

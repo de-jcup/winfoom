@@ -14,6 +14,8 @@ package org.kpax.winfoom.util.functional;
 
 import org.springframework.util.Assert;
 
+import java.util.Optional;
+
 
 /**
  * A {@link TripleExceptionSupplier} decorator that caches a singleton value and
@@ -69,6 +71,10 @@ public class TripleExceptionSingletonSupplier<T, E1 extends Exception, E2 extend
             }
         }
         return t;
+    }
+
+    public Optional<T> value() {
+        return Optional.ofNullable(t);
     }
 
     /**
