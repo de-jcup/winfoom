@@ -12,6 +12,7 @@
 
 package org.kpax.winfoom.util.functional;
 
+import org.kpax.winfoom.util.InputOutputs;
 import org.springframework.util.Assert;
 
 import java.util.Optional;
@@ -78,10 +79,13 @@ public class TripleExceptionSingletonSupplier<T, E1 extends Exception, E2 extend
     }
 
     /**
-     * Nullify the value in a thread safe manner.
+     * If the value is an {@link AutoCloseable} close it, then nullify the value in a thread safe manner.
      */
     public void reset() {
         synchronized (LOCK) {
+            if (t instanceof AutoCloseable) {
+                InputOutputs.close((AutoCloseable)t);
+            }
             t = null;
         }
     }

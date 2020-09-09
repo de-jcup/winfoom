@@ -169,7 +169,6 @@ class ConnectionPoolingManager implements AutoCloseable {
     public void close() {
         logger.debug("Close all active connection managers and reset the suppliers");
         poolingHttpSuppliers.stream().filter(SingletonSupplier::hasValue).forEach((supplier) -> {
-            InputOutputs.close(supplier.get());
             supplier.reset();
         });
     }
