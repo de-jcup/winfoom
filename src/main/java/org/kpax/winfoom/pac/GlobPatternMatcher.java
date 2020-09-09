@@ -59,7 +59,7 @@ public class GlobPatternMatcher {
      *        If the first character of the range is {@code !} or {@code ^} then it matches any character not in the range.</li>
      *   </ul>
      *
-     * @param globExpression  the GLOB expression.
+     * @param globExpression the GLOB expression.
      * @return the regex
      */
     public static String convertGlobToRegEx(String globExpression) {

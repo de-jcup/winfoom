@@ -23,8 +23,6 @@ import org.springframework.util.Assert;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.net.SocketTimeoutException;
 import java.nio.file.CopyOption;
@@ -63,6 +61,47 @@ public final class InputOutputs {
         }
     }
 
+    /**
+     * Transfer bytes between two sources.
+     *
+     * @param executorService The executor service for async support.
+     * @param firstSource     The first source.
+     * @param secondSource    The second source.
+     */
+    public static void duplex(ExecutorService executorService, Source firstSource,
+                              Source secondSource) {
+        logger.debug("Start full duplex communication");
+        Future<?> secondToFirst = executorService.submit(
+                () -> secondSource.getInputStream().transferTo(firstSource.getOutputStream()));
+        try {
+            firstSource.getInputStream().transferTo(secondSource.getOutputStream());
+            if (!secondToFirst.isDone()) {
+
+                // Wait for the async transfer to finish
+                try {
+                    secondToFirst.get();
+                } catch (ExecutionException e) {
+                    if (e.getCause() instanceof SocketTimeoutException) {
+                        logger.debug("Second to first transfer cancelled due to timeout");
+                    } else {
+                        logger.debug("Error on executing second to first transfer", e.getCause());
+                    }
+                } catch (InterruptedException e) {
+                    logger.debug("Transfer from second to first interrupted", e);
+                } catch (CancellationException e) {
+                    logger.debug("Transfer from second to first cancelled", e);
+                }
+            }
+        } catch (Exception e) {
+            secondToFirst.cancel(true);
+            if (e instanceof SocketTimeoutException) {
+                logger.debug("Second to first transfer cancelled due to timeout");
+            } else {
+                logger.debug("Error on executing second to first transfer", e);
+            }
+        }
+        logger.debug("End full duplex communication");
+    }
 
     /**
      * Close an <code>AutoCloseable</code>, debug the possible error.
@@ -87,7 +126,6 @@ public final class InputOutputs {
                 .append("-")
                 .append((int) (Math.random() * 100)).toString();
     }
-
 
 
     public static boolean isIncluded(Properties who, Properties where) {

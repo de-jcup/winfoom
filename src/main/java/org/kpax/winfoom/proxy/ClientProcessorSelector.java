@@ -13,6 +13,7 @@
 package org.kpax.winfoom.proxy;
 
 import org.apache.http.RequestLine;
+import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.util.HttpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Component;
 /**
  * Select the appropriate {@link ClientConnectionProcessor} implementation.
  */
+@ThreadSafe
 @Component
 class ClientProcessorSelector {
 

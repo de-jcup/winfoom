@@ -19,6 +19,7 @@ import org.apache.http.impl.io.HttpTransportMetricsImpl;
 import org.apache.http.impl.io.SessionInputBufferImpl;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
+import org.kpax.winfoom.annotation.NotThreadSafe;
 import org.kpax.winfoom.util.HeaderDateGenerator;
 import org.kpax.winfoom.util.HttpUtils;
 import org.kpax.winfoom.util.InputOutputs;
@@ -37,7 +38,6 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 /**
  * It encapsulates a client's connection.
@@ -47,6 +47,7 @@ import java.util.concurrent.Callable;
  *
  * @author Eugen Covaci
  */
+@NotThreadSafe
 final class ClientConnection implements AutoCloseable {
 
     private final Logger logger = LoggerFactory.getLogger(ClientConnection.class);
@@ -257,10 +258,11 @@ final class ClientConnection implements AutoCloseable {
     /**
      * Prepare for remote request execution.
      * <p>Preparation can only occur once, this method does nothing if the request is already prepared.</p>
+     *
      * @param executable the preparation staff
      * @throws IOException
      */
-    void prepareRequest (Executable<IOException> executable) throws IOException {
+    void prepareRequest(Executable<IOException> executable) throws IOException {
         if (!requestPrepared) {
             executable.execute();
             this.requestPrepared = true;

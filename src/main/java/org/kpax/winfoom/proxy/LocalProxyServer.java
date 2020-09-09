@@ -14,6 +14,7 @@ package org.kpax.winfoom.proxy;
 
 import org.apache.commons.lang3.StringUtils;
 import org.kpax.winfoom.annotation.ProxySessionScope;
+import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.util.InputOutputs;
@@ -33,6 +34,7 @@ import java.net.SocketException;
  *
  * @author Eugen Covaci
  */
+@ThreadSafe
 @Order(0)
 @ProxySessionScope
 @Component
@@ -73,12 +75,12 @@ class LocalProxyServer implements AutoCloseable {
         try {
             serverSocket = new ServerSocket(proxyConfig.getLocalPort(),
                     systemConfig.getServerSocketBacklog());
-            proxyController.submit(() -> {
+            proxyController.executorService().submit(() -> {
                 while (true) {
                     try {
                         Socket socket = serverSocket.accept();
                         socket.setSoTimeout(systemConfig.getSocketSoTimeout() * 1000);
-                        proxyController.submit(() -> {
+                        proxyController.executorService().submit(() -> {
                             try {
                                 clientConnectionHandler.handleConnection(socket);
                             } catch (Exception e) {

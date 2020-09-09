@@ -18,6 +18,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpStatus;
 import org.apache.http.RequestLine;
 import org.apache.http.protocol.HTTP;
+import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.exception.PacScriptException;
 import org.kpax.winfoom.pac.PacScriptEvaluator;
@@ -40,6 +41,7 @@ import java.util.List;
 /**
  * Responsible for handling client's connection.
  */
+@ThreadSafe
 @Component
 class ClientConnectionHandler {
 

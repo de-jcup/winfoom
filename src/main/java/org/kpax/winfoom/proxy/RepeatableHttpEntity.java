@@ -17,6 +17,7 @@ import org.apache.http.HttpRequest;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.impl.io.ChunkedInputStream;
 import org.apache.http.impl.io.SessionInputBufferImpl;
+import org.kpax.winfoom.annotation.NotThreadSafe;
 import org.kpax.winfoom.util.HttpUtils;
 import org.kpax.winfoom.util.InputOutputs;
 
@@ -34,6 +35,7 @@ import java.nio.file.StandardOpenOption;
  * @author Eugen Covaci {@literal eugen.covaci.q@gmail.com}
  * Created on 4/6/2020
  */
+@NotThreadSafe
 class RepeatableHttpEntity extends AbstractHttpEntity implements Closeable {
 
     private final SessionInputBufferImpl inputBuffer;

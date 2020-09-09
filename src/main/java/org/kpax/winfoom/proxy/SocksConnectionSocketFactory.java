@@ -17,6 +17,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.protocol.HttpContext;
+import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.util.HttpUtils;
 
 import java.io.IOException;
@@ -25,6 +26,7 @@ import java.net.*;
 /**
  * A {@link ConnectionSocketFactory} implementation for SOCKS proxy.
  */
+@ThreadSafe
 class SocksConnectionSocketFactory implements ConnectionSocketFactory {
 
     @Override

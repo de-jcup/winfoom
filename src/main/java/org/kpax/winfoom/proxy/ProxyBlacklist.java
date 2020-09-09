@@ -13,6 +13,7 @@
 package org.kpax.winfoom.proxy;
 
 import org.kpax.winfoom.annotation.ProxySessionScope;
+import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +33,7 @@ import java.util.stream.Collectors;
  * <p>If a proxy doesn't respond to a connect attempt, it can be blacklisted
  * which means it will not be used again until the blacklist timeout happens.
  */
+@ThreadSafe
 @Lazy
 @ProxySessionScope
 @Component

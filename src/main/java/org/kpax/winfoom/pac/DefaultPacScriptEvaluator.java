@@ -32,6 +32,7 @@ package org.kpax.winfoom.pac;
 
 import org.apache.commons.io.IOUtils;
 import org.kpax.winfoom.annotation.ProxySessionScope;
+import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.exception.MissingResourceException;
 import org.kpax.winfoom.exception.PacFileException;
@@ -60,6 +61,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 
+@ThreadSafe
 @Order(2)
 @Lazy
 @Component

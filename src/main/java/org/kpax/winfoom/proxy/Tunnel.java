@@ -15,6 +15,7 @@ package org.kpax.winfoom.proxy;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.conn.ManagedHttpClientConnection;
+import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.util.InputOutputs;
 import org.springframework.util.Assert;
 
@@ -29,6 +30,7 @@ import java.io.OutputStream;
  * @author Eugen Covaci {@literal eugen.covaci.q@gmail.com}
  * Created on 3/31/2020
  */
+@ThreadSafe
 public final class Tunnel implements Closeable {
 
     private final ManagedHttpClientConnection connection;

@@ -42,6 +42,7 @@ import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.protocol.*;
 import org.apache.http.util.Args;
 import org.apache.http.util.EntityUtils;
+import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.util.HttpUtils;
 import org.kpax.winfoom.util.InputOutputs;
@@ -59,6 +60,7 @@ import java.net.Socket;
  *
  * @author Eugen Covaci
  */
+@ThreadSafe
 @Component
 public class TunnelConnection {
 

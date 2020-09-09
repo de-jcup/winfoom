@@ -16,9 +16,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.RequestLine;
 import org.apache.http.protocol.HTTP;
+import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.util.HeaderDateGenerator;
 import org.kpax.winfoom.util.HttpUtils;
+import org.kpax.winfoom.util.InputOutputs;
+import org.kpax.winfoom.util.Source;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +36,7 @@ import java.net.*;
  * @author Eugen Covaci {@literal eugen.covaci.q@gmail.com}
  * Created on 4/16/2020
  */
+@ThreadSafe
 @Component
 class SocketConnectClientConnectionProcessor implements ClientConnectionProcessor {
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -85,11 +89,11 @@ class SocketConnectClientConnectionProcessor implements ClientConnectionProcesso
                 // The proxy facade mediates the full duplex communication
                 // between the client and the remote proxy
                 // This usually ends on connection reset, timeout or any other error
-                proxyController.duplex(
-                        socket.getInputStream(),
-                        socket.getOutputStream(),
-                        clientConnection.getInputStream(),
-                        clientConnection.getOutputStream());
+                InputOutputs.duplex(proxyController.executorService(),
+                        Source.from(socket.getInputStream(),
+                                socket.getOutputStream()),
+                        Source.from(clientConnection.getInputStream(),
+                                clientConnection.getOutputStream()));
             } catch (Exception e) {
                 logger.error("Error on full duplex", e);
             }

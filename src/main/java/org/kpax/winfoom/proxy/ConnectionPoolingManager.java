@@ -18,6 +18,7 @@ import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.kpax.winfoom.annotation.ProxySessionScope;
+import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.util.InputOutputs;
 import org.kpax.winfoom.util.functional.SingletonSupplier;
@@ -37,6 +38,7 @@ import java.util.concurrent.TimeUnit;
  * It manages the HTTP connection pooling mechanism.
  * <p>Only used for non-CONNECT HTTP requests.
  */
+@ThreadSafe
 @Order(1)
 @ProxySessionScope
 @Component

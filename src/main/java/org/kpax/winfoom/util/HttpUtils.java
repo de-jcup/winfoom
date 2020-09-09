@@ -356,7 +356,7 @@ public final class HttpUtils {
      * (meaning suitable for passing as {@code url} argument to
      * {@code FindProxyForURL(url, host)} or {@code FindProxyForURLEx(url, host)}
      * functions).
-
+     *
      * @param uri URL to be stripped
      * @return stripped URL string
      */

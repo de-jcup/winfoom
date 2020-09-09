@@ -13,6 +13,7 @@
 package org.kpax.winfoom.proxy;
 
 import org.apache.http.HttpHost;
+import org.kpax.winfoom.annotation.ThreadSafe;
 import org.springframework.util.Assert;
 
 import java.util.Objects;
@@ -20,6 +21,7 @@ import java.util.Objects;
 /**
  * Encapsulate the proxy information: type, host an port
  */
+@ThreadSafe
 public final class ProxyInfo {
 
     private final ProxyType type;
