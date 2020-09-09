@@ -79,8 +79,7 @@ class NonConnectClientConnectionProcessor implements ClientConnectionProcessor {
         logger.debug("Handle non-connect request");
         HttpRequest request = clientConnection.getHttpRequest();
 
-        if (!clientConnection.isRequestPrepared()) {
-
+        clientConnection.prepareRequest(() -> {
             // Prepare the request for execution
             if (request instanceof HttpEntityEnclosingRequest) {
                 AbstractHttpEntity entity;
@@ -142,11 +141,7 @@ class NonConnectClientConnectionProcessor implements ClientConnectionProcessor {
             request.removeHeaders(HttpHeaders.VIA);
             request.setHeader(HttpUtils.createViaHeader(clientConnection.getRequestLine().getProtocolVersion(),
                     viaHeader));
-
-            // Mark this request as prepared
-            // in case of multiple processing
-            clientConnection.requestPrepared();
-        }
+        });
 
         try (CloseableHttpClient httpClient = clientBuilderFactory.createClientBuilder(proxyInfo).build()) {
 

@@ -23,6 +23,7 @@ import org.kpax.winfoom.util.HeaderDateGenerator;
 import org.kpax.winfoom.util.HttpUtils;
 import org.kpax.winfoom.util.InputOutputs;
 import org.kpax.winfoom.util.ObjectFormat;
+import org.kpax.winfoom.util.functional.Executable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
@@ -36,6 +37,7 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 /**
  * It encapsulates a client's connection.
@@ -252,11 +254,11 @@ final class ClientConnection implements AutoCloseable {
         return requestPrepared;
     }
 
-    /**
-     * Mark the request as prepared for execution.
-     */
-    void requestPrepared() {
-        this.requestPrepared = true;
+    void prepareRequest (Executable<IOException> executable) throws IOException {
+        if (!requestPrepared) {
+            executable.execute();
+            this.requestPrepared = true;
+        }
     }
 
     /**
