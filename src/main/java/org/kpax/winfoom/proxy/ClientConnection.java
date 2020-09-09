@@ -254,6 +254,12 @@ final class ClientConnection implements AutoCloseable {
         return requestPrepared;
     }
 
+    /**
+     * Prepare for remote request execution.
+     * <p>Preparation can only occur once, this method does nothing if the request is already prepared.</p>
+     * @param executable the preparation staff
+     * @throws IOException
+     */
     void prepareRequest (Executable<IOException> executable) throws IOException {
         if (!requestPrepared) {
             executable.execute();
