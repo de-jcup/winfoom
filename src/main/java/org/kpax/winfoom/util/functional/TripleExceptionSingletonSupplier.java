@@ -84,7 +84,7 @@ public class TripleExceptionSingletonSupplier<T, E1 extends Exception, E2 extend
     public void reset() {
         synchronized (LOCK) {
             if (t instanceof AutoCloseable) {
-                InputOutputs.close((AutoCloseable)t);
+                InputOutputs.close((AutoCloseable) t);
             }
             t = null;
         }
