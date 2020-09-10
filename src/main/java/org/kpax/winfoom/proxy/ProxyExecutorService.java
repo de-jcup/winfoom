@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A wrapper for {@link ThreadPoolExecutor} that forbids {@link #shutdown()}, {@link #shutdownNow()}
@@ -36,7 +37,7 @@ public class ProxyExecutorService implements ExecutorService, AutoCloseable {
         this.threadPoolSupplier =
                 new SingletonSupplier<>(() -> new ThreadPoolExecutor(0, Integer.MAX_VALUE,
                         60L, TimeUnit.SECONDS, new SynchronousQueue<>(),
-                        new ProxyController.DefaultThreadFactory()));
+                        new DefaultThreadFactory()));
     }
 
     public void execute(Runnable task) {
@@ -103,5 +104,38 @@ public class ProxyExecutorService implements ExecutorService, AutoCloseable {
     @Override
     public void close() throws Exception {
         threadPoolSupplier.value().ifPresent(ExecutorService::shutdownNow);
+    }
+
+    public static class DefaultThreadFactory implements ThreadFactory {
+        private static final AtomicInteger poolNumber = new AtomicInteger(1);
+        private final ThreadGroup group;
+        private final AtomicInteger threadNumber = new AtomicInteger(1);
+        private final String namePrefix;
+
+        public DefaultThreadFactory() {
+            SecurityManager securityManager = System.getSecurityManager();
+            group = (securityManager != null) ? securityManager.getThreadGroup() :
+                    Thread.currentThread().getThreadGroup();
+            namePrefix = "pool-" +
+                    poolNumber.getAndIncrement() +
+                    "-thread-";
+        }
+
+        @Override
+        public Thread newThread(Runnable runnable) {
+            Thread thread = new Thread(group, runnable,
+                    namePrefix + threadNumber.getAndIncrement(),
+                    0);
+
+            // Make sure all threads are daemons!
+            if (!thread.isDaemon()) {
+                thread.setDaemon(true);
+            }
+
+            if (thread.getPriority() != Thread.NORM_PRIORITY) {
+                thread.setPriority(Thread.NORM_PRIORITY);
+            }
+            return thread;
+        }
     }
 }
