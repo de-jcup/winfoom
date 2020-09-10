@@ -51,6 +51,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.net.Socket;
 
@@ -72,26 +73,36 @@ public class TunnelConnection {
     @Autowired
     private SystemConfig systemConfig;
 
+    private ConnectionReuseStrategy reuseStrategy;
+    private Registry<AuthSchemeProvider> authSchemeRegistry;
+    private HttpProcessor httpProcessor;
+    private HttpRequestExecutor requestExec;
+    private ProxyAuthenticationStrategy proxyAuthStrategy;
+    private HttpAuthenticator authenticator;
+
+    @PostConstruct
+    void init() {
+        this.reuseStrategy = new DefaultConnectionReuseStrategy();
+        this.authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
+                .register(AuthSchemes.BASIC, new BasicSchemeFactory())
+                .register(AuthSchemes.DIGEST, new DigestSchemeFactory())
+                .register(AuthSchemes.NTLM, new WindowsNTLMSchemeFactory(null))
+                .register(AuthSchemes.SPNEGO, new WindowsNegotiateSchemeFactory(null))
+                .build();
+        this.httpProcessor = new ImmutableHttpProcessor(new RequestTargetHost(),
+                new RequestClientConnControl(), new RequestUserAgent());
+        this.requestExec = new HttpRequestExecutor();
+        this.proxyAuthStrategy = new ProxyAuthenticationStrategy();
+        this.authenticator = new HttpAuthenticator();
+    }
+
     public Tunnel open(final HttpHost proxy, final HttpHost target,
                        final ProtocolVersion protocolVersion)
             throws IOException, HttpException {
         Args.notNull(proxy, "Proxy host");
         Args.notNull(target, "Target host");
 
-        HttpProcessor httpProcessor = new ImmutableHttpProcessor(new RequestTargetHost(),
-                new RequestClientConnControl(), new RequestUserAgent());
-        HttpRequestExecutor requestExec = new HttpRequestExecutor();
-        ProxyAuthenticationStrategy proxyAuthStrategy = new ProxyAuthenticationStrategy();
-        HttpAuthenticator authenticator = new HttpAuthenticator();
         AuthState proxyAuthState = new AuthState();
-        ConnectionReuseStrategy reuseStrategy = new DefaultConnectionReuseStrategy();
-
-        Registry<AuthSchemeProvider> authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
-                .register(AuthSchemes.BASIC, new BasicSchemeFactory())
-                .register(AuthSchemes.DIGEST, new DigestSchemeFactory())
-                .register(AuthSchemes.NTLM, new WindowsNTLMSchemeFactory(null))
-                .register(AuthSchemes.SPNEGO, new WindowsNegotiateSchemeFactory(null))
-                .build();
 
         HttpHost host = target;
         if (host.getPort() <= 0) {
