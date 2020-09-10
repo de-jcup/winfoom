@@ -16,7 +16,6 @@ import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.config.ScopeConfiguration;
 import org.kpax.winfoom.pac.net.IpAddresses;
-import org.kpax.winfoom.util.ExecutorServiceAdapter;
 import org.kpax.winfoom.util.functional.SingletonSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,13 +40,6 @@ public class ProxyController implements AutoCloseable {
     private final Logger logger = LoggerFactory.getLogger(ProxyController.class);
 
     private final ProxyLifecycle proxyLifecycle = new ProxyLifecycle();
-
-    private final SingletonSupplier<ThreadPoolExecutor> threadPoolSupplier =
-            new SingletonSupplier<>(() -> new ThreadPoolExecutor(0, Integer.MAX_VALUE,
-                    60L, TimeUnit.SECONDS, new SynchronousQueue<>(),
-                    new DefaultThreadFactory()));
-
-    private final ExecutorService executorService = new ExecutorServiceAdapter(threadPoolSupplier);
 
     @Autowired
     private ProxyConfig proxyConfig;
@@ -78,10 +70,6 @@ public class ProxyController implements AutoCloseable {
         if (proxyConfig.getProxyType().isSocks5()) {
             Authenticator.setDefault(null);
         }
-    }
-
-    public ExecutorService executorService() {
-        return executorService;
     }
 
     public boolean isRunning() {
@@ -160,16 +148,6 @@ public class ProxyController implements AutoCloseable {
             if (started) {
                 started = false;
                 scopeConfiguration.getProxySessionScope().clear();
-
-                threadPoolSupplier.value().ifPresent((threadPool) -> {
-                    try {
-                        logger.debug("Shutdown the thread pool");
-                        threadPool.shutdownNow();
-                    } catch (Exception e) {
-                        logger.warn("Error on closing the current thread pool", e);
-                    }
-                    threadPoolSupplier.reset();
-                });
 
                 // We reset these suppliers because the network state
                 // might have changed during the proxy session.

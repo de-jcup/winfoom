@@ -45,7 +45,7 @@ class SocketConnectClientConnectionProcessor implements ClientConnectionProcesso
     private SystemConfig systemConfig;
 
     @Autowired
-    private ProxyController proxyController;
+    private ProxyExecutorService executorService;
 
     @Override
     public void process(final ClientConnection clientConnection, final ProxyInfo proxyInfo)
@@ -89,7 +89,7 @@ class SocketConnectClientConnectionProcessor implements ClientConnectionProcesso
                 // The proxy facade mediates the full duplex communication
                 // between the client and the remote proxy
                 // This usually ends on connection reset, timeout or any other error
-                InputOutputs.duplex(proxyController.executorService(),
+                InputOutputs.duplex(executorService,
                         Source.from(socket.getInputStream(),
                                 socket.getOutputStream()),
                         Source.from(clientConnection.getInputStream(),

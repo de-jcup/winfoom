@@ -62,7 +62,7 @@ import java.util.List;
 import java.util.Objects;
 
 @ThreadSafe
-@Order(2)
+@Order(3)
 @Lazy
 @Component
 @ProxySessionScope

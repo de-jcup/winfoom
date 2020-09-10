@@ -31,11 +31,11 @@ import java.net.URL;
  */
 public class SwingUtils {
 
-    private static final String DLG_ERR_TITLE = "Error";
+    private static final String DLG_ERR_TITLE = "Winfoom: Error";
 
-    private static final String DLG_INFO_TITLE = "Info";
+    private static final String DLG_INFO_TITLE = "Winfoom: Info";
 
-    private static final String DLG_WARN_TITLE = "Warning";
+    private static final String DLG_WARN_TITLE = "Winfoom: Warning";
 
     /**
      * Enable/disable a component and all it's sub-components.

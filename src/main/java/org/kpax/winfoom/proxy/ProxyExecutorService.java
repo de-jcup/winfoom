@@ -10,9 +10,14 @@
  *  See the License for the specific language governing permissions and limitations under the License.
  */
 
-package org.kpax.winfoom.util;
+package org.kpax.winfoom.proxy;
 
+import org.kpax.winfoom.annotation.ProxySessionScope;
+import org.kpax.winfoom.proxy.ProxyController;
+import org.kpax.winfoom.util.InputOutputs;
 import org.kpax.winfoom.util.functional.SingletonSupplier;
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 import java.util.Collection;
@@ -23,13 +28,18 @@ import java.util.concurrent.*;
  * A wrapper for {@link ThreadPoolExecutor} that forbids {@link #shutdown()}, {@link #shutdownNow()}
  * and {@link #awaitTermination(long, TimeUnit)}.
  */
-public class ExecutorServiceAdapter implements ExecutorService {
+@Order(2)
+@ProxySessionScope
+@Component
+public class ProxyExecutorService implements ExecutorService, AutoCloseable {
 
     private final SingletonSupplier<ThreadPoolExecutor> threadPoolSupplier;
 
-    public ExecutorServiceAdapter(final SingletonSupplier<ThreadPoolExecutor> threadPoolSupplier) {
-        Assert.notNull(threadPoolSupplier, "threadPoolSupplier must not be null");
-        this.threadPoolSupplier = threadPoolSupplier;
+    public ProxyExecutorService() {
+        this.threadPoolSupplier =
+                new SingletonSupplier<>(() -> new ThreadPoolExecutor(0, Integer.MAX_VALUE,
+                        60L, TimeUnit.SECONDS, new SynchronousQueue<>(),
+                        new ProxyController.DefaultThreadFactory()));
     }
 
     public void execute(Runnable task) {
@@ -69,7 +79,8 @@ public class ExecutorServiceAdapter implements ExecutorService {
     }
 
     @Override
-    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException {
+    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
+            throws InterruptedException {
         return threadPoolSupplier.get().invokeAll(tasks, timeout, unit);
     }
 
@@ -79,7 +90,8 @@ public class ExecutorServiceAdapter implements ExecutorService {
     }
 
     @Override
-    public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+    public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
+            throws InterruptedException, ExecutionException, TimeoutException {
         return threadPoolSupplier.get().invokeAny(tasks, timeout, unit);
     }
 
@@ -89,5 +101,10 @@ public class ExecutorServiceAdapter implements ExecutorService {
 
     public boolean isTerminated() {
         return threadPoolSupplier.hasValue() && threadPoolSupplier.get().isTerminated();
+    }
+
+    @Override
+    public void close() throws Exception {
+        threadPoolSupplier.value().ifPresent(ExecutorService::shutdownNow);
     }
 }

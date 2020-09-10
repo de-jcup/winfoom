@@ -40,7 +40,7 @@ class HttpConnectClientConnectionProcessor implements ClientConnectionProcessor 
     private final Logger logger = LoggerFactory.getLogger(HttpConnectClientConnectionProcessor.class);
 
     @Autowired
-    private ProxyController proxyController;
+    private ProxyExecutorService executorService;
 
     @Autowired
     private TunnelConnection tunnelConnection;
@@ -68,7 +68,7 @@ class HttpConnectClientConnectionProcessor implements ClientConnectionProcessor 
                 // The proxy facade mediates the full duplex communication
                 // between the client and the remote proxy.
                 // This usually ends on connection reset, timeout or any other error
-                InputOutputs.duplex(proxyController.executorService(),
+                InputOutputs.duplex(executorService,
                         Source.from(tunnel.getInputStream(),
                                 tunnel.getOutputStream()),
                         Source.from(clientConnection.getInputStream(),
