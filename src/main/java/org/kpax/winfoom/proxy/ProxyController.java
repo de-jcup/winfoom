@@ -28,7 +28,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Provide some methods for async execution also allows begin/end proxy session.
+ * Allow begin/end proxy session.
  * <p>We rely on the Spring context to close this instance!
  *
  * @author Eugen Covaci
