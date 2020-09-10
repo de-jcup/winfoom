@@ -38,8 +38,6 @@ public class ProxyController implements AutoCloseable {
 
     private final Logger logger = LoggerFactory.getLogger(ProxyController.class);
 
-    private final ProxyLifecycle proxyLifecycle = new ProxyLifecycle();
-
     @Autowired
     private ProxyConfig proxyConfig;
 
@@ -50,20 +48,36 @@ public class ProxyController implements AutoCloseable {
     private LocalProxyServer localProxyServer;
 
     /**
-     * Begin a proxy session by calling {@link  ProxyLifecycle#start()} .
+     * Whether the proxy session is started or not.
+     */
+    private volatile boolean started;
+
+    /**
+     * Begin a proxy session.
      *
      * @throws Exception
      */
     public synchronized void start() throws Exception {
-        proxyLifecycle.start();
+        Assert.state(!started, "Already started");
+        localProxyServer.start();
+        started = true;
     }
 
     /**
-     * End the proxy session by calling {@link  ProxyLifecycle#stop()}.
+     * End the proxy session.
      * <p>Also, it removes the {@link Authenticator} - if any.
      */
     public synchronized void stop() {
-        proxyLifecycle.stop();
+        if (started) {
+            started = false;
+            scopeConfiguration.getProxySessionScope().clear();
+
+            // We reset these suppliers because the network state
+            // might have changed during the proxy session.
+            // Though unlikely, we take no chances.
+            IpAddresses.allPrimaryAddresses.reset();
+            IpAddresses.primaryIPv4Address.reset();
+        }
 
         // Remove auth for SOCKS proxy
         if (proxyConfig.getProxyType().isSocks5()) {
@@ -72,7 +86,7 @@ public class ProxyController implements AutoCloseable {
     }
 
     public boolean isRunning() {
-        return proxyLifecycle.isRunning();
+        return started;
     }
 
     @Override
@@ -111,58 +125,6 @@ public class ProxyController implements AutoCloseable {
                 thread.setPriority(Thread.NORM_PRIORITY);
             }
             return thread;
-        }
-    }
-
-    /**
-     * Manage a proxy session (start/stop).
-     * <p>The proxy session begins with {@link #start()}
-     * and ends with {@link #stop()}.
-     *
-     * @see ProxySessionScope
-     */
-    private class ProxyLifecycle {
-
-        /**
-         * Whether this manager is started or not.
-         */
-        private volatile boolean started;
-
-        /**
-         * Begin a proxy session.
-         *
-         * @throws Exception
-         */
-        void start() throws Exception {
-            Assert.state(!started, "Already started");
-            localProxyServer.start();
-            started = true;
-        }
-
-        /**
-         * <p>End the current proxy session, if any.
-         * <p>Does nothing if it's not running.
-         */
-        void stop() {
-            if (started) {
-                started = false;
-                scopeConfiguration.getProxySessionScope().clear();
-
-                // We reset these suppliers because the network state
-                // might have changed during the proxy session.
-                // Though unlikely, we take no chances.
-                IpAddresses.allPrimaryAddresses.reset();
-                IpAddresses.primaryIPv4Address.reset();
-            }
-        }
-
-        /**
-         * Check if there is an active proxy session.
-         *
-         * @return {@code true} iff there is an active proxy session
-         */
-        boolean isRunning() {
-            return started;
         }
     }
 
