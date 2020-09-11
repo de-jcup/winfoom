@@ -16,10 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.*;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.entity.AbstractHttpEntity;
-import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.ProxyConfig;
@@ -33,9 +30,6 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Process any type of non-CONNECT request for any type of proxy.
@@ -62,7 +56,6 @@ class NonConnectClientConnectionProcessor implements ClientConnectionProcessor {
     public void process(final ClientConnection clientConnection, final ProxyInfo proxyInfo)
             throws IOException {
         logger.debug("Handle non-connect request");
-        HttpRequest request = clientConnection.getHttpRequest();
         try (CloseableHttpClient httpClient = clientBuilderFactory.createClientBuilder(proxyInfo).build()) {
             URI uri = clientConnection.getRequestUri();
             HttpHost target = new HttpHost(uri.getHost(),
@@ -77,10 +70,52 @@ class NonConnectClientConnectionProcessor implements ClientConnectionProcessor {
             }
 
             // Execute the request
-            try (CloseableHttpResponse response = httpClient.execute(target, request, context)) {
+            try (CloseableHttpResponse response = httpClient.execute(target, clientConnection.getHttpRequest(), context)) {
 
                 try {
-                    handleResponse(response, clientConnection);
+                    StatusLine statusLine = response.getStatusLine();
+                    logger.debug("Write status line: {}", statusLine);
+                    clientConnection.write(statusLine);
+
+                    clientConnection.write(HttpUtils.createViaHeader(clientConnection.getRequestLine().getProtocolVersion(),
+                            response.getFirstHeader(HttpHeaders.VIA)));
+                    response.removeHeaders(HttpHeaders.VIA);
+
+                    for (Header header : response.getAllHeaders()) {
+                        if (HttpHeaders.TRANSFER_ENCODING.equals(header.getName())) {
+
+                            // Strip 'chunked' from Transfer-Encoding header's value
+                            // since the response is not chunked
+                            String nonChunkedTransferEncoding = HttpUtils.stripChunked(header.getValue());
+                            if (StringUtils.isNotEmpty(nonChunkedTransferEncoding)) {
+                                clientConnection.write(
+                                        HttpUtils.createHttpHeader(HttpHeaders.TRANSFER_ENCODING,
+                                                nonChunkedTransferEncoding));
+                                logger.debug("Add chunk-striped header response");
+                            } else {
+                                logger.debug("Remove transfer encoding chunked header response");
+                            }
+                        } else {
+                            logger.debug("Write response header: {}", header);
+                            clientConnection.write(header);
+                        }
+                    }
+
+                    // Empty line marking the end
+                    // of header's section
+                    clientConnection.writeln();
+
+                    // Now write the request body, if any
+                    HttpEntity entity = response.getEntity();
+                    if (entity != null) {
+                        logger.debug("Start writing entity content");
+                        entity.writeTo(clientConnection.getOutputStream());
+                        logger.debug("End writing entity content");
+
+                        // Make sure the entity is fully consumed
+                        EntityUtils.consume(entity);
+                    }
+
                 } catch (Exception e) {
                     logger.debug("Error on handling non CONNECT response", e);
                 }
@@ -88,55 +123,4 @@ class NonConnectClientConnectionProcessor implements ClientConnectionProcessor {
         }
     }
 
-    /**
-     * Handles the Http response for non-CONNECT requests.
-     *
-     * @param response The Http response.
-     */
-    private void handleResponse(final CloseableHttpResponse response,
-                                final ClientConnection clientConnection) throws IOException {
-        StatusLine statusLine = response.getStatusLine();
-        logger.debug("Write status line: {}", statusLine);
-        clientConnection.write(statusLine);
-
-        clientConnection.write(HttpUtils.createViaHeader(clientConnection.getRequestLine().getProtocolVersion(),
-                response.getFirstHeader(HttpHeaders.VIA)));
-        response.removeHeaders(HttpHeaders.VIA);
-
-        for (Header header : response.getAllHeaders()) {
-            if (HttpHeaders.TRANSFER_ENCODING.equals(header.getName())) {
-
-                // Strip 'chunked' from Transfer-Encoding header's value
-                // since the response is not chunked
-                String nonChunkedTransferEncoding = HttpUtils.stripChunked(header.getValue());
-                if (StringUtils.isNotEmpty(nonChunkedTransferEncoding)) {
-                    clientConnection.write(
-                            HttpUtils.createHttpHeader(HttpHeaders.TRANSFER_ENCODING,
-                                    nonChunkedTransferEncoding));
-                    logger.debug("Add chunk-striped header response");
-                } else {
-                    logger.debug("Remove transfer encoding chunked header response");
-                }
-            } else {
-                logger.debug("Write response header: {}", header);
-                clientConnection.write(header);
-            }
-        }
-
-        // Empty line marking the end
-        // of header's section
-        clientConnection.writeln();
-
-        // Now write the request body, if any
-        HttpEntity entity = response.getEntity();
-        if (entity != null) {
-            logger.debug("Start writing entity content");
-            entity.writeTo(clientConnection.getOutputStream());
-            logger.debug("End writing entity content");
-
-            // Make sure the entity is fully consumed
-            EntityUtils.consume(entity);
-        }
-
-    }
 }

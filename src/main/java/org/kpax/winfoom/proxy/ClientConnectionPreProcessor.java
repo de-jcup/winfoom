@@ -29,8 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 @Component
@@ -48,7 +46,7 @@ public class ClientConnectionPreProcessor {
      * Prepare a {@link ClientConnection} for execution.
      *
      * @param clientConnection the client's connection
-     * @param proxyType the proxy type
+     * @param proxyType        the proxy type
      * @throws IOException
      */
     public void prepare(final ClientConnection clientConnection, final ProxyType proxyType) throws IOException {

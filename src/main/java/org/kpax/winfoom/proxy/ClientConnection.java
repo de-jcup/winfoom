@@ -24,7 +24,6 @@ import org.kpax.winfoom.util.HeaderDateGenerator;
 import org.kpax.winfoom.util.HttpUtils;
 import org.kpax.winfoom.util.InputOutputs;
 import org.kpax.winfoom.util.ObjectFormat;
-import org.kpax.winfoom.util.functional.Executable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
@@ -240,7 +239,7 @@ final class ClientConnection implements AutoCloseable {
         EntityUtils.consume(entity);
     }
 
-    boolean isConnect () {
+    boolean isConnect() {
         return HttpUtils.HTTP_CONNECT.equalsIgnoreCase(requestLine.getMethod());
     }
 
