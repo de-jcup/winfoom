@@ -25,7 +25,9 @@ import org.kpax.winfoom.pac.PacScriptEvaluator;
 import org.kpax.winfoom.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -50,6 +52,9 @@ class ClientConnectionHandler {
     @Autowired
     private ProxyConfig proxyConfig;
 
+    @Autowired
+    private ApplicationContext applicationContext;
+
     @Lazy
     @Autowired
     private PacScriptEvaluator pacScriptEvaluator;
@@ -70,23 +75,28 @@ class ClientConnectionHandler {
      *
      * @param socket the client's socket
      * @throws IOException
-     * @throws HttpException
      */
-    void handleConnection(final Socket socket) throws IOException, HttpException {
+    void handleConnection(final Socket socket) throws IOException {
 
         final ClientConnection clientConnection;
         try {
-            clientConnection = new ClientConnection(socket);
-        } catch (HttpException e) {
-            // Most likely a bad request
-            // even though might not always be the case
-            // Still, we give something back to the client
-            // so the connection won't hang
+            clientConnection = applicationContext.getBean(ClientConnection.class, socket);
+        } catch (BeanCreationException e) {
             OutputStream outputStream = socket.getOutputStream();
+            if (e.getRootCause() instanceof HttpException) {
+                // Most likely a bad request
+                // even though might not always be the case
+                outputStream.write(
+                        ObjectFormat.toCrlf(HttpUtils.toStatusLine(HttpStatus.SC_BAD_REQUEST, e.getMessage())));
+            } else {
+                // We give a generic error back to the client
+                // so the connection won't hang
+                outputStream.write(
+                        ObjectFormat.toCrlf(HttpUtils.toStatusLine(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage())));
+            }
             outputStream.write(
-                    ObjectFormat.toCrlf(HttpUtils.toStatusLine(HttpStatus.SC_BAD_REQUEST, e.getMessage())));
-            outputStream.write(
-                    ObjectFormat.toCrlf(HttpUtils.createHttpHeader(HTTP.DATE_HEADER, new HeaderDateGenerator().getCurrentDate())));
+                    ObjectFormat.toCrlf(HttpUtils.createHttpHeader(HTTP.DATE_HEADER,
+                            new HeaderDateGenerator().getCurrentDate())));
             outputStream.write(ObjectFormat.CRLF.getBytes());
             throw e;
         }
