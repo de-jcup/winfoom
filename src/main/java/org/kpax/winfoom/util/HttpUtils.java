@@ -54,6 +54,24 @@ public final class HttpUtils {
      */
     public static final int MAX_HTTP_SUCCESS_CODE = 299;
 
+
+    /**
+     * These headers will be removed from client's response if there is an enclosing
+     * entity.
+     */
+    public static final List<String> ENTITY_BANNED_HEADERS = Arrays.asList(
+            HttpHeaders.CONTENT_LENGTH,
+            HttpHeaders.CONTENT_TYPE,
+            HttpHeaders.CONTENT_ENCODING,
+            HttpHeaders.PROXY_AUTHORIZATION);
+
+    /**
+     * These headers will be removed from client's response if there is no enclosing
+     * entity (it means the request has no body).
+     */
+    public static final List<String> DEFAULT_BANNED_HEADERS = Collections.singletonList(
+            HttpHeaders.PROXY_AUTHORIZATION);
+
     private HttpUtils() {
     }
 

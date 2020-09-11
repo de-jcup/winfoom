@@ -93,12 +93,6 @@ final class ClientConnection implements AutoCloseable {
     private final URI requestUri;
 
     /**
-     * Whether the request is prepared (it means the request headers are set, also the request entity - if any)<br>
-     * Only makes sense for non-CONNECT HTTP requests.
-     */
-    private boolean requestPrepared;
-
-    /**
      * Constructor.<br>
      * Has the responsibility of parsing the request.
      *
@@ -246,27 +240,8 @@ final class ClientConnection implements AutoCloseable {
         EntityUtils.consume(entity);
     }
 
-    /**
-     * Whether the request has been marked as prepared for execution.
-     *
-     * @return <code>true</code> iff the request has been marked as prepared.
-     */
-    boolean isRequestPrepared() {
-        return requestPrepared;
-    }
-
-    /**
-     * Prepare for remote request execution.
-     * <p>Preparation can only occur once, this method does nothing if the request is already prepared.</p>
-     *
-     * @param executable the preparation staff
-     * @throws IOException
-     */
-    void prepareRequest(Executable<IOException> executable) throws IOException {
-        if (!requestPrepared) {
-            executable.execute();
-            this.requestPrepared = true;
-        }
+    boolean isConnect () {
+        return HttpUtils.HTTP_CONNECT.equalsIgnoreCase(requestLine.getMethod());
     }
 
     /**
@@ -292,7 +267,6 @@ final class ClientConnection implements AutoCloseable {
     boolean registerAutoCloseable(AutoCloseable autoCloseable) {
         return autoCloseables.add(autoCloseable);
     }
-
 
     @Override
     public void close() {

@@ -33,6 +33,7 @@ import org.apache.http.impl.client.WinHttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.ProxyConfig;
+import org.kpax.winfoom.config.ScopeConfiguration;
 import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.exception.InvalidProxySettingsException;
 import org.kpax.winfoom.exception.PacFileException;
@@ -66,6 +67,9 @@ public class ProxyValidator {
     @Autowired
     private SystemConfig systemConfig;
 
+    @Autowired
+    private ScopeConfiguration scopeConfiguration;
+
     @Lazy
     @Autowired
     private PacScriptEvaluator pacScriptEvaluator;
@@ -85,35 +89,40 @@ public class ProxyValidator {
         logger.info("Test proxy config {}", proxyConfig);
         ProxyType proxyType = proxyConfig.getProxyType();
         try {
-            if (proxyConfig.isAutoConfig()) {
-                List<ProxyInfo> proxyInfos = loadPacProxyInfos();
-                for (Iterator<ProxyInfo> itr = proxyInfos.iterator(); itr.hasNext(); ) {
-                    ProxyInfo proxyInfo = itr.next();
-                    logger.info("Validate {}", proxyInfo);
-                    ProxyType type = proxyInfo.getType();
-                    try {
-                        HttpHost host = proxyInfo.getProxyHost();
-                        testProxyConfig(type,
-                                host != null ? host.getHostName() : null,
-                                host != null ? host.getPort() : -1);
-                        break;
-                    } catch (HttpHostConnectException | ConnectTimeoutException e) {
-                        if (itr.hasNext()) {
-                            proxyBlacklist.blacklist(proxyInfo);
-                            logger.warn("Error on validating this proxy, will try the next one", e);
-                        } else {
-                            throw e;
+            try {
+                if (proxyConfig.isAutoConfig()) {
+                    List<ProxyInfo> proxyInfos = loadPacProxyInfos();
+                    for (Iterator<ProxyInfo> itr = proxyInfos.iterator(); itr.hasNext(); ) {
+                        ProxyInfo proxyInfo = itr.next();
+                        logger.info("Validate {}", proxyInfo);
+                        ProxyType type = proxyInfo.getType();
+                        try {
+                            HttpHost host = proxyInfo.getProxyHost();
+                            testProxyConfig(type,
+                                    host != null ? host.getHostName() : null,
+                                    host != null ? host.getPort() : -1);
+                            break;
+                        } catch (HttpHostConnectException | ConnectTimeoutException e) {
+                            if (itr.hasNext()) {
+                                proxyBlacklist.blacklist(proxyInfo);
+                                logger.warn("Error on validating this proxy, will try the next one", e);
+                            } else {
+                                throw e;
+                            }
                         }
                     }
+                } else {
+                    testProxyConfig(
+                            proxyType,
+                            proxyConfig.getProxyHost(),
+                            proxyConfig.getProxyPort());
                 }
-            } else {
-                testProxyConfig(
-                        proxyType,
-                        proxyConfig.getProxyHost(),
-                        proxyConfig.getProxyPort());
+            } catch (HttpHostConnectException | ConnectTimeoutException e) {
+                throw new InvalidProxySettingsException("Wrong proxy host/port", e);
             }
-        } catch (HttpHostConnectException | ConnectTimeoutException e) {
-            throw new InvalidProxySettingsException("Wrong proxy host/port", e);
+        } catch (InvalidProxySettingsException | RuntimeException e) {
+            scopeConfiguration.getProxySessionScope().clear();
+            throw e;
         }
     }
 

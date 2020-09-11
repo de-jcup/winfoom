@@ -47,23 +47,6 @@ import java.util.List;
 @Component
 class NonConnectClientConnectionProcessor implements ClientConnectionProcessor {
 
-    /**
-     * These headers will be removed from client's response if there is an enclosing
-     * entity.
-     */
-    private static final List<String> ENTITY_BANNED_HEADERS = Arrays.asList(
-            HttpHeaders.CONTENT_LENGTH,
-            HttpHeaders.CONTENT_TYPE,
-            HttpHeaders.CONTENT_ENCODING,
-            HttpHeaders.PROXY_AUTHORIZATION);
-
-    /**
-     * These headers will be removed from client's response if there is no enclosing
-     * entity (it means the request has no body).
-     */
-    private static final List<String> DEFAULT_BANNED_HEADERS = Collections.singletonList(
-            HttpHeaders.PROXY_AUTHORIZATION);
-
     private final Logger logger = LoggerFactory.getLogger(NonConnectClientConnectionProcessor.class);
 
     @Autowired
@@ -80,72 +63,7 @@ class NonConnectClientConnectionProcessor implements ClientConnectionProcessor {
             throws IOException {
         logger.debug("Handle non-connect request");
         HttpRequest request = clientConnection.getHttpRequest();
-
-        clientConnection.prepareRequest(() -> {
-            // Prepare the request for execution
-            if (request instanceof HttpEntityEnclosingRequest) {
-                AbstractHttpEntity entity;
-                logger.debug("Set enclosing entity");
-                if (proxyConfig.getProxyType().isSocks()) {
-
-                    // There is no need for caching since
-                    // SOCKS communication is one step only
-                    entity = new InputStreamEntity(clientConnection.getInputStream(),
-                            HttpUtils.getContentLength(request),
-                            HttpUtils.getContentType(request));
-                } else {
-                    entity = new RepeatableHttpEntity(request, clientConnection.getSessionInputBuffer(),
-                            proxyConfig.getTempDirectory(),
-                            systemConfig.getInternalBufferLength());
-                    clientConnection.registerAutoCloseable((RepeatableHttpEntity) entity);
-                }
-
-                Header transferEncoding = request.getFirstHeader(HTTP.TRANSFER_ENCODING);
-                if (transferEncoding != null
-                        && StringUtils.containsIgnoreCase(transferEncoding.getValue(), HTTP.CHUNK_CODING)) {
-                    logger.debug("Mark entity as chunked");
-                    entity.setChunked(true);
-
-                    // Apache HttpClient adds a Transfer-Encoding header's chunk directive
-                    // so remove or strip the existent one from chunk directive
-                    request.removeHeader(transferEncoding);
-                    String nonChunkedTransferEncoding = HttpUtils.stripChunked(transferEncoding.getValue());
-                    if (StringUtils.isNotEmpty(nonChunkedTransferEncoding)) {
-                        request.addHeader(
-                                HttpUtils.createHttpHeader(HttpHeaders.TRANSFER_ENCODING,
-                                        nonChunkedTransferEncoding));
-                        logger.debug("Add chunk-striped request header");
-                    } else {
-                        logger.debug("Remove transfer encoding chunked request header");
-                    }
-
-                }
-                ((HttpEntityEnclosingRequest) request).setEntity(entity);
-            } else {
-                logger.debug("No enclosing entity");
-            }
-
-            // Remove banned headers
-            List<String> bannedHeaders = request instanceof HttpEntityEnclosingRequest ?
-                    ENTITY_BANNED_HEADERS : DEFAULT_BANNED_HEADERS;
-            for (Header header : request.getAllHeaders()) {
-                if (bannedHeaders.contains(header.getName())) {
-                    request.removeHeader(header);
-                    logger.debug("Request header {} removed", header);
-                } else {
-                    logger.debug("Allow request header {}", header);
-                }
-            }
-
-            // Add a Via header and remove the existent one(s)
-            Header viaHeader = request.getFirstHeader(HttpHeaders.VIA);
-            request.removeHeaders(HttpHeaders.VIA);
-            request.setHeader(HttpUtils.createViaHeader(clientConnection.getRequestLine().getProtocolVersion(),
-                    viaHeader));
-        });
-
         try (CloseableHttpClient httpClient = clientBuilderFactory.createClientBuilder(proxyInfo).build()) {
-
             URI uri = clientConnection.getRequestUri();
             HttpHost target = new HttpHost(uri.getHost(),
                     uri.getPort(),

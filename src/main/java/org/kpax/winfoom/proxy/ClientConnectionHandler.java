@@ -50,6 +50,9 @@ class ClientConnectionHandler {
     @Autowired
     private ProxyConfig proxyConfig;
 
+    @Autowired
+    private ClientConnectionPreProcessor clientConnectionPreProcessor;
+
     @Lazy
     @Autowired
     private PacScriptEvaluator pacScriptEvaluator;
@@ -109,6 +112,9 @@ class ClientConnectionHandler {
                 proxyInfoList = Collections.singletonList(new ProxyInfo(proxyConfig.getProxyType(), proxyHost));
             }
             logger.debug("proxyInfoList {}", proxyInfoList);
+
+            // Prepare for processing
+            clientConnectionPreProcessor.prepare(clientConnection, proxyConfig.getProxyType());
 
             ClientConnectionProcessor connectionProcessor;
             for (Iterator<ProxyInfo> itr = proxyInfoList.iterator(); itr.hasNext(); ) {
