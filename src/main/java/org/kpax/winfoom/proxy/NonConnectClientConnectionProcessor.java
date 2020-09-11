@@ -94,9 +94,8 @@ class NonConnectClientConnectionProcessor implements ClientConnectionProcessor {
                             HttpUtils.getContentLength(request),
                             HttpUtils.getContentType(request));
                 } else {
-                    entity = new RepeatableHttpEntity(clientConnection.getSessionInputBuffer(),
+                    entity = new RepeatableHttpEntity(request, clientConnection.getSessionInputBuffer(),
                             proxyConfig.getTempDirectory(),
-                            request,
                             systemConfig.getInternalBufferLength());
                     clientConnection.registerAutoCloseable((RepeatableHttpEntity) entity);
                 }

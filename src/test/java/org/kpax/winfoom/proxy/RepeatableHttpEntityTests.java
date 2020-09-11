@@ -86,7 +86,7 @@ class RepeatableHttpEntityTests {
                             RepeatableHttpEntity requestEntity;
                             HttpRequest request = clientConnection.getHttpRequest();
                             try {
-                                requestEntity = new RepeatableHttpEntity(clientConnection.getSessionInputBuffer(), tempDirectory, request,
+                                requestEntity = new RepeatableHttpEntity(request, clientConnection.getSessionInputBuffer(), tempDirectory,
                                         bufferSize);
                                 Header transferEncoding = request.getFirstHeader(HTTP.TRANSFER_ENCODING);
                                 if (transferEncoding != null && HTTP.CHUNK_CODING.equalsIgnoreCase(transferEncoding.getValue())) {
