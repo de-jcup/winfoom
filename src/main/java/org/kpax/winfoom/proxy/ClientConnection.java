@@ -12,43 +12,32 @@
 
 package org.kpax.winfoom.proxy;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.*;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.config.MessageConstraints;
-import org.apache.http.entity.AbstractHttpEntity;
-import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.io.DefaultHttpRequestParser;
 import org.apache.http.impl.io.HttpTransportMetricsImpl;
 import org.apache.http.impl.io.SessionInputBufferImpl;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 import org.kpax.winfoom.annotation.NotThreadSafe;
-import org.kpax.winfoom.config.ProxyConfig;
-import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.util.HeaderDateGenerator;
 import org.kpax.winfoom.util.HttpUtils;
 import org.kpax.winfoom.util.InputOutputs;
 import org.kpax.winfoom.util.ObjectFormat;
+import org.kpax.winfoom.util.functional.Executable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * It encapsulates a client's connection.
@@ -59,27 +48,7 @@ import java.util.*;
  * @author Eugen Covaci
  */
 @NotThreadSafe
-@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-@Component
 final class ClientConnection implements AutoCloseable {
-
-    /**
-     * These headers will be removed from client's response if there is an enclosing
-     * entity.
-     */
-    private static final List<String> ENTITY_BANNED_HEADERS = Arrays.asList(
-            HttpHeaders.CONTENT_LENGTH,
-            HttpHeaders.CONTENT_TYPE,
-            HttpHeaders.CONTENT_ENCODING,
-            HttpHeaders.PROXY_AUTHORIZATION);
-
-    /**
-     * These headers will be removed from client's response if there is no enclosing
-     * entity (it means the request has no body).
-     */
-    private static final List<String> DEFAULT_BANNED_HEADERS = Collections.singletonList(
-            HttpHeaders.PROXY_AUTHORIZATION);
-
 
     private final Logger logger = LoggerFactory.getLogger(ClientConnection.class);
 
@@ -122,15 +91,6 @@ final class ClientConnection implements AutoCloseable {
      * The request URI extracted from the request line.
      */
     private final URI requestUri;
-
-    @Autowired
-    private ProxyConfig proxyConfig;
-
-    @Autowired
-    private SystemConfig systemConfig;
-
-    @Autowired
-    private HttpClientBuilderFactory clientBuilderFactory;
 
     /**
      * Whether the request is prepared (it means the request headers are set, also the request entity - if any)<br>
@@ -185,6 +145,13 @@ final class ClientConnection implements AutoCloseable {
      */
     SessionInputBufferImpl getSessionInputBuffer() {
         return sessionInputBuffer;
+    }
+
+    /**
+     * @return the HTTP request.
+     */
+    HttpRequest getHttpRequest() {
+        return httpRequest;
     }
 
     /**
@@ -292,99 +259,13 @@ final class ClientConnection implements AutoCloseable {
      * Prepare for remote request execution.
      * <p>Preparation can only occur once, this method does nothing if the request is already prepared.</p>
      *
+     * @param executable the preparation staff
      * @throws IOException
      */
-    private void prepareRequest(ProxyInfo proxyInfo) throws IOException {
-        // Prepare the request for execution
-        if (httpRequest instanceof HttpEntityEnclosingRequest) {
-            AbstractHttpEntity entity;
-            logger.debug("Set enclosing entity");
-            if (proxyInfo.getType().isSocks()) {
-
-                // There is no need for caching since
-                // SOCKS communication is one step only
-                entity = new InputStreamEntity(inputStream,
-                        HttpUtils.getContentLength(httpRequest),
-                        HttpUtils.getContentType(httpRequest));
-            } else {
-                entity = new RepeatableHttpEntity(httpRequest, sessionInputBuffer,
-                        proxyConfig.getTempDirectory(),
-                        systemConfig.getInternalBufferLength());
-                registerAutoCloseable((RepeatableHttpEntity) entity);
-            }
-
-            Header transferEncoding = httpRequest.getFirstHeader(HTTP.TRANSFER_ENCODING);
-            if (transferEncoding != null
-                    && StringUtils.containsIgnoreCase(transferEncoding.getValue(), HTTP.CHUNK_CODING)) {
-                logger.debug("Mark entity as chunked");
-                entity.setChunked(true);
-
-                // Apache HttpClient adds a Transfer-Encoding header's chunk directive
-                // so remove or strip the existent one from chunk directive
-                httpRequest.removeHeader(transferEncoding);
-                String nonChunkedTransferEncoding = HttpUtils.stripChunked(transferEncoding.getValue());
-                if (StringUtils.isNotEmpty(nonChunkedTransferEncoding)) {
-                    httpRequest.addHeader(
-                            HttpUtils.createHttpHeader(HttpHeaders.TRANSFER_ENCODING,
-                                    nonChunkedTransferEncoding));
-                    logger.debug("Add chunk-striped request header");
-                } else {
-                    logger.debug("Remove transfer encoding chunked request header");
-                }
-
-            }
-            ((HttpEntityEnclosingRequest) httpRequest).setEntity(entity);
-        } else {
-            logger.debug("No enclosing entity");
-        }
-
-        // Remove banned headers
-        List<String> bannedHeaders = httpRequest instanceof HttpEntityEnclosingRequest ?
-                ENTITY_BANNED_HEADERS : DEFAULT_BANNED_HEADERS;
-        for (Header header : httpRequest.getAllHeaders()) {
-            if (bannedHeaders.contains(header.getName())) {
-                httpRequest.removeHeader(header);
-                logger.debug("Request header {} removed", header);
-            } else {
-                logger.debug("Allow request header {}", header);
-            }
-        }
-
-        // Add a Via header and remove the existent one(s)
-        Header viaHeader = httpRequest.getFirstHeader(HttpHeaders.VIA);
-        httpRequest.removeHeaders(HttpHeaders.VIA);
-        httpRequest.setHeader(HttpUtils.createViaHeader(requestLine.getProtocolVersion(),
-                viaHeader));
-    }
-
-    /**
-     * Execute the {@link #httpRequest}.
-     * <p><b>Only makes sense for non-CONNECT requests.</b>
-     *
-     * @param proxyInfo            the proxy information
-     * @param httpResponseCallback called with {@link CloseableHttpResponse} response
-     * @throws IOException
-     */
-    void executeNonConnectRequest(final ProxyInfo proxyInfo, HttpResponseCallback httpResponseCallback) throws IOException {
-        HttpHost target = new HttpHost(requestUri.getHost(),
-                requestUri.getPort(),
-                requestUri.getScheme());
-
-        HttpClientContext context = HttpClientContext.create();
-        if (proxyInfo.getType().isSocks()) {
-            InetSocketAddress proxySocketAddress = new InetSocketAddress(proxyInfo.getProxyHost().getHostName(),
-                    proxyInfo.getProxyHost().getPort());
-            context.setAttribute(HttpUtils.SOCKS_ADDRESS, proxySocketAddress);
-        }
-
+    void prepareRequest(Executable<IOException> executable) throws IOException {
         if (!requestPrepared) {
-            prepareRequest(proxyInfo);
+            executable.execute();
             this.requestPrepared = true;
-        }
-
-        try (CloseableHttpClient httpClient = clientBuilderFactory.createClientBuilder(proxyInfo).build()) {
-            CloseableHttpResponse response = httpClient.execute(target, httpRequest, context);
-            httpResponseCallback.processResponse(response);
         }
     }
 

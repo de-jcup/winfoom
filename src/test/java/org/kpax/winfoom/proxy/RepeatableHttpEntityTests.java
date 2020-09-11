@@ -24,13 +24,10 @@ import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 import org.junit.jupiter.api.*;
 import org.kpax.winfoom.TestConstants;
-import org.kpax.winfoom.config.ProxyConfig;
-import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.util.HttpUtils;
 import org.kpax.winfoom.util.InputOutputs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.ByteArrayInputStream;
@@ -87,7 +84,7 @@ class RepeatableHttpEntityTests {
                         try {
                             ClientConnection clientConnection = new ClientConnection(socket);
                             RepeatableHttpEntity requestEntity;
-                            HttpRequest request = (HttpRequest)ReflectionTestUtils.getField(clientConnection, "httpRequest");
+                            HttpRequest request = clientConnection.getHttpRequest();
                             try {
                                 requestEntity = new RepeatableHttpEntity(request, clientConnection.getSessionInputBuffer(), tempDirectory,
                                         bufferSize);
