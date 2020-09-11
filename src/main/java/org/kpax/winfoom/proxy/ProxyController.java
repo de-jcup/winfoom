@@ -23,8 +23,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 import java.net.Authenticator;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Allow begin/end proxy session.

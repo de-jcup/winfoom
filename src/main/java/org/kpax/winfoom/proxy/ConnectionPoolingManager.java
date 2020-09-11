@@ -21,6 +21,7 @@ import org.kpax.winfoom.annotation.ProxySessionScope;
 import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.util.functional.SingletonSupplier;
+import org.kpax.winfoom.util.functional.TripleExceptionSingletonSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -167,8 +168,6 @@ class ConnectionPoolingManager implements AutoCloseable {
     @Override
     public void close() {
         logger.debug("Close all active connection managers and reset the suppliers");
-        poolingHttpSuppliers.stream().filter(SingletonSupplier::hasValue).forEach((supplier) -> {
-            supplier.reset();
-        });
+        poolingHttpSuppliers.stream().filter(SingletonSupplier::hasValue).forEach(TripleExceptionSingletonSupplier::reset);
     }
 }

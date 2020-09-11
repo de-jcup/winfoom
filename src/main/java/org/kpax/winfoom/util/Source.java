@@ -40,7 +40,7 @@ public class Source {
         return outputStream;
     }
 
-    public static final Source from(final InputStream inputStream, final OutputStream outputStream) {
+    public static Source from(final InputStream inputStream, final OutputStream outputStream) {
         return new Source(inputStream, outputStream);
     }
 }
