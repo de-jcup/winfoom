@@ -33,12 +33,12 @@ import org.apache.http.impl.client.WinHttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.ProxyConfig;
-import org.kpax.winfoom.config.ScopeConfiguration;
 import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.exception.InvalidProxySettingsException;
 import org.kpax.winfoom.exception.PacFileException;
 import org.kpax.winfoom.exception.PacScriptException;
 import org.kpax.winfoom.pac.PacScriptEvaluator;
+import org.kpax.winfoom.proxy.core.ProxyController;
 import org.kpax.winfoom.util.HttpUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,7 +68,7 @@ public class ProxyValidator {
     private SystemConfig systemConfig;
 
     @Autowired
-    private ScopeConfiguration scopeConfiguration;
+    private ProxyController proxyController;
 
     @Lazy
     @Autowired
@@ -122,7 +122,7 @@ public class ProxyValidator {
             }
         } catch (InvalidProxySettingsException | RuntimeException e) {
             // Clear the proxy scope to allow another retry
-            scopeConfiguration.getProxySessionScope().clear();
+            proxyController.clearProxySessionScope();
             throw e;
         }
     }

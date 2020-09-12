@@ -18,7 +18,6 @@ import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpRequest;
 import org.apache.http.entity.AbstractHttpEntity;
-import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.protocol.HTTP;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.config.SystemConfig;
@@ -56,21 +55,12 @@ public class ClientConnectionPreProcessor {
             // remove some headers, fix VIA header and set a proper entity
             HttpRequest request = clientConnection.getHttpRequest();
             if (request instanceof HttpEntityEnclosingRequest) {
-                AbstractHttpEntity entity;
                 logger.debug("Set enclosing entity");
-                if (proxyType.isSocks()) {
-
-                    // There is no need for caching since
-                    // SOCKS communication is one step only
-                    entity = new InputStreamEntity(clientConnection.getInputStream(),
-                            HttpUtils.getContentLength(request),
-                            HttpUtils.getContentType(request));
-                } else {
-                    entity = new RepeatableHttpEntity(request, clientConnection.getSessionInputBuffer(),
-                            proxyConfig.getTempDirectory(),
-                            systemConfig.getInternalBufferLength());
-                    clientConnection.registerAutoCloseable((RepeatableHttpEntity) entity);
-                }
+                AbstractHttpEntity entity = new RepeatableHttpEntity(request,
+                        clientConnection.getSessionInputBuffer(),
+                        proxyConfig.getTempDirectory(),
+                        systemConfig.getInternalBufferLength());
+                clientConnection.registerAutoCloseable((RepeatableHttpEntity) entity);
 
                 Header transferEncoding = request.getFirstHeader(HTTP.TRANSFER_ENCODING);
                 if (transferEncoding != null

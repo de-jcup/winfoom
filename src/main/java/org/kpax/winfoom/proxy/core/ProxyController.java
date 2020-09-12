@@ -1,16 +1,16 @@
 /*
- * Copyright (c) 2020. Eugen Covaci
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
- *  http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and limitations under the License.
+ *  Copyright (c) 2020. Eugen Covaci
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and limitations under the License.
  */
 
-package org.kpax.winfoom.proxy;
+package org.kpax.winfoom.proxy.core;
 
 import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.ProxyConfig;
@@ -25,7 +25,7 @@ import org.springframework.util.Assert;
 import java.net.Authenticator;
 
 /**
- * Allow begin/end proxy session.
+ * Provide methods to begin, end or clear proxy session.
  * <p>We rely on the Spring context to close this instance!
  *
  * @author Eugen Covaci
@@ -68,7 +68,7 @@ public class ProxyController implements AutoCloseable {
     public synchronized void stop() {
         if (started) {
             started = false;
-            scopeConfiguration.getProxySessionScope().clear();
+            clearProxySessionScope();
 
             // We reset these suppliers because the network state
             // might have changed during the proxy session.
@@ -81,6 +81,10 @@ public class ProxyController implements AutoCloseable {
         if (proxyConfig.getProxyType().isSocks5()) {
             Authenticator.setDefault(null);
         }
+    }
+
+    public void clearProxySessionScope() {
+        scopeConfiguration.getProxySessionScope().clear();
     }
 
     public boolean isRunning() {

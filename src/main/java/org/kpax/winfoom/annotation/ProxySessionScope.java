@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
  * <p>Note that the target bean is CGLIB proxied.
  */
 @Qualifier
-@Scope(value = org.kpax.winfoom.proxy.ProxySessionScope.NAME, proxyMode = ScopedProxyMode.TARGET_CLASS)
+@Scope(value = org.kpax.winfoom.proxy.core.ProxySessionScope.NAME, proxyMode = ScopedProxyMode.TARGET_CLASS)
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ProxySessionScope {

@@ -43,7 +43,7 @@ import java.util.List;
  */
 @ThreadSafe
 @Component
-class ClientConnectionHandler {
+public class ClientConnectionHandler {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -75,7 +75,7 @@ class ClientConnectionHandler {
      * @throws IOException
      * @throws HttpException
      */
-    void handleConnection(final Socket socket) throws IOException, HttpException {
+    public void handleConnection(final Socket socket) throws IOException, HttpException {
 
         final ClientConnection clientConnection;
         try {
@@ -89,7 +89,8 @@ class ClientConnectionHandler {
             outputStream.write(
                     ObjectFormat.toCrlf(HttpUtils.toStatusLine(HttpStatus.SC_BAD_REQUEST, e.getMessage())));
             outputStream.write(
-                    ObjectFormat.toCrlf(HttpUtils.createHttpHeader(HTTP.DATE_HEADER, new HeaderDateGenerator().getCurrentDate())));
+                    ObjectFormat.toCrlf(HttpUtils.createHttpHeader(HTTP.DATE_HEADER,
+                            new HeaderDateGenerator().getCurrentDate())));
             outputStream.write(ObjectFormat.CRLF.getBytes());
             throw e;
         }

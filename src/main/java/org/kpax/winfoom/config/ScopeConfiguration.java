@@ -12,7 +12,7 @@
 
 package org.kpax.winfoom.config;
 
-import org.kpax.winfoom.proxy.ProxySessionScope;
+import org.kpax.winfoom.proxy.core.ProxySessionScope;
 import org.springframework.beans.factory.config.CustomScopeConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

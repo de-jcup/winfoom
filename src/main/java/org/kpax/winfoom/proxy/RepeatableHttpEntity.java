@@ -73,7 +73,6 @@ class RepeatableHttpEntity extends AbstractHttpEntity implements Closeable {
         this.contentType = request.getFirstHeader(HttpHeaders.CONTENT_TYPE);
         this.contentEncoding = request.getFirstHeader(HttpHeaders.CONTENT_ENCODING);
         this.contentLength = HttpUtils.getContentLength(request);
-
         if (this.contentLength > 0 && this.contentLength <= internalBufferLength) {
             writeToBuffer();
         }
