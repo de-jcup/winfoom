@@ -328,12 +328,16 @@ public final class HttpUtils {
         List<ProxyInfo> proxyInfos = new ArrayList<>();
         for (String s : proxyLine.split(";")) {
             String[] split = s.trim().split("\\s+");
-            Assert.isTrue(split.length > 0, String.format("Invalid proxy line [%s]: empty", proxyLine));
+            Assert.isTrue(split.length > 0,
+                    String.format("Invalid proxy line [%s]: empty",
+                            proxyLine));
             ProxyInfo.PacType type = ProxyInfo.PacType.valueOf(split[0].trim());
             if (type == ProxyInfo.PacType.DIRECT) {
                 proxyInfos.add(new ProxyInfo(ProxyInfo.PacType.DIRECT));
             } else {
-                Assert.isTrue(split.length > 1, String.format("Invalid proxy line [%s]: proxy host:port required", proxyLine));
+                Assert.isTrue(split.length > 1,
+                        String.format("Invalid proxy line [%s]: proxy host:port required",
+                                proxyLine));
                 proxyInfos.add(new ProxyInfo(type, HttpHost.create(split[1].trim())));
             }
         }
