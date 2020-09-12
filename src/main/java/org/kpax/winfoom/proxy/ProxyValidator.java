@@ -121,6 +121,7 @@ public class ProxyValidator {
                 throw new InvalidProxySettingsException("Wrong proxy host/port", e);
             }
         } catch (InvalidProxySettingsException | RuntimeException e) {
+            // Clear the proxy scope to allow another retry
             scopeConfiguration.getProxySessionScope().clear();
             throw e;
         }

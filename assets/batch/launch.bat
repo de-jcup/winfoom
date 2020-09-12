@@ -7,10 +7,10 @@ setlocal EnableDelayedExpansion
 set ARGS=-server -Dnashorn.args=--no-deprecation-warning
 
 FOR %%a IN (%*) DO (
-
-    IF NOT "%%a"=="--debug" IF NOT "%%a"=="--systemjre" (
+    SET "_arg_=%%~a"
+    IF NOT "%%a"=="--debug" IF NOT "%%a"=="--systemjre" IF NOT "!_arg_:~0,2!"=="-D" (
 		echo Unknow parameter: %%a
-		exit 1;
+		exit /B 1;
 	)
 
 	IF "%%a"=="--debug" (
@@ -20,6 +20,10 @@ FOR %%a IN (%*) DO (
 	IF "%%a"=="--systemjre" (
 		SET JAVA_EXE=javaw
 	)
+
+	IF "!_arg_:~0,2!"=="-D" (
+        SET "ARGS=!ARGS! !_arg_!"
+    )
 
 )
 

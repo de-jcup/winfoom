@@ -24,9 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketException;
+import java.net.*;
 
 /**
  * The local proxy server.
@@ -79,7 +77,7 @@ class LocalProxyServer implements AutoCloseable {
                 while (true) {
                     try {
                         Socket socket = serverSocket.accept();
-                        socket.setSoTimeout(systemConfig.getSocketSoTimeout() * 1000);
+                        systemConfig.tuneClientSocket(socket);
                         executorService.submit(() -> {
                             try {
                                 clientConnectionHandler.handleConnection(socket);

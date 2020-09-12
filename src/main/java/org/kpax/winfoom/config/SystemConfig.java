@@ -19,6 +19,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
+import java.net.Socket;
+import java.net.SocketException;
+
 /**
  * The proxy facade system configuration.
  * <p>This settings cannot change once the application is started.
@@ -159,6 +162,15 @@ public class SystemConfig {
         return configBuilder.setConnectTimeout(socketConnectTimeout * 1000)
                 .setConnectionRequestTimeout(socketSoTimeout * 1000)
                 .setSocketTimeout(socketSoTimeout * 1000);
+    }
+
+    public void tuneSocket (final Socket socket) throws SocketException {
+        socket.setSoTimeout(socketSoTimeout * 1000);
+    }
+
+    public void tuneClientSocket (final Socket socket) throws SocketException {
+        socket.setSoTimeout(socketSoTimeout * 1000);
+        socket.setKeepAlive(true);
     }
 
 }

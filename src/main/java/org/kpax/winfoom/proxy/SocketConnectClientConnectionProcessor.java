@@ -63,7 +63,7 @@ class SocketConnectClientConnectionProcessor implements ClientConnectionProcesso
         }
 
         try (Socket socket = new Socket(proxy)) {
-            socket.setSoTimeout(systemConfig.getSocketSoTimeout() * 1000);
+            systemConfig.tuneSocket(socket);
             if (proxyInfo.getType().isSocks4()) {
                 HttpUtils.setSocks4(socket);
             }

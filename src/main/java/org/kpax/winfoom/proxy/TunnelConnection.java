@@ -131,7 +131,7 @@ public class TunnelConnection {
         while (true) {
             if (!connection.isOpen()) {
                 Socket socket = new Socket(proxy.getHostName(), proxy.getPort());
-                socket.setSoTimeout(systemConfig.getSocketSoTimeout() * 1000);
+                systemConfig.tuneSocket(socket);
                 connection.bind(socket);
             }
 
