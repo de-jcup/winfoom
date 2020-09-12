@@ -57,7 +57,8 @@ class SocketConnectClientConnectionProcessor implements ClientConnectionProcesso
         Proxy proxy;
         if (proxyInfo.getType().isSocks()) {
             proxy = new Proxy(Proxy.Type.SOCKS,
-                    new InetSocketAddress(proxyInfo.getProxyHost().getHostName(), proxyInfo.getProxyHost().getPort()));
+                    new InetSocketAddress(proxyInfo.getProxyHost().getHostName(),
+                            proxyInfo.getProxyHost().getPort()));
         } else {
             proxy = Proxy.NO_PROXY;
         }

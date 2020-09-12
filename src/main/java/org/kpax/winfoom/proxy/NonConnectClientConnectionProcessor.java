@@ -71,16 +71,14 @@ class NonConnectClientConnectionProcessor implements ClientConnectionProcessor {
 
             // Execute the request
             try (CloseableHttpResponse response = httpClient.execute(target, clientConnection.getHttpRequest(), context)) {
-
                 try {
                     StatusLine statusLine = response.getStatusLine();
                     logger.debug("Write status line: {}", statusLine);
                     clientConnection.write(statusLine);
-
-                    clientConnection.write(HttpUtils.createViaHeader(clientConnection.getRequestLine().getProtocolVersion(),
+                    clientConnection.write(HttpUtils.createViaHeader(
+                            clientConnection.getRequestLine().getProtocolVersion(),
                             response.getFirstHeader(HttpHeaders.VIA)));
                     response.removeHeaders(HttpHeaders.VIA);
-
                     for (Header header : response.getAllHeaders()) {
                         if (HttpHeaders.TRANSFER_ENCODING.equals(header.getName())) {
 
