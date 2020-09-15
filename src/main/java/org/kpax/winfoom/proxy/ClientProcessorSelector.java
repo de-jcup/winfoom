@@ -43,7 +43,7 @@ class ClientProcessorSelector {
      * @return the processor instance.
      */
     public ClientConnectionProcessor selectClientProcessor(RequestLine requestLine, ProxyInfo proxyInfo) {
-        if (HttpUtils.HTTP_CONNECT.equalsIgnoreCase(requestLine.getMethod())) {
+        if (HttpUtils.isConnect(requestLine)) {
             if (proxyInfo.getType().isSocks() || proxyInfo.getType().isDirect()) {
                 return socketConnectClientConnectionProcessor;
             }

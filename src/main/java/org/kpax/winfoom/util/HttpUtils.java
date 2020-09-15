@@ -389,4 +389,13 @@ public final class HttpUtils {
                 (uri.getPort() == -1 ? "" : ":" + uri.getPort()) +
                 "/";  // Chrome seems to always append the slash so we do it too
     }
+
+    /**
+     * Check if the request method is CONNECT.
+     * @param requestLine the request's line
+     * @return {@code true} iff the request method is connect
+     */
+    public static boolean isConnect (RequestLine requestLine) {
+        return HttpUtils.HTTP_CONNECT.equalsIgnoreCase(requestLine.getMethod());
+    }
 }
