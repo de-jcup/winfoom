@@ -60,6 +60,12 @@ Available commands:
 * `launch.bat --systemjre` launches the application using your system JRE - you'll need a JRE v.11 (at least).
 * `launch.bat --debug --systemjre`  launches the application using your system JRE in debug mode.
 
+Winfoom can be launched with modified system or user parameters like this:
+
+`launch.bat "-Dsocket.soTimeout=10" "-DuseSystemProperties=true"`
+
+> 👉 Note:The above command only works with Windows Command Prompt (not Windows Powershell)
+
 The fastest way to run Winfoom is by double-click on `launch.bat` file.
 
 ## Winfoom's logs
