@@ -82,11 +82,6 @@ final class ClientConnection implements AutoCloseable {
     private final HttpRequest httpRequest;
 
     /**
-     * The request line. We keep a reference here to avoid multiple calling the {@link HttpRequest#getRequestLine()}
-     */
-    private final RequestLine requestLine;
-
-    /**
      * The request URI extracted from the request line.
      */
     private final URI requestUri;
@@ -103,19 +98,28 @@ final class ClientConnection implements AutoCloseable {
         this.socket = socket;
         this.inputStream = socket.getInputStream();
         this.outputStream = socket.getOutputStream();
-        this.sessionInputBuffer = new SessionInputBufferImpl(
-                new HttpTransportMetricsImpl(),
-                InputOutputs.DEFAULT_BUFFER_SIZE,
-                InputOutputs.DEFAULT_BUFFER_SIZE,
-                MessageConstraints.DEFAULT,
-                StandardCharsets.UTF_8.newDecoder());
-        this.sessionInputBuffer.bind(this.inputStream);
-        this.httpRequest = new DefaultHttpRequestParser(this.sessionInputBuffer).parse();
-        this.requestLine = httpRequest.getRequestLine();
+        // Parse the request
         try {
-            this.requestUri = HttpUtils.parseRequestUri(this.requestLine);
-        } catch (URISyntaxException e) {
-            throw new HttpException("Invalid request uri", e);
+            this.sessionInputBuffer = new SessionInputBufferImpl(
+                    new HttpTransportMetricsImpl(),
+                    InputOutputs.DEFAULT_BUFFER_SIZE,
+                    InputOutputs.DEFAULT_BUFFER_SIZE,
+                    MessageConstraints.DEFAULT,
+                    StandardCharsets.UTF_8.newDecoder());
+            this.sessionInputBuffer.bind(this.inputStream);
+            this.httpRequest = new DefaultHttpRequestParser(this.sessionInputBuffer).parse();
+            try {
+                this.requestUri = HttpUtils.parseRequestUri(this.httpRequest.getRequestLine());
+            } catch (URISyntaxException e) {
+                throw new HttpException("Invalid request uri", e);
+            }
+        } catch (HttpException e) {
+            // Most likely a bad request
+            // even though might not always be the case
+            // Still, we give something back to the client
+            // so the connection won't hang
+            writeErrorResponse(HttpStatus.SC_BAD_REQUEST, e);
+            throw e;
         }
     }
 
@@ -174,7 +178,8 @@ final class ClientConnection implements AutoCloseable {
     }
 
     /**
-     * Write a simple response with only the status line with protocol version 1.1, followed by an empty line.
+     * Write a simple response with only the status line with protocol version 1.1 and date header,
+     * followed by an empty line.
      *
      * @param statusCode the status code.
      * @param e          the message of this error becomes the reasonPhrase from the status line.
@@ -184,7 +189,7 @@ final class ClientConnection implements AutoCloseable {
     }
 
     /**
-     * Write a simple response with only the status line followed by an empty line.
+     * Write a simple response with only the status line and date header, followed by an empty line.
      *
      * @param protocolVersion the request's HTTP version.
      * @param statusCode      the request's status code.
@@ -201,7 +206,7 @@ final class ClientConnection implements AutoCloseable {
     }
 
     /**
-     * Write a simple response with only the status line, followed by an empty line.
+     * Write a simple response with only the status line and date header, followed by an empty line.
      *
      * @param protocolVersion the request's HTTP version.
      * @param statusCode      the request's status code.
@@ -240,7 +245,7 @@ final class ClientConnection implements AutoCloseable {
     }
 
     boolean isConnect() {
-        return HttpUtils.HTTP_CONNECT.equalsIgnoreCase(requestLine.getMethod());
+        return HttpUtils.HTTP_CONNECT.equalsIgnoreCase(httpRequest.getRequestLine().getMethod());
     }
 
     /**
@@ -254,7 +259,7 @@ final class ClientConnection implements AutoCloseable {
      * @return the request's line
      */
     RequestLine getRequestLine() {
-        return requestLine;
+        return httpRequest.getRequestLine();
     }
 
     /**

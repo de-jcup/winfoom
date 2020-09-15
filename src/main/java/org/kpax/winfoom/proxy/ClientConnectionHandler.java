@@ -17,12 +17,13 @@ import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpStatus;
 import org.apache.http.RequestLine;
-import org.apache.http.protocol.HTTP;
 import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.exception.PacScriptException;
 import org.kpax.winfoom.pac.PacScriptEvaluator;
-import org.kpax.winfoom.util.*;
+import org.kpax.winfoom.util.HttpUtils;
+import org.kpax.winfoom.util.InputOutputs;
+import org.kpax.winfoom.util.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +31,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.ConnectException;
 import java.net.Socket;
 import java.net.URI;
@@ -76,25 +76,7 @@ public class ClientConnectionHandler {
      * @throws HttpException
      */
     public void handleConnection(final Socket socket) throws IOException, HttpException {
-
-        final ClientConnection clientConnection;
-        try {
-            clientConnection = new ClientConnection(socket);
-        } catch (HttpException e) {
-            // Most likely a bad request
-            // even though might not always be the case
-            // Still, we give something back to the client
-            // so the connection won't hang
-            OutputStream outputStream = socket.getOutputStream();
-            outputStream.write(
-                    ObjectFormat.toCrlf(HttpUtils.toStatusLine(HttpStatus.SC_BAD_REQUEST, e.getMessage())));
-            outputStream.write(
-                    ObjectFormat.toCrlf(HttpUtils.createHttpHeader(HTTP.DATE_HEADER,
-                            new HeaderDateGenerator().getCurrentDate())));
-            outputStream.write(ObjectFormat.CRLF.getBytes());
-            throw e;
-        }
-
+        final ClientConnection clientConnection = new ClientConnection(socket);
         RequestLine requestLine = clientConnection.getRequestLine();
         logger.debug("Handle request: {}", requestLine);
 
@@ -174,6 +156,6 @@ public class ClientConnectionHandler {
             InputOutputs.close(clientConnection);
         }
         logger.debug("Done handling request: {}", requestLine);
-
     }
+
 }
