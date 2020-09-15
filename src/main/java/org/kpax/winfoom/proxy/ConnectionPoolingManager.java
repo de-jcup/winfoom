@@ -62,7 +62,7 @@ class ConnectionPoolingManager implements AutoCloseable {
     /**
      * For SOCKS5 proxy type
      */
-    private final SingletonSupplier<PoolingHttpClientConnectionManager> socksSupplier =
+    private final SingletonSupplier<PoolingHttpClientConnectionManager> socks5Supplier =
             new SingletonSupplier<>(() -> createSocksConnectionManager(false));
 
     /**
@@ -72,7 +72,7 @@ class ConnectionPoolingManager implements AutoCloseable {
             new SingletonSupplier<>(() -> createSocksConnectionManager(true));
 
     private final List<SingletonSupplier<PoolingHttpClientConnectionManager>> poolingHttpSuppliers =
-            Arrays.asList(httpSupplier, socksSupplier, socks4Supplier);
+            Arrays.asList(httpSupplier, socks5Supplier, socks4Supplier);
 
     /**
      * Lazy getter for HTTP proxy.
@@ -89,7 +89,7 @@ class ConnectionPoolingManager implements AutoCloseable {
      * @return the existent {@link PoolingHttpClientConnectionManager} instance or a new one if {@code null}.
      */
     HttpClientConnectionManager getSocksConnectionManager() {
-        return socksSupplier.get();
+        return socks5Supplier.get();
     }
 
     /**
@@ -98,7 +98,7 @@ class ConnectionPoolingManager implements AutoCloseable {
      * @return the existent {@link PoolingHttpClientConnectionManager} instance or a new one if {@code null}.
      */
     HttpClientConnectionManager getSocksConnectionManager(boolean isSocks4) {
-        return isSocks4 ? socks4Supplier.get() : socksSupplier.get();
+        return isSocks4 ? socks4Supplier.get() : socks5Supplier.get();
     }
 
     /**
