@@ -21,7 +21,7 @@ import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.util.HeaderDateGenerator;
 import org.kpax.winfoom.util.HttpUtils;
 import org.kpax.winfoom.util.InputOutputs;
-import org.kpax.winfoom.util.Source;
+import org.kpax.winfoom.util.StreamSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,10 +91,9 @@ class SocketConnectClientConnectionProcessor implements ClientConnectionProcesso
                 // between the client and the remote proxy
                 // This usually ends on connection reset, timeout or any other error
                 InputOutputs.duplex(executorService,
-                        Source.from(socket.getInputStream(),
+                        StreamSource.from(socket.getInputStream(),
                                 socket.getOutputStream()),
-                        Source.from(clientConnection.getInputStream(),
-                                clientConnection.getOutputStream()));
+                        clientConnection);
             } catch (Exception e) {
                 logger.error("Error on full duplex", e);
             }

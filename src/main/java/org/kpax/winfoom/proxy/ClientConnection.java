@@ -20,10 +20,7 @@ import org.apache.http.impl.io.SessionInputBufferImpl;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 import org.kpax.winfoom.annotation.NotThreadSafe;
-import org.kpax.winfoom.util.HeaderDateGenerator;
-import org.kpax.winfoom.util.HttpUtils;
-import org.kpax.winfoom.util.InputOutputs;
-import org.kpax.winfoom.util.ObjectFormat;
+import org.kpax.winfoom.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
@@ -47,7 +44,7 @@ import java.util.Set;
  * @author Eugen Covaci
  */
 @NotThreadSafe
-final class ClientConnection implements AutoCloseable {
+final class ClientConnection implements StreamSource, AutoCloseable {
 
     private final Logger logger = LoggerFactory.getLogger(ClientConnection.class);
 
@@ -128,14 +125,16 @@ final class ClientConnection implements AutoCloseable {
     /**
      * @return the input stream of the client's socket
      */
-    InputStream getInputStream() {
+    @Override
+    public InputStream getInputStream() {
         return inputStream;
     }
 
     /**
      * @return the output stream of the client's socket
      */
-    OutputStream getOutputStream() {
+    @Override
+    public OutputStream getOutputStream() {
         return outputStream;
     }
 

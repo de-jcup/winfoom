@@ -68,8 +68,8 @@ public final class InputOutputs {
      * @param firstSource     The first source.
      * @param secondSource    The second source.
      */
-    public static void duplex(ExecutorService executorService, Source firstSource,
-                              Source secondSource) {
+    public static void duplex(ExecutorService executorService, StreamSource firstSource,
+                              StreamSource secondSource) {
         logger.debug("Start full duplex communication");
         Future<?> secondToFirst = executorService.submit(
                 () -> secondSource.getInputStream().transferTo(firstSource.getOutputStream()));

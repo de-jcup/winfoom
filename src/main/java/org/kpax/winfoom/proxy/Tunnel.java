@@ -17,6 +17,7 @@ import org.apache.http.StatusLine;
 import org.apache.http.conn.ManagedHttpClientConnection;
 import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.util.InputOutputs;
+import org.kpax.winfoom.util.StreamSource;
 import org.springframework.util.Assert;
 
 import java.io.Closeable;
@@ -31,7 +32,7 @@ import java.io.OutputStream;
  * Created on 3/31/2020
  */
 @ThreadSafe
-public final class Tunnel implements Closeable {
+public final class Tunnel implements StreamSource, Closeable {
 
     private final ManagedHttpClientConnection connection;
     private final HttpResponse response;
@@ -52,10 +53,12 @@ public final class Tunnel implements Closeable {
         return connection;
     }
 
+    @Override
     public InputStream getInputStream() {
         return this.inputStream;
     }
 
+    @Override
     public OutputStream getOutputStream() {
         return this.outputStream;
     }

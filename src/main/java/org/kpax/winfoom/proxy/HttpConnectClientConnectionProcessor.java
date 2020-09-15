@@ -19,7 +19,6 @@ import org.apache.http.RequestLine;
 import org.apache.http.impl.execchain.TunnelRefusedException;
 import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.util.InputOutputs;
-import org.kpax.winfoom.util.Source;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,11 +67,7 @@ class HttpConnectClientConnectionProcessor implements ClientConnectionProcessor 
                 // The proxy facade mediates the full duplex communication
                 // between the client and the remote proxy.
                 // This usually ends on connection reset, timeout or any other error
-                InputOutputs.duplex(executorService,
-                        Source.from(tunnel.getInputStream(),
-                                tunnel.getOutputStream()),
-                        Source.from(clientConnection.getInputStream(),
-                                clientConnection.getOutputStream()));
+                InputOutputs.duplex(executorService, tunnel, clientConnection);
 
             } catch (Exception e) {
                 logger.debug("Error on handling CONNECT response", e);
