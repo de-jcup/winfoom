@@ -113,12 +113,14 @@ final class ClientConnection implements AutoCloseable {
             } catch (URISyntaxException e) {
                 throw new HttpException("Invalid request uri", e);
             }
-        } catch (HttpException e) {
-            // Most likely a bad request
-            // even though might not always be the case
-            // Still, we give something back to the client
-            // so the connection won't hang
-            writeErrorResponse(HttpStatus.SC_BAD_REQUEST, e);
+        } catch (Exception e) {
+            if (e instanceof HttpException) {
+                // Most likely a bad request
+                // even though might not always be the case
+                writeErrorResponse(HttpStatus.SC_BAD_REQUEST, e);
+            } else {
+                writeErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e);
+            }
             throw e;
         }
     }
