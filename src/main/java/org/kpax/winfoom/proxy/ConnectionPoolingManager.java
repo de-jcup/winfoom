@@ -93,6 +93,15 @@ class ConnectionPoolingManager implements AutoCloseable {
     }
 
     /**
+     * Lazy getter for SOCKS proxy.
+     * @param isSocks4 {@code true} iff the proxy type is SOCKS v4
+     * @return the existent {@link PoolingHttpClientConnectionManager} instance or a new one if {@code null}.
+     */
+    HttpClientConnectionManager getSocksConnectionManager(boolean isSocks4) {
+        return isSocks4 ? socks4Supplier.get() : socksSupplier.get();
+    }
+
+    /**
      * Lazy getter for SOCKS4 proxy.
      *
      * @return the existent {@link PoolingHttpClientConnectionManager} instance or a new one if {@code null}.

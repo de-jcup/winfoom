@@ -116,9 +116,7 @@ class HttpClientBuilderFactory {
      */
     private HttpClientBuilder createSocksClientBuilder(boolean isSocks4) {
         HttpClientBuilder builder = HttpClients.custom()
-                .setConnectionManager(isSocks4 ?
-                        connectionPoolingManager.getSocks4ConnectionManager() :
-                        connectionPoolingManager.getSocksConnectionManager())
+                .setConnectionManager(connectionPoolingManager.getSocksConnectionManager(isSocks4))
                 .setDefaultRequestConfig(systemConfig.applyConfig(RequestConfig.custom())
                         .setCircularRedirectsAllowed(true)
                         .build())
