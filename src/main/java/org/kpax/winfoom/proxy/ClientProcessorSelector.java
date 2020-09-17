@@ -12,9 +12,7 @@
 
 package org.kpax.winfoom.proxy;
 
-import org.apache.http.RequestLine;
 import org.kpax.winfoom.annotation.ThreadSafe;
-import org.kpax.winfoom.util.HttpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -38,12 +36,12 @@ class ClientProcessorSelector {
      * Select the appropriate {@link ClientConnectionProcessor} implementation to process the client's connection
      * based on the request info and the proxy type.
      *
-     * @param requestLine the HTTP request's first line.
+     * @param isConnect whether the HTTP request's method is CONNECT.
      * @param proxyInfo   the proxy info used to make the remote HTTP request.
      * @return the processor instance.
      */
-    public ClientConnectionProcessor selectClientProcessor(RequestLine requestLine, ProxyInfo proxyInfo) {
-        if (HttpUtils.isConnect(requestLine)) {
+    public ClientConnectionProcessor selectClientProcessor(boolean isConnect, ProxyInfo proxyInfo) {
+        if (isConnect) {
             if (proxyInfo.getType().isSocks() || proxyInfo.getType().isDirect()) {
                 return socketConnectClientConnectionProcessor;
             }

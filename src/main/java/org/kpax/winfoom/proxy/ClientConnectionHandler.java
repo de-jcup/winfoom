@@ -108,7 +108,9 @@ public class ClientConnectionHandler {
                         continue;
                     }
                 }
-                connectionProcessor = clientProcessorSelector.selectClientProcessor(requestLine, proxyInfo);
+                connectionProcessor = clientProcessorSelector.selectClientProcessor(
+                        clientConnection.isConnect(),
+                        proxyInfo);
                 try {
                     logger.debug("Process connection with proxy: {}", proxyInfo);
                     connectionProcessor.process(clientConnection, proxyInfo);
