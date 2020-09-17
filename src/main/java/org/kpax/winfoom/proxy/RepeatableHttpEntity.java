@@ -157,7 +157,6 @@ class RepeatableHttpEntity extends AbstractHttpEntity implements Closeable {
 
                             int length;
                             while ((length = chunkedInputStream.read(buffer)) > 0) {
-
                                 outStream.write(buffer, 0, length);
                                 outStream.flush();
 
