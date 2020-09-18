@@ -84,11 +84,6 @@ final class ClientConnection implements StreamSource, AutoCloseable {
     private final URI requestUri;
 
     /**
-     * Whether the request is prepared for execution.
-     */
-    private boolean executable;
-
-    /**
      * Constructor.<br>
      * Has the responsibility of parsing the request.
      *
@@ -259,21 +254,6 @@ final class ClientConnection implements StreamSource, AutoCloseable {
      */
     boolean isClosed() {
         return socket.isClosed();
-    }
-
-    /**
-     * Getter for {@link #executable}
-     * @return
-     */
-    boolean isExecutable() {
-        return executable;
-    }
-
-    /**
-     * Mark the request as prepared for execution.
-     */
-    void markExecutable () {
-        executable = true;
     }
 
     /**

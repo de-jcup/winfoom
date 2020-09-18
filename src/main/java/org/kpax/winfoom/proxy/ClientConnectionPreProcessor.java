@@ -27,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
 
 import java.io.IOException;
 import java.util.List;
@@ -46,7 +45,6 @@ public class ClientConnectionPreProcessor {
 
     /**
      * Prepare a {@link ClientConnection} for execution.
-     * <p>This method can only be called once per {@link ClientConnection} instance.
      *
      * @param clientConnection the client's connection
      * @param proxyType        the proxy type
@@ -54,7 +52,6 @@ public class ClientConnectionPreProcessor {
      */
     public void prepare(final ClientConnection clientConnection, final ProxyType proxyType) throws IOException {
         logger.debug("Prepare the clientConnection for request");
-        Assert.state(!clientConnection.isExecutable(), "The ClientConnection is already executable");
         if (!clientConnection.isConnect()) {
             // Prepare the request for execution:
             // remove some headers, fix VIA header and set a proper entity
@@ -110,7 +107,6 @@ public class ClientConnectionPreProcessor {
             request.setHeader(HttpUtils.createViaHeader(clientConnection.getRequestLine().getProtocolVersion(),
                     viaHeader));
         }
-        clientConnection.markExecutable();
     }
 
 }
