@@ -168,9 +168,4 @@ public class SystemConfig {
         socket.setSoTimeout(socketSoTimeout * 1000);
     }
 
-    public void tuneClientSocket (final Socket socket) throws SocketException {
-        socket.setSoTimeout(socketSoTimeout * 1000);
-        socket.setKeepAlive(true);
-    }
-
 }
