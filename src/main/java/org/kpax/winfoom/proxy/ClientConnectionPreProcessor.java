@@ -45,6 +45,7 @@ public class ClientConnectionPreProcessor {
 
     /**
      * Prepare a {@link ClientConnection} for execution.
+     * <p><b>Make sure this method is called only once per {@link ClientConnection} instance.</b></p>
      *
      * @param clientConnection the client's connection
      * @param proxyType        the proxy type
