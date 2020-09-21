@@ -12,24 +12,21 @@
 
 package org.kpax.winfoom.util;
 
-import org.apache.commons.configuration2.Configuration;
 import org.apache.http.impl.io.SessionInputBufferImpl;
-import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.config.SystemConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.Assert;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.net.SocketTimeoutException;
 import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Objects;
+import java.util.Properties;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -168,32 +165,6 @@ public final class InputOutputs {
             deleteFile(file);
         }
         return files.length == 0;
-    }
-
-    /**
-     * Check whether a {@link Configuration} instance is compatible with the current {@link ProxyConfig} structure.
-     *
-     * @param proxyConfig the {@link Configuration} instance
-     * @return {@code true} if each {@link Configuration} key is among
-     * the {@link ProxyConfig}'s {@link Value} annotated fields.
-     */
-    public static boolean isProxyConfigCompatible(Configuration proxyConfig) {
-        List<String> keys = new ArrayList<>();
-        for (Field field : ProxyConfig.class.getDeclaredFields()) {
-            Value valueAnnotation = field.getAnnotation(Value.class);
-            if (valueAnnotation != null) {
-                keys.add(valueAnnotation.value().replaceAll("[${}]", "").split(":")[0]);
-            }
-        }
-
-        for (Iterator<String> itr = proxyConfig.getKeys(); itr.hasNext(); ) {
-            String key = itr.next();
-            if (!keys.contains(key)) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     /**

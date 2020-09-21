@@ -30,12 +30,16 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * The proxy facade configuration.
@@ -323,6 +327,32 @@ public class ProxyConfig {
         Configuration config = propertiesBuilder.getConfiguration();
         config.setProperty("autostart", autostart);
         propertiesBuilder.save();
+    }
+
+    /**
+     * Check whether a {@link Configuration} instance is compatible with the current {@link ProxyConfig} structure.
+     *
+     * @param proxyConfig the {@link Configuration} instance
+     * @return {@code true} if each {@link Configuration} key is among
+     * the {@link ProxyConfig}'s {@link Value} annotated fields.
+     */
+    public static boolean isCompatible(Configuration proxyConfig) {
+        List<String> keys = new ArrayList<>();
+        for (Field field : ProxyConfig.class.getDeclaredFields()) {
+            Value valueAnnotation = field.getAnnotation(Value.class);
+            if (valueAnnotation != null) {
+                keys.add(valueAnnotation.value().replaceAll("[${}]", "").split(":")[0]);
+            }
+        }
+
+        for (Iterator<String> itr = proxyConfig.getKeys(); itr.hasNext(); ) {
+            String key = itr.next();
+            if (!keys.contains(key)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     @Override

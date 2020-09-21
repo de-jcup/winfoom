@@ -94,19 +94,17 @@ public class FoomApplication {
         if (Files.exists(appHomePath)) {
             Path proxyConfigPath = appHomePath.resolve(ProxyConfig.FILENAME);
             if (Files.exists(proxyConfigPath)) {
-                Configuration proxyConfig = new Configurations()
+                Configuration configuration = new Configurations()
                         .propertiesBuilder(proxyConfigPath.toFile()).getConfiguration();
-                String existingVersion = proxyConfig.getString("app.version");
+                String existingVersion = configuration.getString("app.version");
                 logger.info("existingVersion [{}]", existingVersion);
                 if (existingVersion != null) {
                     String actualVersion = FoomApplication.class.getPackage().getImplementationVersion();
                     logger.info("actualVersion [{}]", actualVersion);
 
                     if (actualVersion != null && !actualVersion.equals(existingVersion)) {
-                        boolean isCompatibleProxyConfig = true;
-                        if (Files.exists(proxyConfigPath)) {
-                            isCompatibleProxyConfig = InputOutputs.isProxyConfigCompatible(proxyConfig);
-                        }
+                        boolean isCompatibleProxyConfig = Files.exists(proxyConfigPath) ?
+                                ProxyConfig.isCompatible(configuration) : true;
                         logger.info("The existent proxy config is compatible with the new one: {}",
                                 isCompatibleProxyConfig);
 
