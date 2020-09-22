@@ -50,7 +50,7 @@ class HttpClientBuilderFactory {
      * @param proxyInfo the proxy.
      * @return a pre-configured {@link HttpClientBuilder} instance for the requested proxy.
      */
-    HttpClientBuilder createClientBuilder(ProxyInfo proxyInfo) {
+    HttpClientBuilder createClientBuilder(final ProxyInfo proxyInfo) {
         if (proxyInfo.getType().isSocks()) {
             return createSocksClientBuilder(proxyInfo.getType().isSocks4());
         } else if (proxyInfo.getType().isHttp()) {

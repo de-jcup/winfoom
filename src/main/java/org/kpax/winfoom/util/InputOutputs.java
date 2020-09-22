@@ -105,7 +105,7 @@ public final class InputOutputs {
      *
      * @param closeable The {@link AutoCloseable} instance.
      */
-    public static void close(AutoCloseable closeable) {
+    public static void close(final AutoCloseable closeable) {
         if (closeable != null) {
             logger.debug("Close {}", closeable.getClass());
             try {
@@ -125,7 +125,7 @@ public final class InputOutputs {
     }
 
 
-    public static boolean isIncluded(Properties who, Properties where) {
+    public static boolean isIncluded(final Properties who, final Properties where) {
         Assert.notNull(who, "who cannot be null");
         Assert.notNull(where, "where cannot be null");
         for (String key : who.stringPropertyNames()) {
@@ -142,7 +142,7 @@ public final class InputOutputs {
      * @param file the regular file or directory to be deleted.
      * @return {@code true} if the deletion takes place.
      */
-    public static boolean deleteFile(File file) {
+    public static boolean deleteFile(final File file) {
         File[] files = file.listFiles();
         if (files != null) {
             for (File f : files) {
@@ -158,7 +158,7 @@ public final class InputOutputs {
      * @param directory the {@link File} to be emptied
      * @return {@code true} iff all the contained files were deleted.
      */
-    public static boolean emptyDirectory(File directory) {
+    public static boolean emptyDirectory(final File directory) {
         Assert.isTrue(directory.isDirectory(), "Not a directory");
         File[] files = directory.listFiles();
         for (File file : Objects.requireNonNull(files)) {
@@ -176,7 +176,9 @@ public final class InputOutputs {
      * @return the new {@link Path} or {@code null} if the original file does not exist
      * @throws IOException
      */
-    public static Path backupFile(Path path, boolean withWarning, CopyOption... options) throws IOException {
+    public static Path backupFile(final Path path,
+                                  final boolean withWarning,
+                                  final CopyOption... options) throws IOException {
         Assert.notNull(path, "path cannot be null");
         if (Files.exists(path)) {
             Path appHomePath = Paths.get(System.getProperty("user.home"), SystemConfig.APP_HOME_DIR_NAME);

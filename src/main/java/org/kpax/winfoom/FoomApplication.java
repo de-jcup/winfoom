@@ -83,7 +83,7 @@ public class FoomApplication {
     /**
      * Verify whether the existent system.properties file's releaseVersion property and
      * the application version (extracted from the MANIFEST file) are the same or backward compatible.
-     * If not, the existent *.properties file are moved into a backup location.
+     * If not, the existent {@code *.properties} file are moved into a backup location.
      *
      * @throws IOException
      * @throws ConfigurationException

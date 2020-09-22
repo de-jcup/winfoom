@@ -84,7 +84,7 @@ public final class HttpUtils {
      * @return the {@link URI} instance.
      * @throws URISyntaxException
      */
-    public static URI toUri(String uri) throws URISyntaxException {
+    public static URI toUri(final String uri) throws URISyntaxException {
         Assert.notNull(uri, "uri cannot be null");
         StringBuilder stringBuilder = new StringBuilder(uri);
 
@@ -119,7 +119,7 @@ public final class HttpUtils {
      * @return the extracted {@link URI} instance.
      * @throws URISyntaxException
      */
-    public static URI parseRequestUri(RequestLine requestLine) throws URISyntaxException {
+    public static URI parseRequestUri(final RequestLine requestLine) throws URISyntaxException {
         try {
             if (HTTP_CONNECT.equalsIgnoreCase(requestLine.getMethod())) {
                 return new URI(HttpHost.create(requestLine.getUri()).toURI());
@@ -140,7 +140,7 @@ public final class HttpUtils {
      * @param value a comma separated sequence of words.
      * @return a comma separated sequence of words with the {@code chunked} word removed.
      */
-    public static String stripChunked(String value) {
+    public static String stripChunked(final String value) {
         return Arrays.stream(value.split(",")).map(String::trim)
                 .filter((item) -> !HTTP.CHUNK_CODING.equalsIgnoreCase(item))
                 .collect(Collectors.joining(","));
@@ -153,7 +153,7 @@ public final class HttpUtils {
      * @param name    the header's name
      * @return an {@link Optional} containing the header.
      */
-    public static Optional<Header> getFirstHeader(HttpRequest request, String name) {
+    public static Optional<Header> getFirstHeader(final HttpRequest request, final String name) {
         return Optional.ofNullable(request.getFirstHeader(name));
     }
 
@@ -164,7 +164,7 @@ public final class HttpUtils {
      * @param name    the header's name
      * @return an {@link Optional} containing the header
      */
-    public static Optional<String> getFirstHeaderValue(HttpRequest request, String name) {
+    public static Optional<String> getFirstHeaderValue(final HttpRequest request, final String name) {
         return getFirstHeader(request, name).map(NameValuePair::getValue);
     }
 
@@ -174,7 +174,7 @@ public final class HttpUtils {
      * @param request the HTTP request.
      * @return the request's Content-length header's value or {@code -1} when missing.
      */
-    public static long getContentLength(HttpRequest request) {
+    public static long getContentLength(final HttpRequest request) {
         return getFirstHeaderValue(request, HttpHeaders.CONTENT_LENGTH).map(Long::parseLong).orElse(-1L);
     }
 
@@ -185,11 +185,11 @@ public final class HttpUtils {
      * @param value the header's value.
      * @return a new {@link BasicHeader} instance.
      */
-    public static Header createHttpHeader(String name, String value) {
+    public static Header createHttpHeader(final String name, final String value) {
         return new BasicHeader(name, value);
     }
 
-    public static void tuneSocket(final Socket socket, int bufferSize) throws SocketException {
+    public static void tuneSocket(final Socket socket, final int bufferSize) throws SocketException {
         socket.setTcpNoDelay(true);
         socket.setReceiveBufferSize(bufferSize);
         socket.setSendBufferSize(bufferSize);
@@ -200,7 +200,7 @@ public final class HttpUtils {
      *
      * @see #toStatusLine(ProtocolVersion, int, String)
      */
-    public static BasicStatusLine toStatusLine(int httpCode) {
+    public static BasicStatusLine toStatusLine(final int httpCode) {
         return toStatusLine(HttpVersion.HTTP_1_1, httpCode, null);
     }
 
@@ -209,7 +209,8 @@ public final class HttpUtils {
      *
      * @see #toStatusLine(ProtocolVersion, int, String)
      */
-    public static BasicStatusLine toStatusLine(ProtocolVersion protocolVersion, int httpCode) {
+    public static BasicStatusLine toStatusLine(final ProtocolVersion protocolVersion,
+                                               final  int httpCode) {
         return toStatusLine(protocolVersion, httpCode, null);
     }
 
@@ -218,7 +219,8 @@ public final class HttpUtils {
      *
      * @see #toStatusLine(ProtocolVersion, int, String)
      */
-    public static BasicStatusLine toStatusLine(int httpCode, String reasonPhrase) {
+    public static BasicStatusLine toStatusLine(final int httpCode,
+                                               final String reasonPhrase) {
         return toStatusLine(HttpVersion.HTTP_1_1, httpCode, reasonPhrase);
     }
 
@@ -230,7 +232,9 @@ public final class HttpUtils {
      * @param reasonPhrase    the HTTP reason phrase
      * @return a new {@link BasicStatusLine} instance.
      */
-    public static BasicStatusLine toStatusLine(ProtocolVersion protocolVersion, int httpCode, String reasonPhrase) {
+    public static BasicStatusLine toStatusLine(final ProtocolVersion protocolVersion,
+                                               final int httpCode,
+                                               final String reasonPhrase) {
         Assert.notNull(protocolVersion, "protocolVersion cannot be null");
         return new BasicStatusLine(protocolVersion, httpCode,
                 StringUtils.isEmpty(reasonPhrase) ?
@@ -243,7 +247,7 @@ public final class HttpUtils {
      * @param port the port value.
      * @return {@code true} iff the port value is between 1-65535.
      */
-    public static boolean isValidPort(int port) {
+    public static boolean isValidPort(final int port) {
         return port > 0 && port < 65536;
     }
 
@@ -253,7 +257,7 @@ public final class HttpUtils {
      * @param request the HTTP request.
      * @return the {@link ContentType} instance.
      */
-    public static ContentType getContentType(HttpRequest request) {
+    public static ContentType getContentType(final HttpRequest request) {
         Header contentTypeHeader = request.getFirstHeader(HttpHeaders.CONTENT_TYPE);
         Assert.isTrue(contentTypeHeader != null, "No Content-Type header found");
         String[] tokens = contentTypeHeader.getValue().split(";");
@@ -277,7 +281,7 @@ public final class HttpUtils {
      * @param httpEntity the entity to be consumed.
      * @throws IOException
      */
-    public static void consumeEntity(HttpEntity httpEntity) throws IOException {
+    public static void consumeEntity(final HttpEntity httpEntity) throws IOException {
         ByteArrayOutputStream outStream = new ByteArrayOutputStream();
         httpEntity.writeTo(outStream);
         outStream.flush();
@@ -290,7 +294,7 @@ public final class HttpUtils {
      * @param text the text to wrap.
      * @return the wrapped text.
      */
-    public static String toHtml(String text) {
+    public static String toHtml(final String text) {
         return new StringBuilder("<html>").append(text).append("</html>").toString();
     }
 
@@ -321,7 +325,7 @@ public final class HttpUtils {
      * @param proxyLine the proxy line.
      * @return the list of {@link ProxyInfo}s.
      */
-    public static List<ProxyInfo> parsePacProxyLine(String proxyLine) {
+    public static List<ProxyInfo> parsePacProxyLine(final String proxyLine) {
         if (StringUtils.isBlank(proxyLine)) {
             return Collections.singletonList(new ProxyInfo(ProxyInfo.PacType.DIRECT));
         }
@@ -344,7 +348,7 @@ public final class HttpUtils {
         return Collections.unmodifiableList(proxyInfos);
     }
 
-    public static boolean isConnectionRefused(Exception e) {
+    public static boolean isConnectionRefused(final Exception e) {
         return e instanceof SocketException && e.getMessage().startsWith("Connection refused");
     }
 
@@ -354,7 +358,7 @@ public final class HttpUtils {
      * @param e the error to check on
      * @return {@code true} iff the error signals an aborted client's connection.
      */
-    public static boolean isConnectionAborted(Exception e) {
+    public static boolean isConnectionAborted(final Exception e) {
         return e instanceof SocketException
                 && StringUtils.startsWithIgnoreCase(e.getMessage(), "Software caused connection abort");
     }

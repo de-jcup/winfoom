@@ -65,7 +65,8 @@ class RepeatableHttpEntity extends AbstractHttpEntity implements Closeable {
      */
     private boolean streaming = true;
 
-    public RepeatableHttpEntity(final HttpRequest request, final SessionInputBufferImpl inputBuffer,
+    public RepeatableHttpEntity(final HttpRequest request,
+                                final SessionInputBufferImpl inputBuffer,
                                 final Path tempDirectory,
                                 final int internalBufferLength) throws IOException {
         this.inputBuffer = inputBuffer;

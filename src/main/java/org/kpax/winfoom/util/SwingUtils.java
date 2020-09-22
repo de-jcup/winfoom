@@ -63,7 +63,10 @@ public class SwingUtils {
         ((DefaultFormatter) field.getFormatter()).setCommitsOnValidEdit(true);
     }
 
-    public static void showMessage(Component parentComponent, String title, String message, int type) {
+    public static void showMessage(final Component parentComponent,
+                                   final String title,
+                                   final String message,
+                                   final int type) {
         JOptionPane.showMessageDialog(parentComponent,
                 String.format("<html><body><p style='max-width: 300px;overflow-wrap: normal;'>%s</p></body></html>",
                         message),
@@ -71,27 +74,36 @@ public class SwingUtils {
                 type);
     }
 
-    public static void showErrorMessage(Component parentComponent, String message) {
+    public static void showErrorMessage(final Component parentComponent,
+                                        final String message) {
         showErrorMessage(parentComponent, DLG_ERR_TITLE, message);
     }
 
-    public static void showErrorMessage(Component parentComponent, String title, String message) {
+    public static void showErrorMessage(final Component parentComponent,
+                                        final String title,
+                                        final String message) {
         showMessage(parentComponent, title, message, JOptionPane.ERROR_MESSAGE);
     }
 
-    public static void showInfoMessage(Component parentComponent, String message) {
+    public static void showInfoMessage(final Component parentComponent,
+                                       final String message) {
         showInfoMessage(parentComponent, DLG_INFO_TITLE, message);
     }
 
-    public static void showInfoMessage(Component parentComponent, String title, String message) {
+    public static void showInfoMessage(final Component parentComponent,
+                                       final String title,
+                                       final String message) {
         showMessage(parentComponent, title, message, JOptionPane.INFORMATION_MESSAGE);
     }
 
-    public static void showWarningMessage(Component parentComponent, String message) {
+    public static void showWarningMessage(final Component parentComponent,
+                                          final String message) {
         showWarningMessage(parentComponent, DLG_WARN_TITLE, message);
     }
 
-    public static void showWarningMessage(Component parentComponent, String title, String message) {
+    public static void showWarningMessage(final Component parentComponent,
+                                          final String title,
+                                          final String message) {
         showMessage(parentComponent, title, message, JOptionPane.WARNING_MESSAGE);
     }
 
@@ -124,7 +136,8 @@ public class SwingUtils {
      * @param filename the image's filename.
      * @return the loaded {@link Image}.
      */
-    public static Image loadImage(Class<?> cls, String filename) {
+    public static Image loadImage(final Class<?> cls,
+                                  final String filename) {
         try {
             URL resource = cls.getResource("/img/" + filename);
             if (resource != null) {

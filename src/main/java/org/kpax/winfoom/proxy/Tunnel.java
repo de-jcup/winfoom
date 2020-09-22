@@ -40,7 +40,7 @@ public final class Tunnel implements StreamSource, Closeable {
     private final InputStream inputStream;
     private final OutputStream outputStream;
 
-    Tunnel(ManagedHttpClientConnection connection, HttpResponse response) throws IOException {
+    Tunnel(final ManagedHttpClientConnection connection, final HttpResponse response) throws IOException {
         Assert.notNull(connection, "connection cannot be null");
         Assert.notNull(response, "response cannot be null");
         this.connection = connection;
