@@ -12,13 +12,13 @@
 
 package org.kpax.winfoom.proxy.core;
 
-import org.apache.commons.lang3.StringUtils;
 import org.kpax.winfoom.annotation.ProxySessionScope;
 import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.proxy.ClientConnectionHandler;
 import org.kpax.winfoom.proxy.ProxyExecutorService;
+import org.kpax.winfoom.util.HttpUtils;
 import org.kpax.winfoom.util.InputOutputs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +26,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import java.net.*;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketException;
 
 /**
  * The local proxy server.
@@ -92,12 +94,12 @@ class LocalProxyServer implements AutoCloseable {
                     } catch (SocketException e) {
 
                         // The ServerSocket has been closed, exit the while loop
-                        if (StringUtils.startsWithIgnoreCase(e.getMessage(), "Socket is closed")) {
+                        if (HttpUtils.isConnectionClosed(e)) {
                             break;
                         }
 
                         // Get this whenever stop the server socket.
-                        if (!StringUtils.startsWithIgnoreCase(e.getMessage(), "Interrupted function call")) {
+                        if (!HttpUtils.isConnectionInterrupted(e)) {
                             logger.debug("Socket error on getting connection", e);
                         }
                     } catch (Exception e) {

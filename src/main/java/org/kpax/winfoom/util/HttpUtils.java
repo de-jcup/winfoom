@@ -210,7 +210,7 @@ public final class HttpUtils {
      * @see #toStatusLine(ProtocolVersion, int, String)
      */
     public static BasicStatusLine toStatusLine(final ProtocolVersion protocolVersion,
-                                               final  int httpCode) {
+                                               final int httpCode) {
         return toStatusLine(protocolVersion, httpCode, null);
     }
 
@@ -348,8 +348,24 @@ public final class HttpUtils {
         return Collections.unmodifiableList(proxyInfos);
     }
 
-    public static boolean isConnectionRefused(final Exception e) {
-        return e instanceof SocketException && e.getMessage().startsWith("Connection refused");
+    public static boolean isConnectionRefused(final SocketException e) {
+        return StringUtils.startsWithIgnoreCase(e.getMessage(), "Connection refused");
+    }
+
+    public static boolean isConnectionTimeout(final SocketException e) {
+        return StringUtils.startsWithIgnoreCase(e.getMessage(), "connect timed out");
+    }
+
+    public static boolean isConnectionClosed(final SocketException e) {
+        return StringUtils.startsWithIgnoreCase(e.getMessage(), "Socket is closed");
+    }
+
+    public static boolean isConnectionInterrupted(final SocketException e) {
+        return StringUtils.startsWithIgnoreCase(e.getMessage(), "Interrupted function call");
+    }
+
+    public static boolean isSOCKSAuthenticationFailed(final SocketException e) {
+        return StringUtils.equalsIgnoreCase(e.getMessage(), "SOCKS : authentication failed");
     }
 
     /**
@@ -396,10 +412,11 @@ public final class HttpUtils {
 
     /**
      * Check if the request method is CONNECT.
+     *
      * @param requestLine the request's line
      * @return {@code true} iff the request method is connect
      */
-    public static boolean isConnect (RequestLine requestLine) {
+    public static boolean isConnect(RequestLine requestLine) {
         return HttpUtils.HTTP_CONNECT.equalsIgnoreCase(requestLine.getMethod());
     }
 }

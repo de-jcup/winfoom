@@ -37,7 +37,7 @@ class ClientProcessorSelector {
      * based on the request info and the proxy type.
      *
      * @param isConnect whether the HTTP request's method is CONNECT.
-     * @param proxyInfo   the proxy info used to make the remote HTTP request.
+     * @param proxyInfo the proxy info used to make the remote HTTP request.
      * @return the processor instance.
      */
     public ClientConnectionProcessor selectClientProcessor(boolean isConnect, ProxyInfo proxyInfo) {

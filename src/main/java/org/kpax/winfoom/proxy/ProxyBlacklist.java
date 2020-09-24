@@ -62,7 +62,7 @@ public class ProxyBlacklist implements AutoCloseable {
      * @param proxyInfo the proxy to be blacklisted.
      * @return the blacklist timeout {@link Instant} iff the blacklisting is enabled, {@code null} otherwise.
      */
-    Instant blacklist(ProxyInfo proxyInfo) {
+    Instant blacklist(final ProxyInfo proxyInfo) {
         logger.debug("Attempt to blacklist proxy {}", proxyInfo);
         if (proxyConfig.getBlacklistTimeout() < 1) {
             logger.debug("Blacklisting is disabled, nothing to do");
@@ -89,7 +89,7 @@ public class ProxyBlacklist implements AutoCloseable {
      * @param proxyInfo the proxy to be checked
      * @return {@code true} iff the proxy is blacklisted
      */
-    boolean checkBlacklist(ProxyInfo proxyInfo) {
+    boolean checkBlacklist(final ProxyInfo proxyInfo) {
         if (proxyConfig.getBlacklistTimeout() < 1) {
             return false;
         }

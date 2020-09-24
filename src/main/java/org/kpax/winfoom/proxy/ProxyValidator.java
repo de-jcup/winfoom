@@ -225,7 +225,7 @@ public class ProxyValidator {
             throw e;
         } catch (IOException e) {
             if (e instanceof SocketException) {
-                if (StringUtils.equalsIgnoreCase(e.getMessage(), "SOCKS : authentication failed")) {
+                if (HttpUtils.isSOCKSAuthenticationFailed((SocketException) e)) {
                     throw new InvalidProxySettingsException("Wrong user/password", e);
                 }
             }

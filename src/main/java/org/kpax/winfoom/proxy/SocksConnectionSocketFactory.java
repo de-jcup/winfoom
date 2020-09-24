@@ -12,7 +12,6 @@
 
 package org.kpax.winfoom.proxy;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -50,17 +49,17 @@ class SocksConnectionSocketFactory implements ConnectionSocketFactory {
         }
         try {
             currentSocket.connect(remoteAddress, connectTimeout);
-        } catch (SocketTimeoutException ex) {
-            throw new ConnectTimeoutException(ex, host, remoteAddress.getAddress());
-        } catch (SocketException ex) {
+        } catch (SocketTimeoutException e) {
+            throw new ConnectTimeoutException(e, host, remoteAddress.getAddress());
+        } catch (SocketException e) {
 
             // Remap some exception to
             // single out the connection failed case.
-            if (StringUtils.startsWithIgnoreCase(ex.getMessage(), "Connection refused")
-                    || StringUtils.startsWithIgnoreCase(ex.getMessage(), "connect timed out")) {
-                throw new ConnectException(ex.getMessage());
+            if (HttpUtils.isConnectionRefused(e)
+                    || HttpUtils.isConnectionTimeout(e)) {
+                throw new ConnectException(e.getMessage());
             }
-            throw ex;
+            throw e;
         }
         return currentSocket;
     }

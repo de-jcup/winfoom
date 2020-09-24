@@ -107,7 +107,6 @@ public class DefaultPacHelperMethods implements PacHelperMethodsNetscape, PacHel
     @Override
     public boolean isResolvable(String host) {
         try {
-
             return !IpAddresses.resolve(host, isIPv4Predicate).isEmpty();
         } catch (UnknownHostException ex) {
             logger.debug("Error on resolving host [{}]", host);
