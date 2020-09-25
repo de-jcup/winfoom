@@ -61,14 +61,26 @@ public class ProxyConfig {
     @Value("${local.port:3129}")
     private Integer localPort;
 
-    @Value("${proxy.host:}")
-    private String proxyHost;
+    @Value("${proxy.http.host:}")
+    private String proxyHttpHost;
+
+    @Value("${proxy.socks5.host:}")
+    private String proxySocks5Host;
+
+    @Value("${proxy.socks4.host:}")
+    private String proxySocks4Host;
+
+    @Value("${proxy.http.port:0}")
+    private Integer proxyHttpPort;
+
+    @Value("${proxy.socks5.port:0}")
+    private Integer proxySocks5Port;
+
+    @Value("${proxy.socks4.port:0}")
+    private Integer proxySocks4Port;
 
     @Value("${proxy.test.url:http://example.com}")
     private String proxyTestUrl;
-
-    @Value("${proxy.port:0}")
-    private Integer proxyPort;
 
     @Value("${proxy.type:HTTP}")
     private Type proxyType;
@@ -109,7 +121,7 @@ public class ProxyConfig {
             propertiesBuilder.save();
         }
 
-        if (StringUtils.isEmpty(proxyHost)) {
+        if (proxyType != Type.DIRECT && StringUtils.isEmpty(getProxyHost())) {
             try {
                 CommandExecutor.getSystemProxy().ifPresent((s) -> {
                     logger.info("proxyLine: {}", s);
@@ -120,15 +132,15 @@ public class ProxyConfig {
                         String[] elements = firstProxy.split(":");
                         if (elements.length > 1) {
                             if (elements[0].startsWith("http=")) {
-                                proxyHost = elements[0].substring("http=".length());
+                                setProxyHost(elements[0].substring("http=".length()));
                                 proxyType = Type.HTTP;
                             } else if (elements[0].startsWith("socks=")) {
-                                proxyHost = elements[0].substring("socks=".length());
+                                setProxyHost(elements[0].substring("socks=".length()));
                                 proxyType = Type.SOCKS5;
                             } else {
-                                proxyHost = elements[0];
+                                setProxyHost(elements[0]);
                             }
-                            proxyPort = Integer.parseInt(elements[1]);
+                            setProxyPort(Integer.parseInt(elements[1]));
                         }
                     }
                 });
@@ -161,19 +173,49 @@ public class ProxyConfig {
     }
 
     public String getProxyHost() {
-        return proxyHost;
+        switch (proxyType) {
+            case HTTP:
+                return proxyHttpHost;
+            case SOCKS4:
+                return proxySocks4Host;
+            case SOCKS5:
+                return proxySocks5Host;
+        }
+        return null;
     }
 
     public void setProxyHost(String proxyHost) {
-        this.proxyHost = proxyHost;
+        switch (proxyType) {
+            case HTTP:
+                this.proxyHttpHost = proxyHost;
+            case SOCKS4:
+                this.proxySocks4Host = proxyHost;
+            case SOCKS5:
+                this.proxySocks5Host = proxyHost;
+        }
     }
 
     public Integer getProxyPort() {
-        return proxyPort;
+        switch (proxyType) {
+            case HTTP:
+                return proxyHttpPort;
+            case SOCKS4:
+                return proxySocks4Port;
+            case SOCKS5:
+                return proxySocks5Port;
+        }
+        return null;
     }
 
     public void setProxyPort(Integer proxyPort) {
-        this.proxyPort = proxyPort;
+        switch (proxyType) {
+            case HTTP:
+                this.proxyHttpPort = proxyPort;
+            case SOCKS4:
+                this.proxySocks4Port = proxyPort;
+            case SOCKS5:
+                this.proxySocks5Port = proxyPort;
+        }
     }
 
     public String getProxyTestUrl() {
@@ -285,9 +327,15 @@ public class ProxyConfig {
         Configuration config = propertiesBuilder.getConfiguration();
         config.setProperty("proxy.type", proxyType);
 
-        if (proxyType.isHttp() || proxyType.isSocks()) {
-            config.setProperty("proxy.host", proxyHost);
-            config.setProperty("proxy.port", proxyPort);
+        if (proxyType.isHttp()) {
+            config.setProperty("proxy.http.host", proxyHttpHost);
+            config.setProperty("proxy.http.port", proxyHttpPort);
+        } else if (proxyType.isSocks4()) {
+            config.setProperty("proxy.socks4.host", proxySocks4Host);
+            config.setProperty("proxy.socks4.port", proxySocks4Port);
+        } else if (proxyType.isSocks5()) {
+            config.setProperty("proxy.socks5.host", proxySocks5Host);
+            config.setProperty("proxy.socks5.port", proxySocks5Port);
         }
 
         config.setProperty("local.port", localPort);
@@ -300,7 +348,7 @@ public class ProxyConfig {
                 config.setProperty("proxy.password", proxyPassword);
             } else {
                 // Clear the stored password
-                config.setProperty("proxy.password", null);
+                config.clearProperty("proxy.password");
             }
         } else {
             // Make sure we nullify the proxy password
@@ -360,9 +408,9 @@ public class ProxyConfig {
         return "ProxyConfig{" +
                 "appVersion='" + appVersion + '\'' +
                 ", localPort=" + localPort +
-                ", proxyHost='" + proxyHost + '\'' +
+                ", proxyHost='" + getProxyHost() + '\'' +
                 ", proxyTestUrl='" + proxyTestUrl + '\'' +
-                ", proxyPort=" + proxyPort +
+                ", proxyPort=" + getProxyPort() +
                 ", proxyType=" + proxyType +
                 ", proxyUsername='" + proxyUsername + '\'' +
                 ", proxyStorePassword=" + proxyStorePassword +
