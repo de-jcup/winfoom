@@ -94,7 +94,7 @@ class LocalProxyServer implements AutoCloseable {
                     } catch (SocketException e) {
 
                         // The ServerSocket has been closed, exit the while loop
-                        if (HttpUtils.isConnectionClosed(e)) {
+                        if (HttpUtils.isSocketClosed(e)) {
                             break;
                         }
 

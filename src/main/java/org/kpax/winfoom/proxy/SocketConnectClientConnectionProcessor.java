@@ -12,7 +12,6 @@
 
 package org.kpax.winfoom.proxy;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.RequestLine;
 import org.apache.http.protocol.HTTP;
@@ -72,10 +71,9 @@ class SocketConnectClientConnectionProcessor implements ClientConnectionProcesso
             try {
                 socket.connect(new InetSocketAddress(target.getHostName(), target.getPort()),
                         systemConfig.getSocketConnectTimeout() * 1000);
-            } catch (SocketException e) {
-                if (StringUtils.startsWithIgnoreCase(e.getMessage(), "Connection refused")) {
-                    throw new ConnectException(e.getMessage());
-                }
+            } catch (Exception e) {
+                logger.debug("Error on socket connecting", e);
+                throw new ConnectException(e.getMessage());
             }
             logger.debug("Connected to {}", target);
 

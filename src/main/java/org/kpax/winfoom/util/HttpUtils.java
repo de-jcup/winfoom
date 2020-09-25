@@ -356,8 +356,12 @@ public final class HttpUtils {
         return StringUtils.startsWithIgnoreCase(e.getMessage(), "connect timed out");
     }
 
-    public static boolean isConnectionClosed(final SocketException e) {
+    public static boolean isSocketClosed(final SocketException e) {
         return StringUtils.startsWithIgnoreCase(e.getMessage(), "Socket is closed");
+    }
+
+    public static boolean isSocketNotConnected(final SocketException e) {
+        return StringUtils.startsWithIgnoreCase(e.getMessage(), "Socket is not connected");
     }
 
     public static boolean isConnectionInterrupted(final SocketException e) {

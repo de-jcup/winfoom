@@ -118,8 +118,8 @@ public class ClientConnectionHandler {
                     // Success, break the iteration
                     break;
                 } catch (Exception e) {
+                    logger.debug("Processing error", e);
                     if (Throwables.getRootCause(e, ConnectException.class).isPresent()) {
-                        logger.debug("Connection error", e);
                         if (itr.hasNext()) {
                             logger.debug("Failed to process connection with proxy: {}, retry with the next one",
                                     proxyInfo);
