@@ -23,7 +23,6 @@ import org.kpax.winfoom.exception.PacScriptException;
 import org.kpax.winfoom.pac.PacScriptEvaluator;
 import org.kpax.winfoom.util.HttpUtils;
 import org.kpax.winfoom.util.InputOutputs;
-import org.kpax.winfoom.util.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -117,31 +116,29 @@ public class ClientConnectionHandler {
 
                     // Success, break the iteration
                     break;
-                } catch (Exception e) {
-                    logger.debug("Processing error", e);
-                    if (Throwables.getRootCause(e, ConnectException.class).isPresent()) {
-                        if (itr.hasNext()) {
-                            logger.debug("Failed to process connection with proxy: {}, retry with the next one",
-                                    proxyInfo);
-                            proxyBlacklist.blacklist(proxyInfo);
-                        } else {
-                            logger.debug("Failed to process connection with proxy: {}, send the error response",
-                                    proxyInfo);
-
-                            // Cannot connect to the remote proxy
-                            clientConnection.writeErrorResponse(HttpStatus.SC_BAD_GATEWAY, e);
-                        }
+                } catch (ConnectException e) {
+                    if (itr.hasNext()) {
+                        logger.debug("Failed to connect with proxy: {}, retry with the next one",
+                                proxyInfo);
+                        proxyBlacklist.blacklist(proxyInfo);
                     } else {
-                        if (HttpUtils.isConnectionAborted(e)) {
-                            logger.debug("Client's connection aborted", e);
-                        } else {
-                            logger.debug("Generic error, send the error response", e);
+                        logger.debug("Failed to connect with proxy: {}, send the error response",
+                                proxyInfo);
 
-                            // Any other error, including client errors
-                            clientConnection.writeErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e);
-                        }
-                        break;
+                        // Cannot connect to the remote proxy
+                        clientConnection.writeErrorResponse(HttpStatus.SC_BAD_GATEWAY, e);
                     }
+                } catch (Exception e) {
+                    logger.debug("Connection processing error", e);
+                    if (HttpUtils.isConnectionAborted(e)) {
+                        logger.debug("Client's connection aborted", e);
+                    } else {
+                        logger.debug("Generic error, send the error response", e);
+
+                        // Any other error, including client errors
+                        clientConnection.writeErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e);
+                    }
+                    break;
                 }
             }
         } catch (PacScriptException e) {

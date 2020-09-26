@@ -12,6 +12,10 @@
 
 package org.kpax.winfoom.proxy;
 
+import org.apache.http.HttpException;
+
+import java.io.IOException;
+
 /**
  * Process a {@link ClientConnection} with a certain {@link ProxyInfo}.
  *
@@ -33,6 +37,6 @@ interface ClientConnectionProcessor {
      * @throws Exception
      */
     void process(ClientConnection clientConnection, ProxyInfo proxyInfo)
-            throws Exception;
+            throws IOException, HttpException;
 
 }

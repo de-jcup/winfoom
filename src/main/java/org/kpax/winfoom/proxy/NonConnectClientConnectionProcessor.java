@@ -16,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.*;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.kpax.winfoom.annotation.ThreadSafe;
@@ -28,8 +29,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.net.UnknownHostException;
 
 /**
  * Process any type of non-CONNECT request for any type of proxy.
@@ -117,6 +120,12 @@ class NonConnectClientConnectionProcessor implements ClientConnectionProcessor {
                 } catch (Exception e) {
                     logger.debug("Error on handling non CONNECT response", e);
                 }
+            } catch (UnknownHostException e) {
+                logger.debug("Unknown host error", e);
+                clientConnection.writeErrorResponse(HttpStatus.SC_NOT_FOUND, e);
+            } catch (ConnectTimeoutException e) {
+                logger.debug("Connect timeout error", e);
+                throw new ConnectException(e.getMessage());
             }
         }
     }

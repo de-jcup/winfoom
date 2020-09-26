@@ -13,6 +13,7 @@
 package org.kpax.winfoom.proxy;
 
 import org.apache.http.HttpHost;
+import org.apache.http.HttpStatus;
 import org.apache.http.RequestLine;
 import org.apache.http.protocol.HTTP;
 import org.kpax.winfoom.annotation.ThreadSafe;
@@ -71,9 +72,16 @@ class SocketConnectClientConnectionProcessor implements ClientConnectionProcesso
             try {
                 socket.connect(new InetSocketAddress(target.getHostName(), target.getPort()),
                         systemConfig.getSocketConnectTimeout() * 1000);
+            } catch (UnknownHostException e) {
+                clientConnection.writeErrorResponse(HttpStatus.SC_NOT_FOUND, e);
             } catch (Exception e) {
                 logger.debug("Error on socket connecting", e);
-                throw new ConnectException(e.getMessage());
+                if (e instanceof SocketException) {
+                    if (HttpUtils.isConnectionRefused((SocketException) e)) {
+                        throw new ConnectException(e.getMessage());
+                    }
+                }
+                throw e;
             }
             logger.debug("Connected to {}", target);
 
