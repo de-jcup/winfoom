@@ -15,6 +15,7 @@ package org.kpax.winfoom.proxy;
 import org.apache.http.HttpException;
 
 import java.io.IOException;
+import java.net.ConnectException;
 
 /**
  * Process a {@link ClientConnection} with a certain {@link ProxyInfo}.
@@ -34,7 +35,9 @@ interface ClientConnectionProcessor {
      *
      * @param clientConnection the {@link ClientConnection} instance.
      * @param proxyInfo        The {@link ProxyInfo} used to make the remote HTTP request.
-     * @throws Exception
+     * @throws ConnectException when proxy connection fails
+     * @throws HttpException    if a HTTP exception has occurred
+     * @throws IOException      if an input/output error occurs
      */
     void process(ClientConnection clientConnection, ProxyInfo proxyInfo)
             throws IOException, HttpException;
