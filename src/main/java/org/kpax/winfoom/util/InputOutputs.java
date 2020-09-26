@@ -20,7 +20,6 @@ import org.springframework.util.Assert;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.SocketTimeoutException;
 import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -78,11 +77,7 @@ public final class InputOutputs {
                 try {
                     secondToFirst.get();
                 } catch (ExecutionException e) {
-                    if (e.getCause() instanceof SocketTimeoutException) {
-                        logger.debug("Second to first transfer cancelled due to timeout");
-                    } else {
-                        logger.debug("Error on executing second to first transfer", e.getCause());
-                    }
+                    logger.debug("Error on executing second to first transfer", e.getCause());
                 } catch (InterruptedException e) {
                     logger.debug("Transfer from second to first interrupted", e);
                 } catch (CancellationException e) {
@@ -91,11 +86,7 @@ public final class InputOutputs {
             }
         } catch (Exception e) {
             secondToFirst.cancel(true);
-            if (e instanceof SocketTimeoutException) {
-                logger.debug("Second to first transfer cancelled due to timeout");
-            } else {
-                logger.debug("Error on executing second to first transfer", e);
-            }
+            logger.debug("Error on executing second to first transfer", e);
         }
         logger.debug("End full duplex communication");
     }
