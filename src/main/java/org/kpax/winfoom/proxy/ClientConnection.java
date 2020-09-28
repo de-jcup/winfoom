@@ -240,7 +240,7 @@ final class ClientConnection implements StreamSource, AutoCloseable {
         return request;
     }
 
-    public boolean isPrepareAttempted() {
+    boolean isPrepareAttempted() {
         return prepareAttempted;
     }
 

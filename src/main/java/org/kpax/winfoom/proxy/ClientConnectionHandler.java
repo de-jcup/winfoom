@@ -62,7 +62,14 @@ public class ClientConnectionHandler {
     private ProxyBlacklist proxyBlacklist;
 
     @Autowired
-    private ClientProcessorSelector clientProcessorSelector;
+    private HttpConnectClientConnectionProcessor httpConnectClientConnectionProcessor;
+
+    @Autowired
+    private SocketConnectClientConnectionProcessor socketConnectClientConnectionProcessor;
+
+    @Autowired
+    private NonConnectClientConnectionProcessor nonConnectClientConnectionProcessor;
+
 
     /**
      * Process the client connection with each available proxy.<br>
@@ -105,9 +112,18 @@ public class ClientConnectionHandler {
                         continue;
                     }
                 }
-                connectionProcessor = clientProcessorSelector.selectClientProcessor(
-                        clientConnection.isConnect(),
-                        proxyInfo);
+
+                // Select the processor
+                if (clientConnection.isConnect()) {
+                    if (proxyInfo.getType().isSocks() || proxyInfo.getType().isDirect()) {
+                        connectionProcessor = socketConnectClientConnectionProcessor;
+                    } else {
+                        connectionProcessor = httpConnectClientConnectionProcessor;
+                    }
+                } else {
+                    connectionProcessor = nonConnectClientConnectionProcessor;
+                }
+
                 try {
                     logger.debug("Process connection with proxy: {}", proxyInfo);
                     connectionProcessor.process(clientConnection, proxyInfo);
