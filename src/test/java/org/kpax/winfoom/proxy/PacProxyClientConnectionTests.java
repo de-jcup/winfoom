@@ -37,7 +37,6 @@ import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.config.ScopeConfiguration;
 import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.pac.PacScriptEvaluator;
-import org.kpax.winfoom.proxy.core.ProxyController;
 import org.kpax.winfoom.util.InMemoryURLFactory;
 import org.mockserver.integration.ClientAndServer;
 import org.slf4j.Logger;

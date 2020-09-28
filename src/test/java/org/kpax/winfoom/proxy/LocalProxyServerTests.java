@@ -10,7 +10,7 @@
  *  See the License for the specific language governing permissions and limitations under the License.
  */
 
-package org.kpax.winfoom.proxy.core;
+package org.kpax.winfoom.proxy;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,6 +19,8 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.kpax.winfoom.FoomApplicationTest;
 import org.kpax.winfoom.config.ProxyConfig;
+import org.kpax.winfoom.proxy.LocalProxyServer;
+import org.kpax.winfoom.proxy.ProxyController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;

@@ -10,7 +10,7 @@
  *  See the License for the specific language governing permissions and limitations under the License.
  */
 
-package org.kpax.winfoom.proxy.core;
+package org.kpax.winfoom.proxy;
 
 import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.ProxyConfig;
@@ -83,7 +83,7 @@ public class ProxyController implements AutoCloseable {
         }
     }
 
-    public void clearProxySessionScope() {
+    void clearProxySessionScope() {
         scopeConfiguration.getProxySessionScope().clear();
     }
 

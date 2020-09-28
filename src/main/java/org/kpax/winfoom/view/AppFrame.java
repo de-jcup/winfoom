@@ -18,7 +18,7 @@ import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.exception.InvalidProxySettingsException;
 import org.kpax.winfoom.proxy.ProxyBlacklist;
 import org.kpax.winfoom.proxy.ProxyValidator;
-import org.kpax.winfoom.proxy.core.ProxyController;
+import org.kpax.winfoom.proxy.ProxyController;
 import org.kpax.winfoom.util.HttpUtils;
 import org.kpax.winfoom.util.SwingUtils;
 import org.slf4j.Logger;

@@ -10,14 +10,12 @@
  *  See the License for the specific language governing permissions and limitations under the License.
  */
 
-package org.kpax.winfoom.proxy.core;
+package org.kpax.winfoom.proxy;
 
 import org.kpax.winfoom.annotation.ProxySessionScope;
 import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.config.SystemConfig;
-import org.kpax.winfoom.proxy.ClientConnectionHandler;
-import org.kpax.winfoom.proxy.ProxyExecutorService;
 import org.kpax.winfoom.util.HttpUtils;
 import org.kpax.winfoom.util.InputOutputs;
 import org.slf4j.Logger;
