@@ -204,7 +204,7 @@ public class ProxyConfig {
             case SOCKS5:
                 return proxySocks5Port;
         }
-        return null;
+        return 0;
     }
 
     public void setProxyPort(Integer proxyPort) {

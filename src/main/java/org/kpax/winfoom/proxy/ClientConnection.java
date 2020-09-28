@@ -12,14 +12,18 @@
 
 package org.kpax.winfoom.proxy;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.*;
 import org.apache.http.config.MessageConstraints;
+import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.impl.io.DefaultHttpRequestParser;
 import org.apache.http.impl.io.HttpTransportMetricsImpl;
 import org.apache.http.impl.io.SessionInputBufferImpl;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 import org.kpax.winfoom.annotation.NotThreadSafe;
+import org.kpax.winfoom.config.ProxyConfig;
+import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +37,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -58,6 +63,10 @@ final class ClientConnection implements StreamSource, AutoCloseable {
      */
     private final Socket socket;
 
+    private final ProxyConfig proxyConfig;
+
+    private final SystemConfig systemConfig;
+
     /**
      * The socket's input stream.
      */
@@ -76,25 +85,36 @@ final class ClientConnection implements StreamSource, AutoCloseable {
     /**
      * The parsed {@link HttpRequest}.
      */
-    private final HttpRequest httpRequest;
+    private final HttpRequest request;
 
     /**
      * The request URI extracted from the request line.
      */
     private final URI requestUri;
 
+    private boolean prepareAttempted;
+
     /**
      * Constructor.<br>
      * Has the responsibility of parsing the request.
      *
-     * @param socket the underlying socket.
+     * @param socket       the underlying socket.
+     * @param proxyConfig
+     * @param systemConfig
      * @throws IOException
      * @throws HttpException
      */
-    ClientConnection(Socket socket) throws IOException, HttpException {
+    ClientConnection(final Socket socket,
+                     final ProxyConfig proxyConfig,
+                     final SystemConfig systemConfig) throws IOException, HttpException {
         this.socket = socket;
+        this.proxyConfig = proxyConfig;
+        this.systemConfig = systemConfig;
+
+        // Set the streams
         this.inputStream = socket.getInputStream();
         this.outputStream = socket.getOutputStream();
+
         // Parse the request
         try {
             this.sessionInputBuffer = new SessionInputBufferImpl(
@@ -104,9 +124,9 @@ final class ClientConnection implements StreamSource, AutoCloseable {
                     MessageConstraints.DEFAULT,
                     StandardCharsets.UTF_8.newDecoder());
             this.sessionInputBuffer.bind(this.inputStream);
-            this.httpRequest = new DefaultHttpRequestParser(this.sessionInputBuffer).parse();
+            this.request = new DefaultHttpRequestParser(this.sessionInputBuffer).parse();
             try {
-                this.requestUri = HttpUtils.parseRequestUri(this.httpRequest.getRequestLine());
+                this.requestUri = HttpUtils.parseRequestUri(this.request.getRequestLine());
             } catch (URISyntaxException e) {
                 throw new HttpException("Invalid request uri", e);
             }
@@ -148,8 +168,80 @@ final class ClientConnection implements StreamSource, AutoCloseable {
     /**
      * @return the HTTP request.
      */
-    HttpRequest getHttpRequest() {
-        return httpRequest;
+    HttpRequest getRequest() {
+        return request;
+    }
+
+    /**
+     * Prepare the request for execution, if hasn't been already prepared.
+     *
+     * @return the HTTP request, prepared for execution.
+     */
+    HttpRequest getPreparedRequest() throws IOException {
+        if (!prepareAttempted) {
+            prepareAttempted = true;
+            logger.debug("Prepare the clientConnection for request");
+            if (!isConnect()) {
+                // Prepare the request for execution:
+                // remove some headers, fix VIA header and set a proper entity
+                if (request instanceof HttpEntityEnclosingRequest) {
+                    logger.debug("Set enclosing entity");
+                    AbstractHttpEntity entity = new RepeatableHttpEntity(request,
+                            this.sessionInputBuffer,
+                            proxyConfig.getTempDirectory(),
+                            systemConfig.getInternalBufferLength());
+                    registerAutoCloseable((RepeatableHttpEntity) entity);
+
+                    Header transferEncoding = request.getFirstHeader(HTTP.TRANSFER_ENCODING);
+                    if (transferEncoding != null
+                            && StringUtils.containsIgnoreCase(transferEncoding.getValue(), HTTP.CHUNK_CODING)) {
+                        logger.debug("Mark entity as chunked");
+                        entity.setChunked(true);
+
+                        // Apache HttpClient adds a Transfer-Encoding header's chunk directive
+                        // so remove or strip the existent one from chunk directive
+                        request.removeHeader(transferEncoding);
+                        String nonChunkedTransferEncoding = HttpUtils.stripChunked(transferEncoding.getValue());
+                        if (StringUtils.isNotEmpty(nonChunkedTransferEncoding)) {
+                            request.addHeader(
+                                    HttpUtils.createHttpHeader(HttpHeaders.TRANSFER_ENCODING,
+                                            nonChunkedTransferEncoding));
+                            logger.debug("Add chunk-striped request header");
+                        } else {
+                            logger.debug("Remove transfer encoding chunked request header");
+                        }
+
+                    }
+                    ((HttpEntityEnclosingRequest) request).setEntity(entity);
+                } else {
+                    logger.debug("No enclosing entity");
+                }
+
+                // Remove banned headers
+                List<String> bannedHeaders = request instanceof HttpEntityEnclosingRequest ?
+                        HttpUtils.ENTITY_BANNED_HEADERS : HttpUtils.DEFAULT_BANNED_HEADERS;
+                for (Header header : request.getAllHeaders()) {
+                    if (bannedHeaders.contains(header.getName())) {
+                        request.removeHeader(header);
+                        logger.debug("Request header {} removed", header);
+                    } else {
+                        logger.debug("Allow request header {}", header);
+                    }
+                }
+
+                // Add a Via header and remove the existent one(s)
+                Header viaHeader = request.getFirstHeader(HttpHeaders.VIA);
+                request.removeHeaders(HttpHeaders.VIA);
+                request.setHeader(HttpUtils.createViaHeader(getRequestLine().getProtocolVersion(),
+                        viaHeader));
+            }
+        }
+
+        return request;
+    }
+
+    public boolean isPrepareAttempted() {
+        return prepareAttempted;
     }
 
     /**
@@ -246,7 +338,7 @@ final class ClientConnection implements StreamSource, AutoCloseable {
     }
 
     boolean isConnect() {
-        return HttpUtils.HTTP_CONNECT.equalsIgnoreCase(httpRequest.getRequestLine().getMethod());
+        return HttpUtils.HTTP_CONNECT.equalsIgnoreCase(request.getRequestLine().getMethod());
     }
 
     /**
@@ -260,7 +352,7 @@ final class ClientConnection implements StreamSource, AutoCloseable {
      * @return the request's line
      */
     RequestLine getRequestLine() {
-        return httpRequest.getRequestLine();
+        return request.getRequestLine();
     }
 
     /**

@@ -19,6 +19,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.RequestLine;
 import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.ProxyConfig;
+import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.exception.PacScriptException;
 import org.kpax.winfoom.pac.PacScriptEvaluator;
 import org.kpax.winfoom.util.HttpUtils;
@@ -50,7 +51,7 @@ public class ClientConnectionHandler {
     private ProxyConfig proxyConfig;
 
     @Autowired
-    private ClientConnectionPreProcessor clientConnectionPreProcessor;
+    private SystemConfig systemConfig;
 
     @Lazy
     @Autowired
@@ -75,7 +76,7 @@ public class ClientConnectionHandler {
      * @throws HttpException
      */
     public void handleConnection(final Socket socket) throws IOException, HttpException {
-        final ClientConnection clientConnection = new ClientConnection(socket);
+        final ClientConnection clientConnection = new ClientConnection(socket, proxyConfig, systemConfig);
         RequestLine requestLine = clientConnection.getRequestLine();
         logger.debug("Handle request: {}", requestLine);
 
@@ -95,9 +96,6 @@ public class ClientConnectionHandler {
             }
             logger.debug("proxyInfoList {}", proxyInfoList);
 
-            // Prepare for processing
-            clientConnectionPreProcessor.prepare(clientConnection, proxyConfig.getProxyType());
-
             ClientConnectionProcessor connectionProcessor;
             for (Iterator<ProxyInfo> itr = proxyInfoList.iterator(); itr.hasNext(); ) {
                 ProxyInfo proxyInfo = itr.next();
@@ -116,7 +114,8 @@ public class ClientConnectionHandler {
 
                     // Success, break the iteration
                     break;
-                } catch (ConnectException e) {
+                } catch (ConnectException e) {// Cannot reach the proxy: try the next one
+                                              // otherwise give an error response
                     if (itr.hasNext()) {
                         logger.debug("Failed to connect with proxy: {}, retry with the next one",
                                 proxyInfo);

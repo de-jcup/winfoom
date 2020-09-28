@@ -82,9 +82,9 @@ class RepeatableHttpEntityTests {
 
                         // Handle this connection.
                         try {
-                            ClientConnection clientConnection = new ClientConnection(socket);
+                            ClientConnection clientConnection = new ClientConnection(socket, null, null);
                             RepeatableHttpEntity requestEntity;
-                            HttpRequest request = clientConnection.getHttpRequest();
+                            HttpRequest request = clientConnection.getRequest();
                             try {
                                 requestEntity = new RepeatableHttpEntity(request, clientConnection.getSessionInputBuffer(), tempDirectory,
                                         bufferSize);
