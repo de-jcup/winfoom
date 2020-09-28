@@ -121,7 +121,7 @@ public class ProxyValidator {
             }
         } catch (InvalidProxySettingsException | RuntimeException e) {
             // Clear the proxy scope to allow another retry
-            proxyController.clearProxySessionScope();
+            proxyController.stopProxySession();
             throw e;
         }
     }
