@@ -24,6 +24,7 @@ import org.kpax.winfoom.util.functional.SingletonSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -50,6 +51,14 @@ class ConnectionPoolingManager implements AutoCloseable {
 
     @Autowired
     private ProxyController proxyController;
+
+    @Lazy
+    @Autowired
+    private SocksConnectionSocketFactory socksConnectionSocketFactory;
+
+    @Lazy
+    @Autowired
+    private Socks4ConnectionSocketFactory socks4ConnectionSocketFactory;
 
     /**
      * For HTTP proxy type
@@ -165,7 +174,7 @@ class ConnectionPoolingManager implements AutoCloseable {
      */
     private PoolingHttpClientConnectionManager createSocksConnectionManager(boolean isSocks4) {
         ConnectionSocketFactory connectionSocketFactory = isSocks4
-                ? new Socks4ConnectionSocketFactory() : new SocksConnectionSocketFactory();
+                ? socks4ConnectionSocketFactory : socksConnectionSocketFactory;
         Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
                 .register("http", connectionSocketFactory)
                 .register("https", connectionSocketFactory)

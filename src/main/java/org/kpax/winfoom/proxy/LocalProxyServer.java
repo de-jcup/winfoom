@@ -79,7 +79,7 @@ class LocalProxyServer implements AutoCloseable {
                 while (true) {
                     try {
                         Socket socket = serverSocket.accept();
-                        systemConfig.tuneSocket(socket);
+                        systemConfig.configureSocket(socket);
                         executorService.submit(() -> {
                             try {
                                 clientConnectionHandler.handleConnection(socket);

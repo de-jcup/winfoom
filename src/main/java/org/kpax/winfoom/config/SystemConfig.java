@@ -164,8 +164,9 @@ public class SystemConfig {
                 .setSocketTimeout(socketSoTimeout * 1000);
     }
 
-    public void tuneSocket(final Socket socket) throws SocketException {
+    public Socket configureSocket(final Socket socket) throws SocketException {
         socket.setSoTimeout(socketSoTimeout * 1000);
+        return socket;
     }
 
 }

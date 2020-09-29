@@ -17,7 +17,11 @@ import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.protocol.HttpContext;
 import org.kpax.winfoom.annotation.ThreadSafe;
+import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.util.HttpUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.net.*;
@@ -26,13 +30,18 @@ import java.net.*;
  * A {@link ConnectionSocketFactory} implementation for SOCKS proxy.
  */
 @ThreadSafe
+@Lazy
+@Component
 class SocksConnectionSocketFactory implements ConnectionSocketFactory {
+
+    @Autowired
+    private SystemConfig systemConfig;
 
     @Override
     public Socket createSocket(final HttpContext context) throws IOException {
         InetSocketAddress socketAddress = (InetSocketAddress) context.getAttribute(HttpUtils.SOCKS_ADDRESS);
         Proxy proxy = new Proxy(Proxy.Type.SOCKS, socketAddress);
-        return new Socket(proxy);
+        return systemConfig.configureSocket(new Socket(proxy));
     }
 
     @Override

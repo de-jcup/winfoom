@@ -15,6 +15,8 @@ package org.kpax.winfoom.proxy;
 import org.apache.http.protocol.HttpContext;
 import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.util.HttpUtils;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -23,6 +25,8 @@ import java.net.Socket;
  * A specialized version of {@link SocksConnectionSocketFactory} for SOCKS4 proxy.
  */
 @ThreadSafe
+@Lazy
+@Component
 class Socks4ConnectionSocketFactory extends SocksConnectionSocketFactory {
 
     @Override

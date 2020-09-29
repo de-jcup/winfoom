@@ -77,6 +77,14 @@ public class ProxyValidator {
     @Autowired
     private ProxyBlacklist proxyBlacklist;
 
+    @Lazy
+    @Autowired
+    private SocksConnectionSocketFactory socksConnectionSocketFactory;
+
+    @Lazy
+    @Autowired
+    private Socks4ConnectionSocketFactory socks4ConnectionSocketFactory;
+
     /**
      * Test the proxy settings.
      * <p>The error messages must be user friendly (as less technical as possible).
@@ -165,7 +173,7 @@ public class ProxyValidator {
                 });
             }
             ConnectionSocketFactory connectionSocketFactory = proxyType.isSocks4()
-                    ? new Socks4ConnectionSocketFactory() : new SocksConnectionSocketFactory();
+                    ? socks4ConnectionSocketFactory : socksConnectionSocketFactory;
             Registry<ConnectionSocketFactory> factoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
                     .register("http", connectionSocketFactory)
                     .register("https", connectionSocketFactory)

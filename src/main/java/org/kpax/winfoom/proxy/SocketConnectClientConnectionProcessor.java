@@ -64,7 +64,7 @@ class SocketConnectClientConnectionProcessor implements ClientConnectionProcesso
         }
 
         try (Socket socket = new Socket(proxy)) {
-            systemConfig.tuneSocket(socket);
+            systemConfig.configureSocket(socket);
             if (proxyInfo.getType().isSocks4()) {
                 HttpUtils.setSocks4(socket);
             }
