@@ -103,8 +103,7 @@ public class FoomApplication {
                     logger.info("actualVersion [{}]", actualVersion);
 
                     if (actualVersion != null && !actualVersion.equals(existingVersion)) {
-                        boolean isCompatibleProxyConfig = Files.exists(proxyConfigPath) ?
-                                ProxyConfig.isCompatible(configuration) : true;
+                        boolean isCompatibleProxyConfig = !Files.exists(proxyConfigPath) || ProxyConfig.isCompatible(configuration);
                         logger.info("The existent proxy config is compatible with the new one: {}",
                                 isCompatibleProxyConfig);
 

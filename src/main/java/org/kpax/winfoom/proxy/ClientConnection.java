@@ -15,7 +15,6 @@ package org.kpax.winfoom.proxy;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.*;
 import org.apache.http.config.MessageConstraints;
-import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.impl.io.DefaultHttpRequestParser;
 import org.apache.http.impl.io.HttpTransportMetricsImpl;
 import org.apache.http.impl.io.SessionInputBufferImpl;
@@ -186,11 +185,11 @@ final class ClientConnection implements StreamSource, AutoCloseable {
                 // remove some headers, fix VIA header and set a proper entity
                 if (request instanceof HttpEntityEnclosingRequest) {
                     logger.debug("Set enclosing entity");
-                    AbstractHttpEntity entity = new RepeatableHttpEntity(request,
+                    RepeatableHttpEntity entity = new RepeatableHttpEntity(request,
                             this.sessionInputBuffer,
                             proxyConfig.getTempDirectory(),
                             systemConfig.getInternalBufferLength());
-                    registerAutoCloseable((RepeatableHttpEntity) entity);
+                    registerAutoCloseable(entity);
 
                     Header transferEncoding = request.getFirstHeader(HTTP.TRANSFER_ENCODING);
                     if (transferEncoding != null
