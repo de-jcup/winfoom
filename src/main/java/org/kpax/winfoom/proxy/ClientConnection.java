@@ -180,60 +180,58 @@ final class ClientConnection implements StreamSource, AutoCloseable {
         if (!prepareAttempted) {
             prepareAttempted = true;
             logger.debug("Prepare the clientConnection for request");
-            if (!isConnect()) {
-                // Prepare the request for execution:
-                // remove some headers, fix VIA header and set a proper entity
-                if (request instanceof HttpEntityEnclosingRequest) {
-                    logger.debug("Set enclosing entity");
-                    RepeatableHttpEntity entity = new RepeatableHttpEntity(request,
-                            this.sessionInputBuffer,
-                            proxyConfig.getTempDirectory(),
-                            systemConfig.getInternalBufferLength());
-                    registerAutoCloseable(entity);
+            // Prepare the request for execution:
+            // remove some headers, fix VIA header and set a proper entity
+            if (request instanceof HttpEntityEnclosingRequest) {
+                logger.debug("Set enclosing entity");
+                RepeatableHttpEntity entity = new RepeatableHttpEntity(request,
+                        this.sessionInputBuffer,
+                        proxyConfig.getTempDirectory(),
+                        systemConfig.getInternalBufferLength());
+                registerAutoCloseable(entity);
 
-                    Header transferEncoding = request.getFirstHeader(HTTP.TRANSFER_ENCODING);
-                    if (transferEncoding != null
-                            && StringUtils.containsIgnoreCase(transferEncoding.getValue(), HTTP.CHUNK_CODING)) {
-                        logger.debug("Mark entity as chunked");
-                        entity.setChunked(true);
+                Header transferEncoding = request.getFirstHeader(HTTP.TRANSFER_ENCODING);
+                if (transferEncoding != null
+                        && StringUtils.containsIgnoreCase(transferEncoding.getValue(), HTTP.CHUNK_CODING)) {
+                    logger.debug("Mark entity as chunked");
+                    entity.setChunked(true);
 
-                        // Apache HttpClient adds a Transfer-Encoding header's chunk directive
-                        // so remove or strip the existent one from chunk directive
-                        request.removeHeader(transferEncoding);
-                        String nonChunkedTransferEncoding = HttpUtils.stripChunked(transferEncoding.getValue());
-                        if (StringUtils.isNotEmpty(nonChunkedTransferEncoding)) {
-                            request.addHeader(
-                                    HttpUtils.createHttpHeader(HttpHeaders.TRANSFER_ENCODING,
-                                            nonChunkedTransferEncoding));
-                            logger.debug("Add chunk-striped request header");
-                        } else {
-                            logger.debug("Remove transfer encoding chunked request header");
-                        }
-
-                    }
-                    ((HttpEntityEnclosingRequest) request).setEntity(entity);
-                } else {
-                    logger.debug("No enclosing entity");
-                }
-
-                // Remove banned headers
-                List<String> bannedHeaders = request instanceof HttpEntityEnclosingRequest ?
-                        HttpUtils.ENTITY_BANNED_HEADERS : HttpUtils.DEFAULT_BANNED_HEADERS;
-                for (Header header : request.getAllHeaders()) {
-                    if (bannedHeaders.contains(header.getName())) {
-                        request.removeHeader(header);
-                        logger.debug("Request header {} removed", header);
+                    // Apache HttpClient adds a Transfer-Encoding header's chunk directive
+                    // so remove or strip the existent one from chunk directive
+                    request.removeHeader(transferEncoding);
+                    String nonChunkedTransferEncoding = HttpUtils.stripChunked(transferEncoding.getValue());
+                    if (StringUtils.isNotEmpty(nonChunkedTransferEncoding)) {
+                        request.addHeader(
+                                HttpUtils.createHttpHeader(HttpHeaders.TRANSFER_ENCODING,
+                                        nonChunkedTransferEncoding));
+                        logger.debug("Add chunk-striped request header");
                     } else {
-                        logger.debug("Allow request header {}", header);
+                        logger.debug("Remove transfer encoding chunked request header");
                     }
-                }
 
-                // Add a Via header and remove the existent one(s)
-                Header viaHeader = request.getFirstHeader(HttpHeaders.VIA);
-                request.removeHeaders(HttpHeaders.VIA);
-                request.setHeader(HttpUtils.createViaHeader(getRequestLine().getProtocolVersion(),
-                        viaHeader));
+                }
+                ((HttpEntityEnclosingRequest) request).setEntity(entity);
+            } else {
+                logger.debug("No enclosing entity");
             }
+
+            // Remove banned headers
+            List<String> bannedHeaders = request instanceof HttpEntityEnclosingRequest ?
+                    HttpUtils.ENTITY_BANNED_HEADERS : HttpUtils.DEFAULT_BANNED_HEADERS;
+            for (Header header : request.getAllHeaders()) {
+                if (bannedHeaders.contains(header.getName())) {
+                    request.removeHeader(header);
+                    logger.debug("Request header {} removed", header);
+                } else {
+                    logger.debug("Allow request header {}", header);
+                }
+            }
+
+            // Add a Via header and remove the existent one(s)
+            Header viaHeader = request.getFirstHeader(HttpHeaders.VIA);
+            request.removeHeaders(HttpHeaders.VIA);
+            request.setHeader(HttpUtils.createViaHeader(getRequestLine().getProtocolVersion(),
+                    viaHeader));
         }
 
         return request;
