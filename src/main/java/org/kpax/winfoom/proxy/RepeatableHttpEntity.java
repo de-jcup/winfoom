@@ -150,12 +150,12 @@ class RepeatableHttpEntity extends AbstractHttpEntity implements Closeable {
                         StandardOpenOption.WRITE,
                         StandardOpenOption.CREATE)) {
                     byte[] buffer = new byte[OUTPUT_BUFFER_SIZE];
+                    ByteBuffer byteBuffer = ByteBuffer.wrap(buffer);
                     long position = 0;
 
                     if (contentLength < 0) {
                         if (isChunked()) {
                             ChunkedInputStream chunkedInputStream = new ChunkedInputStream(inputBuffer);
-                            ByteBuffer byteBuffer = ByteBuffer.wrap(buffer);
                             int length;
                             while ((length = chunkedInputStream.read(buffer)) > 0) {
                                 outStream.write(buffer, 0, length);
@@ -168,7 +168,6 @@ class RepeatableHttpEntity extends AbstractHttpEntity implements Closeable {
                         } else {
 
                             // consume until EOF
-                            ByteBuffer byteBuffer = ByteBuffer.wrap(buffer);
                             int length;
                             while (InputOutputs.isAvailable(inputBuffer)) {
                                 length = inputBuffer.read(buffer);
@@ -188,7 +187,6 @@ class RepeatableHttpEntity extends AbstractHttpEntity implements Closeable {
                         int length;
                         long remaining = contentLength;
 
-                        ByteBuffer byteBuffer = ByteBuffer.wrap(buffer);
                         // consume no more than maxLength
                         while (remaining > 0 && InputOutputs.isAvailable(inputBuffer)) {
                             length = inputBuffer.read(buffer, 0, (int) Math.min(OUTPUT_BUFFER_SIZE, remaining));
