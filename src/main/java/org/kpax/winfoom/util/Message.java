@@ -48,7 +48,7 @@ public final class Message {
     }
 
     public static Message info(String text) {
-        return of(MessageType.INFO, text);
+        return new Message(MessageType.INFO, text);
     }
 
     public MessageType getType() {
@@ -60,7 +60,7 @@ public final class Message {
     }
 
     public enum MessageType {
-        ERROR("Error"), INFO("Information"), WARNING("Warning"), CONFIRMATION("Confirmation");
+        ERROR("Error"), INFO("Information"), WARNING("Warning");
 
         private final String label;
 
