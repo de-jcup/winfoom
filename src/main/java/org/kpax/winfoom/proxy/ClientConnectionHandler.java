@@ -140,7 +140,8 @@ public class ClientConnectionHandler {
                         logger.debug("Failed to connect with proxy: {}, send the error response",
                                 proxyInfo);
 
-                        // Cannot connect to the remote proxy
+                        // Cannot connect to the remote proxy,
+                        // give back a 502 error code
                         clientConnection.writeErrorResponse(HttpStatus.SC_BAD_GATEWAY, e);
                     }
                 } catch (Exception e) {

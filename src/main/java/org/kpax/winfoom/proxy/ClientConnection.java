@@ -233,7 +233,6 @@ final class ClientConnection implements StreamSource, AutoCloseable {
             request.setHeader(HttpUtils.createViaHeader(getRequestLine().getProtocolVersion(),
                     viaHeader));
         }
-
         return request;
     }
 
