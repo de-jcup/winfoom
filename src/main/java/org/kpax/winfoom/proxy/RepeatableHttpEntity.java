@@ -145,14 +145,8 @@ class RepeatableHttpEntity extends AbstractHttpEntity implements Closeable {
         } else if (contentLength != 0) {
             if (streaming) {
                 tempFilepath = tempDirectory.resolve(InputOutputs.generateCacheFilename());
-                try (AsynchronousFileChannel tempFileChannel
-                             = AsynchronousFileChannel.open(tempFilepath,
-                        StandardOpenOption.WRITE,
-                        StandardOpenOption.CREATE)) {
-                    byte[] buffer = new byte[OUTPUT_BUFFER_SIZE];
-                    ByteBuffer byteBuffer = ByteBuffer.wrap(buffer);
-                    long position = 0;
-
+                byte[] buffer = new byte[OUTPUT_BUFFER_SIZE];
+                try (CacheFileChannel cacheFileChannel = new CacheFileChannel(buffer)) {
                     if (contentLength < 0) {
                         if (isChunked()) {
                             ChunkedInputStream chunkedInputStream = new ChunkedInputStream(inputBuffer);
@@ -162,8 +156,7 @@ class RepeatableHttpEntity extends AbstractHttpEntity implements Closeable {
                                 outStream.flush();
 
                                 // Write to file
-                                tempFileChannel.write(byteBuffer.position(0).limit(length), position);
-                                position += length;
+                                cacheFileChannel.write(length);
                             }
                         } else {
 
@@ -178,8 +171,7 @@ class RepeatableHttpEntity extends AbstractHttpEntity implements Closeable {
                                 outStream.flush();
 
                                 // Write to file
-                                tempFileChannel.write(byteBuffer.position(0).limit(length), position);
-                                position += length;
+                                cacheFileChannel.write(length);
                             }
                         }
 
@@ -198,8 +190,7 @@ class RepeatableHttpEntity extends AbstractHttpEntity implements Closeable {
                             remaining -= length;
 
                             // Write to temp file
-                            tempFileChannel.write(byteBuffer.position(0).limit(length), position);
-                            position += length;
+                            cacheFileChannel.write(length);
                         }
                     }
                 }
@@ -226,6 +217,30 @@ class RepeatableHttpEntity extends AbstractHttpEntity implements Closeable {
         // Delete the temp file if exists
         if (tempFilepath != null) {
             Files.deleteIfExists(tempFilepath);
+        }
+    }
+
+    private class CacheFileChannel implements AutoCloseable {
+        private final ByteBuffer byteBuffer;
+        private final AsynchronousFileChannel fileChannel;
+
+        private long position = 0;
+
+        private CacheFileChannel(byte[] buffer) throws IOException {
+            this.byteBuffer = ByteBuffer.wrap(buffer);
+            this.fileChannel = AsynchronousFileChannel.open(tempFilepath,
+                    StandardOpenOption.WRITE,
+                    StandardOpenOption.CREATE);
+        }
+
+        void write(int length) {
+            fileChannel.write(byteBuffer.position(0).limit(length), position);
+            position += length;
+        }
+
+        @Override
+        public void close() throws IOException {
+            fileChannel.close();
         }
     }
 }
