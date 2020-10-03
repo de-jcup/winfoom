@@ -220,13 +220,14 @@ class RepeatableHttpEntity extends AbstractHttpEntity implements Closeable {
         }
     }
 
+    @NotThreadSafe
     private class CacheFileChannel implements AutoCloseable {
         private final ByteBuffer byteBuffer;
         private final AsynchronousFileChannel fileChannel;
 
         private long position = 0;
 
-        private CacheFileChannel(byte[] buffer) throws IOException {
+        private CacheFileChannel(final byte[] buffer) throws IOException {
             this.byteBuffer = ByteBuffer.wrap(buffer);
             this.fileChannel = AsynchronousFileChannel.open(tempFilepath,
                     StandardOpenOption.WRITE,
