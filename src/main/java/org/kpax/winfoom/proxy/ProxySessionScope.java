@@ -12,6 +12,7 @@
 
 package org.kpax.winfoom.proxy;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.kpax.winfoom.util.InputOutputs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,8 +42,13 @@ public class ProxySessionScope implements Scope {
      */
     private final Map<String, Object> scopedBeans = new ConcurrentHashMap<>();
 
+    private String sessionId;
+
     @Override
     public Object get(String name, ObjectFactory<?> objectFactory) {
+        if (sessionId == null) {
+            throw new IllegalStateException("No current proxy session");
+        }
         Object scopedObject = scopedBeans.get(name);
         if (scopedObject == null) {
             logger.debug("Creating an instance of proxySession bean {}", name);
@@ -71,12 +77,21 @@ public class ProxySessionScope implements Scope {
 
     @Override
     public String getConversationId() {
-        return null;
+        return sessionId;
     }
 
+    synchronized String startNewSession() {
+        logger.debug("Start a new proxy session");
+        if (sessionId != null) {
+            logger.debug("Found an existent proxy session: {}" + sessionId);
+            endSession();
+        }
+        return sessionId = RandomStringUtils.random(10, true, true);
+    }
 
-    void clear() {
-        logger.debug("Clear the proxySession scope: found {} beans", scopedBeans.size());
+    synchronized void endSession() {
+        logger.debug("End the proxy session {}. Clear the proxySession scope, found {} beans",
+                sessionId, scopedBeans.size());
 
         // Close all the AutoCloseable beans in ordered fashion
         scopedBeans.values().stream().sorted(AnnotationAwareOrderComparator.INSTANCE).forEach(bean -> {
@@ -86,5 +101,6 @@ public class ProxySessionScope implements Scope {
             }
         });
         scopedBeans.clear();
+        sessionId = null;
     }
 }

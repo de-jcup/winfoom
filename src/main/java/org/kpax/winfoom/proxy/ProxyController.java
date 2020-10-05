@@ -68,7 +68,7 @@ public class ProxyController implements AutoCloseable {
     public synchronized void stop() {
         if (started) {
             started = false;
-            stopProxySession();
+            endProxySession();
 
             // We reset these suppliers because the network state
             // might have changed during the proxy session.
@@ -86,8 +86,12 @@ public class ProxyController implements AutoCloseable {
     /**
      * Clear the proxy scope.
      */
-    void stopProxySession() {
-        scopeConfiguration.getProxySessionScope().clear();
+    void startProxySession() {
+        scopeConfiguration.getProxySessionScope().startNewSession();
+    }
+
+    void endProxySession() {
+        scopeConfiguration.getProxySessionScope().endSession();
     }
 
     public boolean isRunning() {

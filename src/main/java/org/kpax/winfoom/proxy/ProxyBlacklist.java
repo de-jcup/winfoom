@@ -50,7 +50,7 @@ public class ProxyBlacklist implements AutoCloseable {
     /**
      * The temporal unit for measuring the timeout period.
      */
-    private final ChronoUnit temporalUnit = ChronoUnit.MINUTES;
+    public static final ChronoUnit TEMPORAL_UNIT = ChronoUnit.MINUTES;
 
     @Autowired
     private ProxyConfig proxyConfig;
@@ -72,7 +72,7 @@ public class ProxyBlacklist implements AutoCloseable {
             Instant now = Instant.now();
             if (value == null || value.isBefore(now)) {
                 Instant timeoutInstant = now.plus(proxyConfig.getBlacklistTimeout(),
-                        temporalUnit);
+                        TEMPORAL_UNIT);
                 logger.debug("Blacklisted until {}", timeoutInstant);
                 return timeoutInstant;
             } else {
@@ -108,15 +108,6 @@ public class ProxyBlacklist implements AutoCloseable {
                 .filter(this::checkBlacklist).count();
         blacklistMap.clear();
         return (int) count;
-    }
-
-    /**
-     * Getter
-     *
-     * @return the temporal unit of the blacklisting mechanism.
-     */
-    public ChronoUnit getTemporalUnit() {
-        return temporalUnit;
     }
 
     public Map<ProxyInfo, Instant> getBlacklistMap() {

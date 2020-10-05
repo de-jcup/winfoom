@@ -30,7 +30,6 @@ public class GlobPatternMatcher {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-
     /**
      * Translate a GLOB pattern into a {@link Pattern} instance.
      * <p>
@@ -94,6 +93,5 @@ public class GlobPatternMatcher {
         stringBuilder.append("$");
         return stringBuilder.toString();
     }
-
 
 }

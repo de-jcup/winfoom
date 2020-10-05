@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
@@ -63,6 +64,7 @@ public class AppFrame extends JFrame {
     @Autowired
     private ProxyValidator proxyValidator;
 
+    @Lazy
     @Autowired
     private ProxyBlacklist proxyBlacklist;
 
@@ -508,7 +510,7 @@ public class AppFrame extends JFrame {
 
         fieldPanel.add(getPacFileJTextField());
         fieldPanel.add(wrapToPanel(getBlacklistTimeoutJSpinner(),
-                new JLabel(" (" + proxyBlacklist.getTemporalUnit().toString().toLowerCase() + ")")));
+                new JLabel(" (" + ProxyBlacklist.TEMPORAL_UNIT.toString().toLowerCase() + ")")));
         fieldPanel.add(wrapToPanel(getLocalPortJSpinner()));
         fieldPanel.add(getTestUrlJTextField());
         fieldPanel.add(getAutostartCheckBox());

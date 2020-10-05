@@ -74,20 +74,20 @@ class DefaultPacScriptEvaluatorTests {
     @Test
     void loadPacFileContent_validLocalFile_NoError() throws IOException, PacFileException {
         when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(getClass().getClassLoader().getResource("proxy-simple.pac"));
-        proxyController.stopProxySession();
+        proxyController.endProxySession();
     }
 
     @Test
     void loadPacFileContent_validRemoteFile_NoError() throws IOException, PacFileException {
         when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(new URL("http://localhost:" + remoteServer.getLocalPort() + "/pacFile"));
-        proxyController.stopProxySession();
+        proxyController.endProxySession();
     }
 
 
     @Test
     void loadPacFileContent_invalidLocalFile_InvalidPacFileException() throws IOException {
         when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(getClass().getClassLoader().getResource("proxy-invalid.pac"));
-        proxyController.stopProxySession();
+        proxyController.endProxySession();
     }
 
     @AfterAll

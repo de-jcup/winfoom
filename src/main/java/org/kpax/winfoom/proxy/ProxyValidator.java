@@ -96,6 +96,7 @@ public class ProxyValidator {
         logger.info("Test proxy config {}", proxyConfig);
         ProxyType proxyType = proxyConfig.getProxyType();
         try {
+            proxyController.startProxySession();
             try {
                 if (proxyConfig.isAutoConfig()) {
                     List<ProxyInfo> proxyInfos = loadPacProxyInfos();
@@ -128,8 +129,8 @@ public class ProxyValidator {
                 throw new InvalidProxySettingsException("Wrong proxy host/port", e);
             }
         } catch (InvalidProxySettingsException | RuntimeException e) {
-            // Clear the proxy scope to allow another retry
-            proxyController.stopProxySession();
+            // End the proxy session to allow another retry
+            proxyController.endProxySession();
             throw e;
         }
     }
