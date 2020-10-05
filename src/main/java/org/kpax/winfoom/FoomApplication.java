@@ -58,7 +58,7 @@ public class FoomApplication {
             checkAppVersion();
         } catch (Exception e) {
             logger.error("Failed to verify app version", e);
-            SwingUtils.showErrorMessage(null, String.format("Failed to verify application version.<br>" +
+            SwingUtils.showErrorMessage(String.format("Failed to verify application version.<br>" +
                             "Remove the %s directory then try again.",
                     Paths.get(System.getProperty("user.home"), SystemConfig.APP_HOME_DIR_NAME)));
             System.exit(1);
@@ -69,7 +69,7 @@ public class FoomApplication {
             SpringApplication.run(FoomApplication.class, args);
         } catch (Exception e) {
             logger.error("Error on bootstrapping Spring's application context", e);
-            SwingUtils.showErrorMessage(null, "Failed to launch the application." +
+            SwingUtils.showErrorMessage("Failed to launch the application." +
                     "<br>Please check the application's log file.");
         }
 

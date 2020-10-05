@@ -74,6 +74,11 @@ public class SwingUtils {
                 type);
     }
 
+
+    public static void showErrorMessage(final String message) {
+        showErrorMessage(null, DLG_ERR_TITLE, message);
+    }
+
     public static void showErrorMessage(final Component parentComponent,
                                         final String message) {
         showErrorMessage(parentComponent, DLG_ERR_TITLE, message);
@@ -85,6 +90,11 @@ public class SwingUtils {
         showMessage(parentComponent, title, message, JOptionPane.ERROR_MESSAGE);
     }
 
+
+    public static void showInfoMessage(final String message) {
+        showInfoMessage(null, DLG_INFO_TITLE, message);
+    }
+
     public static void showInfoMessage(final Component parentComponent,
                                        final String message) {
         showInfoMessage(parentComponent, DLG_INFO_TITLE, message);
@@ -94,6 +104,11 @@ public class SwingUtils {
                                        final String title,
                                        final String message) {
         showMessage(parentComponent, title, message, JOptionPane.INFORMATION_MESSAGE);
+    }
+
+
+    public static void showWarningMessage(final String message) {
+        showWarningMessage(null, DLG_WARN_TITLE, message);
     }
 
     public static void showWarningMessage(final Component parentComponent,

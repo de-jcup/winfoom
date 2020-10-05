@@ -160,7 +160,7 @@ public class AppFrame extends JFrame {
                 activate();
             } catch (Exception e) {
                 logger.error("GUI error", e);
-                SwingUtils.showErrorMessage(null, "Failed to load the graphical interface." +
+                SwingUtils.showErrorMessage("Failed to load the graphical interface." +
                         "<br>Please check the application's log file.");
                 System.exit(1);
             }

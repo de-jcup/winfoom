@@ -178,7 +178,7 @@ public final class InputOutputs {
                 Files.createDirectories(backupDirPath);
             }
             if (withWarning) {
-                SwingUtils.showWarningMessage(null,
+                SwingUtils.showWarningMessage(
                         String.format("The %s file found belongs to a different application version<br>" +
                                         "and is not compatible with the current version!<br>" +
                                         "The existent one will be moved to:<br>" +
