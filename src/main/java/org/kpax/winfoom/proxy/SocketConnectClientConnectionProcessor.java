@@ -89,7 +89,7 @@ class SocketConnectClientConnectionProcessor implements ClientConnectionProcesso
             clientConnection.write(String.format("%s 200 Connection established",
                     requestLine.getProtocolVersion()));
             clientConnection.write(HttpUtils.createHttpHeader(HTTP.DATE_HEADER,
-                    new HeaderDateGenerator().getCurrentDate()));
+                    HeaderDateGenerator.getCurrentDate()));
             clientConnection.writeln();
 
             try {

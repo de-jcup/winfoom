@@ -36,7 +36,7 @@ public class HeaderDateGenerator {
     /**
      * @return the current date in RFC 1123 format.
      */
-    public String getCurrentDate() {
+    public static String getCurrentDate() {
         DateFormat dateformat = new SimpleDateFormat(PATTERN_RFC1123, Locale.US);
         dateformat.setTimeZone(GMT);
         return dateformat.format(new Date());

@@ -30,7 +30,8 @@ import java.util.Optional;
  * @param <E2> the second {@link Exception} type
  * @param <E3> the third {@link Exception} type
  */
-public class TripleExceptionSingletonSupplier<T, E1 extends Exception, E2 extends Exception, E3 extends Exception> implements TripleExceptionSupplier<T, E1, E2, E3> {
+public class TripleExceptionSingletonSupplier<T, E1 extends Exception, E2 extends Exception, E3 extends Exception>
+        implements TripleExceptionSupplier<T, E1, E2, E3> {
 
     /**
      * For thread safety purposes.

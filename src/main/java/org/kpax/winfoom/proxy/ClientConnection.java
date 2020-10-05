@@ -287,7 +287,7 @@ final class ClientConnection implements StreamSource, AutoCloseable {
     void writeErrorResponse(ProtocolVersion protocolVersion, int statusCode, String reasonPhrase) {
         try {
             write(HttpUtils.toStatusLine(protocolVersion, statusCode, reasonPhrase));
-            write(HttpUtils.createHttpHeader(HTTP.DATE_HEADER, new HeaderDateGenerator().getCurrentDate()));
+            write(HttpUtils.createHttpHeader(HTTP.DATE_HEADER, HeaderDateGenerator.getCurrentDate()));
             writeln();
         } catch (Exception ex) {
             logger.debug("Error on writing error response", ex);
