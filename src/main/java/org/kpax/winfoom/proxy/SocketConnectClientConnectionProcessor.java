@@ -18,7 +18,6 @@ import org.apache.http.RequestLine;
 import org.apache.http.protocol.HTTP;
 import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.SystemConfig;
-import org.kpax.winfoom.util.HeaderDateGenerator;
 import org.kpax.winfoom.util.HttpUtils;
 import org.kpax.winfoom.util.InputOutputs;
 import org.kpax.winfoom.util.StreamSource;
@@ -89,7 +88,7 @@ class SocketConnectClientConnectionProcessor implements ClientConnectionProcesso
             clientConnection.write(String.format("%s 200 Connection established",
                     requestLine.getProtocolVersion()));
             clientConnection.write(HttpUtils.createHttpHeader(HTTP.DATE_HEADER,
-                    HeaderDateGenerator.getCurrentDate()));
+                    HttpUtils.getCurrentDate()));
             clientConnection.writeln();
 
             try {

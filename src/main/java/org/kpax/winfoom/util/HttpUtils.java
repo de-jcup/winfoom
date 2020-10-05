@@ -29,6 +29,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -71,6 +73,17 @@ public final class HttpUtils {
      */
     public static final List<String> DEFAULT_BANNED_HEADERS = Collections.singletonList(
             HttpHeaders.PROXY_AUTHORIZATION);
+
+
+    /**
+     * Date format pattern used to generate the header in RFC 1123 format.
+     */
+    public static final String PATTERN_RFC1123 = "EEE, dd MMM yyyy HH:mm:ss zzz";
+
+    /**
+     * The time zone to use in the date header.
+     */
+    public static final TimeZone GMT = TimeZone.getTimeZone("GMT");
 
     private HttpUtils() {
     }
@@ -422,5 +435,15 @@ public final class HttpUtils {
      */
     public static boolean isConnect(RequestLine requestLine) {
         return HttpUtils.HTTP_CONNECT.equalsIgnoreCase(requestLine.getMethod());
+    }
+
+
+    /**
+     * @return the current date in RFC 1123 format.
+     */
+    public static String getCurrentDate() {
+        DateFormat dateformat = new SimpleDateFormat(PATTERN_RFC1123, Locale.US);
+        dateformat.setTimeZone(GMT);
+        return dateformat.format(new Date());
     }
 }
