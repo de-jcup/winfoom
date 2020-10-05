@@ -23,10 +23,12 @@ import org.apache.http.util.EntityUtils;
 import org.kpax.winfoom.annotation.NotThreadSafe;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.config.SystemConfig;
-import org.kpax.winfoom.util.*;
+import org.kpax.winfoom.util.HttpUtils;
+import org.kpax.winfoom.util.InputOutputs;
+import org.kpax.winfoom.util.ObjectFormat;
+import org.kpax.winfoom.util.StreamSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -133,9 +135,9 @@ final class ClientConnection implements StreamSource, AutoCloseable {
             if (e instanceof HttpException) {
                 // Most likely a bad request
                 // even though might not always be the case
-                writeErrorResponse(HttpStatus.SC_BAD_REQUEST, e);
+                writeErrorResponse(HttpStatus.SC_BAD_REQUEST, e.getMessage());
             } else {
-                writeErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e);
+                writeErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
             }
             throw e;
         }
@@ -273,37 +275,33 @@ final class ClientConnection implements StreamSource, AutoCloseable {
      * @param statusCode the status code.
      * @param e          the message of this error becomes the reasonPhrase from the status line.
      */
-    void writeErrorResponse(int statusCode, Exception e) {
-        writeErrorResponse(HttpVersion.HTTP_1_1, statusCode, e);
+/*    void writeErrorResponse(int statusCode, Exception e) {
+        writeErrorResponse(statusCode, e.getMessage());
+    }*/
+
+    /**
+     * Write a simple response with only the status line and date header, followed by an empty line.
+     *
+     * @param statusCode      the request's status code.
+     */
+    void writeErrorResponse(int statusCode) {
+        writeErrorResponse(statusCode, null);
     }
 
     /**
      * Write a simple response with only the status line and date header, followed by an empty line.
      *
-     * @param protocolVersion the request's HTTP version.
      * @param statusCode      the request's status code.
      * @param reasonPhrase    the request's reason code
      */
-    void writeErrorResponse(ProtocolVersion protocolVersion, int statusCode, String reasonPhrase) {
+    void writeErrorResponse(int statusCode, String reasonPhrase) {
         try {
-            write(HttpUtils.toStatusLine(protocolVersion, statusCode, reasonPhrase));
+            write(HttpUtils.toStatusLine(request != null ? request.getProtocolVersion() : HttpVersion.HTTP_1_1, statusCode, reasonPhrase));
             write(HttpUtils.createHttpHeader(HTTP.DATE_HEADER, HttpUtils.getCurrentDate()));
             writeln();
         } catch (Exception ex) {
             logger.debug("Error on writing error response", ex);
         }
-    }
-
-    /**
-     * Write a simple response with only the status line and date header, followed by an empty line.
-     *
-     * @param protocolVersion the request's HTTP version.
-     * @param statusCode      the request's status code.
-     * @param e               the message of this error becomes the reasonPhrase from the status line.
-     */
-    void writeErrorResponse(ProtocolVersion protocolVersion, int statusCode, Exception e) {
-        Assert.notNull(e, "Exception cannot be null");
-        writeErrorResponse(protocolVersion, statusCode, e.getMessage());
     }
 
     /**

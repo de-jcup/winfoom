@@ -29,10 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.net.ConnectException;
-import java.net.InetSocketAddress;
-import java.net.URI;
-import java.net.UnknownHostException;
+import java.net.*;
 
 /**
  * Process any type of non-CONNECT request for any type of proxy.
@@ -81,7 +78,10 @@ class NonConnectClientConnectionProcessor implements ClientConnectionProcessor {
                     clientConnection.write(HttpUtils.createViaHeader(
                             clientConnection.getRequestLine().getProtocolVersion(),
                             response.getFirstHeader(HttpHeaders.VIA)));
+
                     response.removeHeaders(HttpHeaders.VIA);
+                    response.removeHeaders(HttpHeaders.PROXY_AUTHENTICATE);
+
                     for (Header header : response.getAllHeaders()) {
                         if (HttpHeaders.TRANSFER_ENCODING.equals(header.getName())) {
 
@@ -122,10 +122,16 @@ class NonConnectClientConnectionProcessor implements ClientConnectionProcessor {
                 }
             } catch (UnknownHostException e) {
                 logger.debug("Unknown host error", e);
-                clientConnection.writeErrorResponse(HttpStatus.SC_NOT_FOUND, e);
+                clientConnection.writeErrorResponse(HttpStatus.SC_NOT_FOUND, e.getMessage());
             } catch (ConnectTimeoutException e) {
                 logger.debug("Connect timeout error", e);
                 throw new ConnectException(e.getMessage());
+            } catch (SocketException e) {
+                if (HttpUtils.isSOCKSAuthenticationFailed(e)) {
+                    clientConnection.writeErrorResponse(HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED);
+                } else {
+                    throw e;
+                }
             }
         }
     }

@@ -72,16 +72,18 @@ class SocketConnectClientConnectionProcessor implements ClientConnectionProcesso
                 socket.connect(new InetSocketAddress(target.getHostName(), target.getPort()),
                         systemConfig.getSocketConnectTimeout() * 1000);
             } catch (UnknownHostException e) {
-                clientConnection.writeErrorResponse(HttpStatus.SC_NOT_FOUND, e);
-            } catch (Exception e) {
-                logger.debug("Error on socket connecting", e);
-                if (e instanceof SocketException) {
-                    if (HttpUtils.isConnectionRefused((SocketException) e)) {
-                        throw new ConnectException(e.getMessage());
-                    }
+                clientConnection.writeErrorResponse(HttpStatus.SC_NOT_FOUND, e.getMessage());
+                return;
+            } catch (SocketException e) {
+                if (HttpUtils.isConnectionRefused(e)) {
+                    throw new ConnectException(e.getMessage());
+                } else if (HttpUtils.isSOCKSAuthenticationFailed(e)) {
+                    clientConnection.writeErrorResponse(HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED);
+                    return;
                 }
                 throw e;
             }
+
             logger.debug("Connected to {}", target);
 
             // Respond with 200 code

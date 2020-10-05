@@ -57,6 +57,7 @@ public class ProxyController implements AutoCloseable {
      */
     public synchronized void start() throws Exception {
         Assert.state(!started, "Already started");
+        startNewProxySession();
         localProxyServer.start();
         started = true;
     }
@@ -84,12 +85,15 @@ public class ProxyController implements AutoCloseable {
     }
 
     /**
-     * Clear the proxy scope.
+     * Start a new proxy session.
      */
-    void startProxySession() {
+    void startNewProxySession() {
         scopeConfiguration.getProxySessionScope().startNewSession();
     }
 
+    /**
+     *  End the current proxy session, if any.
+     */
     void endProxySession() {
         scopeConfiguration.getProxySessionScope().endSession();
     }

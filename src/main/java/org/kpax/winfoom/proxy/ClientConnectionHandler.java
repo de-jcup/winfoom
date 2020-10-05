@@ -142,7 +142,7 @@ public class ClientConnectionHandler {
 
                         // Cannot connect to the remote proxy,
                         // give back a 502 error code
-                        clientConnection.writeErrorResponse(HttpStatus.SC_BAD_GATEWAY, e);
+                        clientConnection.writeErrorResponse(HttpStatus.SC_BAD_GATEWAY, e.getMessage());
                     }
                 } catch (Exception e) {
                     logger.debug("Connection processing error", e);
@@ -152,18 +152,18 @@ public class ClientConnectionHandler {
                         logger.debug("Generic error, send the error response", e);
 
                         // Any other error, including client errors
-                        clientConnection.writeErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e);
+                        clientConnection.writeErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
                     }
                     break;
                 }
             }
         } catch (PacScriptException e) {
-            clientConnection.writeErrorResponse(requestLine.getProtocolVersion(),
+            clientConnection.writeErrorResponse(
                     HttpStatus.SC_INTERNAL_SERVER_ERROR,
                     "Proxy Auto Config file error");
             logger.debug("Proxy Auto Config file error", e);
         } catch (Exception e) {
-            clientConnection.writeErrorResponse(requestLine.getProtocolVersion(),
+            clientConnection.writeErrorResponse(
                     HttpStatus.SC_INTERNAL_SERVER_ERROR,
                     e.getMessage());
             logger.debug("Error on handling request", e);

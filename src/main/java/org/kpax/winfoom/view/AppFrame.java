@@ -17,8 +17,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.exception.InvalidProxySettingsException;
 import org.kpax.winfoom.proxy.ProxyBlacklist;
-import org.kpax.winfoom.proxy.ProxyValidator;
 import org.kpax.winfoom.proxy.ProxyController;
+import org.kpax.winfoom.proxy.ProxyValidator;
 import org.kpax.winfoom.util.HttpUtils;
 import org.kpax.winfoom.util.SwingUtils;
 import org.slf4j.Logger;
@@ -81,6 +81,7 @@ public class AppFrame extends JFrame {
 
     private JButton btnStart;
     private JButton btnStop;
+    private JButton btnTest;
     private JButton btnCancelBlacklist;
 
     private JPanel mainContentPanel;
@@ -437,6 +438,33 @@ public class AppFrame extends JFrame {
         return btnCancelBlacklist;
     }
 
+    private JButton getBtnTest() {
+        if (btnTest == null) {
+            btnTest = new JButton("Test");
+            btnTest.setMargin(new Insets(2, 6, 2, 6));
+            btnTest.addActionListener(event -> {
+                SwingUtils.executeRunnable(() -> {
+                    btnTest.setEnabled(false);
+                    try {
+                        proxyValidator.testProxy();
+                        SwingUtils.showInfoMessage(AppFrame.this, "Success!");
+                    } catch (InvalidProxySettingsException e) {
+                        SwingUtils.showErrorMessage(AppFrame.this, e.getMessage());
+                    } catch (Exception e) {
+                        e.printStackTrace();// FIXME
+                    } finally {
+                        btnTest.setEnabled(true);
+                    }
+                }, AppFrame.this);
+            });
+            btnTest.setIcon(new TunedImageIcon("test.png"));
+            btnTest.setToolTipText("Test the proxy settings");
+            btnTest.setEnabled(false);
+        }
+        return btnTest;
+    }
+
+
     // ------- End Buttons
 
     // --------- Panels
@@ -567,6 +595,7 @@ public class AppFrame extends JFrame {
         if (btnPanel == null) {
             btnPanel = new JPanel();
             btnPanel.add(getBtnStart());
+            btnPanel.add(getBtnTest());
             btnPanel.add(getBtnStop());
             btnPanel.add(getBtnCancelBlacklist());
         }
@@ -676,7 +705,7 @@ public class AppFrame extends JFrame {
         }
 
         // Test the proxy configuration
-        try {
+      /*  try {
             proxyValidator.testProxyConfig();
         } catch (InvalidProxySettingsException e) {
             logger.error("Invalid proxy settings", e);
@@ -687,7 +716,7 @@ public class AppFrame extends JFrame {
             SwingUtils.showErrorMessage(this, "Validation error: "
                     + (e.getMessage() != null ? e.getMessage() : "See the log file for details!"));
             return false;
-        }
+        }*/
 
         return true;
     }
@@ -710,6 +739,7 @@ public class AppFrame extends JFrame {
             if (isValidInput()) {
                 try {
                     proxyController.start();
+                    getBtnTest().setEnabled(true);
                     getBtnStop().setEnabled(true);
                     if (proxyConfig.isAutoConfig()) {
                         getBtnCancelBlacklist().setEnabled(true);
@@ -739,6 +769,7 @@ public class AppFrame extends JFrame {
     private void enableInput() {
         SwingUtils.setEnabled(getContentPane(), true);
         getBtnStop().setEnabled(false);
+        getBtnTest().setEnabled(false);
     }
 
 
