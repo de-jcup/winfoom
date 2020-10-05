@@ -42,6 +42,9 @@ public class ProxySessionScope implements Scope {
      */
     private final Map<String, Object> scopedBeans = new ConcurrentHashMap<>();
 
+    /**
+     * The session's identifier.
+     */
     private String sessionId;
 
     @Override
@@ -90,8 +93,7 @@ public class ProxySessionScope implements Scope {
     }
 
     synchronized void endSession() {
-        logger.debug("End the proxy session {}. Clear the proxySession scope, found {} beans",
-                sessionId, scopedBeans.size());
+        logger.debug("End the proxy session {}", sessionId);
 
         // Close all the AutoCloseable beans in ordered fashion
         scopedBeans.values().stream().sorted(AnnotationAwareOrderComparator.INSTANCE).forEach(bean -> {
@@ -100,6 +102,7 @@ public class ProxySessionScope implements Scope {
                 InputOutputs.close((AutoCloseable) bean);
             }
         });
+        logger.debug("Clear the proxySession scope: found {} beans", scopedBeans.size());
         scopedBeans.clear();
         sessionId = null;
     }
