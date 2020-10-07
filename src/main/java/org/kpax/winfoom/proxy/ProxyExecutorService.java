@@ -12,11 +12,14 @@
 
 package org.kpax.winfoom.proxy;
 
-import org.kpax.winfoom.annotation.ProxySessionScope;
+import org.kpax.winfoom.util.functional.Resettable;
 import org.kpax.winfoom.util.functional.SingletonSupplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PreDestroy;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.*;
@@ -27,9 +30,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  * and {@link #awaitTermination(long, TimeUnit)}.
  */
 @Order(2)
-@ProxySessionScope
 @Component
-public class ProxyExecutorService implements ExecutorService, AutoCloseable {
+public class ProxyExecutorService implements ExecutorService, Resettable {
+
+    private final Logger logger = LoggerFactory.getLogger(ProxyExecutorService.class);
 
     private final SingletonSupplier<ThreadPoolExecutor> threadPoolSupplier;
 
@@ -101,9 +105,11 @@ public class ProxyExecutorService implements ExecutorService, AutoCloseable {
         return threadPoolSupplier.hasValue() && threadPoolSupplier.get().isTerminated();
     }
 
+    @PreDestroy
     @Override
-    public void close() throws Exception {
-        threadPoolSupplier.value().ifPresent(ExecutorService::shutdownNow);
+    public void reset() {
+        logger.debug("Reset the proxy executor service");
+        threadPoolSupplier.reset(ExecutorService::shutdownNow);
     }
 
     public static class DefaultThreadFactory implements ThreadFactory {

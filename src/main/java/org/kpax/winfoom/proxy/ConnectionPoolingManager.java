@@ -17,19 +17,19 @@ import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.kpax.winfoom.annotation.ProxySessionScope;
 import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.SystemConfig;
+import org.kpax.winfoom.util.functional.Resettable;
 import org.kpax.winfoom.util.functional.SingletonSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
+import javax.annotation.PreDestroy;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -40,9 +40,8 @@ import java.util.concurrent.TimeUnit;
  */
 @ThreadSafe
 @Order(1)
-@ProxySessionScope
 @Component
-class ConnectionPoolingManager implements AutoCloseable {
+class ConnectionPoolingManager implements Resettable {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -52,11 +51,9 @@ class ConnectionPoolingManager implements AutoCloseable {
     @Autowired
     private ProxyController proxyController;
 
-    @Lazy
     @Autowired
     private SocksConnectionSocketFactory socksConnectionSocketFactory;
 
-    @Lazy
     @Autowired
     private Socks4ConnectionSocketFactory socks4ConnectionSocketFactory;
 
@@ -182,8 +179,9 @@ class ConnectionPoolingManager implements AutoCloseable {
         return createConnectionManager(socketFactoryRegistry);
     }
 
+    @PreDestroy
     @Override
-    public void close() {
+    public void reset() {
         logger.debug("Close all active connection managers and reset the suppliers");
         poolingHttpSuppliers.stream().filter(SingletonSupplier::hasValue).
                 forEach(SingletonSupplier::reset);

@@ -14,15 +14,19 @@ package org.kpax.winfoom.proxy;
 
 import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.ProxyConfig;
-import org.kpax.winfoom.config.ScopeConfiguration;
 import org.kpax.winfoom.pac.net.IpAddresses;
+import org.kpax.winfoom.util.functional.Resettable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 import java.net.Authenticator;
+import java.net.PasswordAuthentication;
+import java.util.stream.Stream;
 
 /**
  * Provide methods to begin, end or clear proxy session.
@@ -32,15 +36,15 @@ import java.net.Authenticator;
  */
 @ThreadSafe
 @Component
-public class ProxyController implements AutoCloseable {
+public class ProxyController {
 
     private final Logger logger = LoggerFactory.getLogger(ProxyController.class);
 
     @Autowired
-    private ProxyConfig proxyConfig;
+    private AbstractApplicationContext applicationContext;
 
     @Autowired
-    private ScopeConfiguration scopeConfiguration;
+    private ProxyConfig proxyConfig;
 
     @Autowired
     private LocalProxyServer localProxyServer;
@@ -57,7 +61,15 @@ public class ProxyController implements AutoCloseable {
      */
     public synchronized void start() throws Exception {
         Assert.state(!started, "Already started");
-        startNewProxySession();
+        if (proxyConfig.getProxyType().isSocks5()) {
+            Authenticator.setDefault(new Authenticator() {
+                public PasswordAuthentication getPasswordAuthentication() {
+                    String proxyPassword = proxyConfig.getProxyPassword();
+                    return (new PasswordAuthentication(proxyConfig.getProxyUsername(),
+                            proxyPassword != null ? proxyPassword.toCharArray() : new char[0]));
+                }
+            });
+        }
         localProxyServer.start();
         started = true;
     }
@@ -69,43 +81,38 @@ public class ProxyController implements AutoCloseable {
     public synchronized void stop() {
         if (started) {
             started = false;
-            endProxySession();
+            resetAllResettableSingletons();
 
             // We reset these suppliers because the network state
             // might have changed during the proxy session.
             // Though unlikely, we take no chances.
             IpAddresses.allPrimaryAddresses.reset();
             IpAddresses.primaryIPv4Address.reset();
+
+            // Remove auth for SOCKS proxy
+            if (proxyConfig.getProxyType().isSocks5()) {
+                Authenticator.setDefault(null);
+            }
         }
 
-        // Remove auth for SOCKS proxy
-        if (proxyConfig.getProxyType().isSocks5()) {
-            Authenticator.setDefault(null);
-        }
     }
 
     /**
-     * Start a new proxy session.
+     * End the current proxy session, if any.
      */
-    void startNewProxySession() {
-        scopeConfiguration.getProxySessionScope().startNewSession();
-    }
-
-    /**
-     *  End the current proxy session, if any.
-     */
-    void endProxySession() {
-        scopeConfiguration.getProxySessionScope().endSession();
+    void resetAllResettableSingletons() {
+        logger.debug("Reset all resettable singletons");
+        Stream.of(applicationContext.getBeanNamesForType(Resettable.class)).
+                map(applicationContext.getBeanFactory()::getSingleton).
+                filter(b -> b != null).
+                sorted(AnnotationAwareOrderComparator.INSTANCE).forEach(bean -> {
+            logger.debug("Reset bean of type {}", bean.getClass());
+            ((Resettable) bean).reset();
+        });
     }
 
     public boolean isRunning() {
         return started;
-    }
-
-    @Override
-    public void close() {
-        logger.info("Close all context's resources");
-        stop();
     }
 
 }

@@ -12,15 +12,15 @@
 
 package org.kpax.winfoom.proxy;
 
-import org.kpax.winfoom.annotation.ProxySessionScope;
 import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.ProxyConfig;
+import org.kpax.winfoom.util.functional.Resettable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PreDestroy;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
@@ -34,10 +34,8 @@ import java.util.stream.Collectors;
  * which means it will not be used again until the blacklist timeout happens.
  */
 @ThreadSafe
-@Lazy
-@ProxySessionScope
 @Component
-public class ProxyBlacklist implements AutoCloseable {
+public class ProxyBlacklist implements Resettable {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -129,8 +127,9 @@ public class ProxyBlacklist implements AutoCloseable {
                         collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
     }
 
+    @PreDestroy
     @Override
-    public void close() {
+    public void reset() {
         logger.debug("Clear the blacklist");
         blacklistMap.clear();
     }

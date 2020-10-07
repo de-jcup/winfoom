@@ -31,7 +31,6 @@
 package org.kpax.winfoom.pac;
 
 import org.apache.commons.io.IOUtils;
-import org.kpax.winfoom.annotation.ProxySessionScope;
 import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.exception.MissingResourceException;
@@ -40,15 +39,16 @@ import org.kpax.winfoom.exception.PacScriptException;
 import org.kpax.winfoom.proxy.ProxyInfo;
 import org.kpax.winfoom.util.HttpUtils;
 import org.kpax.winfoom.util.functional.DoubleExceptionSingletonSupplier;
+import org.kpax.winfoom.util.functional.Resettable;
 import org.kpax.winfoom.util.functional.SingletonSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
+import javax.annotation.PreDestroy;
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -63,10 +63,8 @@ import java.util.Objects;
 
 @ThreadSafe
 @Order(3)
-@Lazy
 @Component
-@ProxySessionScope
-public class DefaultPacScriptEvaluator implements PacScriptEvaluator, AutoCloseable {
+public class DefaultPacScriptEvaluator implements PacScriptEvaluator, Resettable {
 
     private final Logger logger = LoggerFactory.getLogger(DefaultPacScriptEvaluator.class);
 
@@ -192,8 +190,10 @@ public class DefaultPacScriptEvaluator implements PacScriptEvaluator, AutoClosea
         }
     }
 
+    @PreDestroy
     @Override
-    public void close() {
+    public void reset() {
+        logger.debug("Reset the scriptEngineSupplier");
         scriptEngineSupplier.reset();
     }
 

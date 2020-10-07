@@ -27,7 +27,6 @@ import org.kpax.winfoom.util.InputOutputs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -53,11 +52,9 @@ public class ClientConnectionHandler {
     @Autowired
     private SystemConfig systemConfig;
 
-    @Lazy
     @Autowired
     private PacScriptEvaluator pacScriptEvaluator;
 
-    @Lazy
     @Autowired
     private ProxyBlacklist proxyBlacklist;
 
@@ -131,7 +128,7 @@ public class ClientConnectionHandler {
                     // Success, break the iteration
                     break;
                 } catch (ConnectException e) {// Cannot reach the proxy: try the next one
-                                              // otherwise give an error response
+                    // otherwise give an error response
                     if (itr.hasNext()) {
                         logger.debug("Failed to connect with proxy: {}, retry with the next one",
                                 proxyInfo);

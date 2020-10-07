@@ -25,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
@@ -64,7 +63,6 @@ public class AppFrame extends JFrame {
     @Autowired
     private ProxyValidator proxyValidator;
 
-    @Lazy
     @Autowired
     private ProxyBlacklist proxyBlacklist;
 
@@ -72,9 +70,6 @@ public class AppFrame extends JFrame {
     private JComboBox<ProxyConfig.Type> proxyTypeCombo;
 
     private JSpinner localPortJSpinner;
-
-    private JLabel testUrlLabel;
-    private JTextField testUrlJTextField;
 
     private JLabel autostartLabel;
     private JCheckBox autostartCheckBox;
@@ -206,13 +201,6 @@ public class AppFrame extends JFrame {
         return new JLabel("Local proxy port* ");
     }
 
-    private JLabel getTestUrlLabel() {
-        if (testUrlLabel == null) {
-            testUrlLabel = new JLabel("Test URL* ");
-        }
-        return testUrlLabel;
-    }
-
     private JLabel getPacFileLabel() {
         return new JLabel("PAC file location* ");
     }
@@ -305,15 +293,6 @@ public class AppFrame extends JFrame {
             localPortJSpinner.addChangeListener(e -> proxyConfig.setLocalPort((Integer) localPortJSpinner.getValue()));
         }
         return localPortJSpinner;
-    }
-
-    private JTextField getTestUrlJTextField() {
-        if (testUrlJTextField == null) {
-            testUrlJTextField = createTextField(proxyConfig.getProxyTestUrl());
-            testUrlJTextField.setToolTipText("The URL used to test the current settings");
-            testUrlJTextField.getDocument().addDocumentListener((TextChangeListener) (e) -> proxyConfig.setProxyTestUrl(testUrlJTextField.getText()));
-        }
-        return testUrlJTextField;
     }
 
     private JTextField getUsernameJTextField() {
@@ -445,16 +424,27 @@ public class AppFrame extends JFrame {
             btnTest.addActionListener(event -> {
                 SwingUtils.executeRunnable(() -> {
                     btnTest.setEnabled(false);
+                    btnStop.setEnabled(false);
                     try {
-                        proxyValidator.testProxy();
-                        SwingUtils.showInfoMessage(AppFrame.this, "Success!");
+                        String testURL = JOptionPane.showInputDialog(AppFrame.this, "Test URL*:", proxyConfig.getProxyTestUrl());
+                        if (StringUtils.isNotBlank(testURL)) {
+                            proxyConfig.setProxyTestUrl(testURL);
+                            proxyValidator.testProxy();
+                            SwingUtils.showInfoMessage(AppFrame.this, "Success!");
+                        } else if (testURL != null) {
+                            SwingUtils.showErrorMessage(AppFrame.this, "Invalid test URL!");
+                        }
                     } catch (InvalidProxySettingsException e) {
                         SwingUtils.showErrorMessage(AppFrame.this, e.getMessage());
                     } catch (Exception e) {
-                        e.printStackTrace();// FIXME
+                        logger.error("Error on testing proxy", e);
+                        SwingUtils.showErrorMessage(AppFrame.this, "Proxy test failed. See the log file for details");
                     } finally {
                         btnTest.setEnabled(true);
+                        btnStop.setEnabled(true);
                     }
+
+
                 }, AppFrame.this);
             });
             btnTest.setIcon(new TunedImageIcon("test.png"));
@@ -519,13 +509,11 @@ public class AppFrame extends JFrame {
         labelPanel.add(getProxyHostLabel());
         labelPanel.add(getProxyPortLabel());
         labelPanel.add(getLocalPortLabel());
-        labelPanel.add(getTestUrlLabel());
         labelPanel.add(getAutostartLabel());
 
         fieldPanel.add(getProxyHostJTextField());
         fieldPanel.add(wrapToPanel(getProxyPortJSpinner()));
         fieldPanel.add(wrapToPanel(getLocalPortJSpinner()));
-        fieldPanel.add(getTestUrlJTextField());
         fieldPanel.add(getAutostartCheckBox());
     }
 
@@ -533,14 +521,12 @@ public class AppFrame extends JFrame {
         labelPanel.add(getPacFileLabel());
         labelPanel.add(getBlacklistTimeoutLabel());
         labelPanel.add(getLocalPortLabel());
-        labelPanel.add(getTestUrlLabel());
         labelPanel.add(getAutostartLabel());
 
         fieldPanel.add(getPacFileJTextField());
         fieldPanel.add(wrapToPanel(getBlacklistTimeoutJSpinner(),
                 new JLabel(" (" + ProxyBlacklist.TEMPORAL_UNIT.toString().toLowerCase() + ")")));
         fieldPanel.add(wrapToPanel(getLocalPortJSpinner()));
-        fieldPanel.add(getTestUrlJTextField());
         fieldPanel.add(getAutostartCheckBox());
 
         getBtnCancelBlacklist().setEnabled(false);
@@ -550,11 +536,9 @@ public class AppFrame extends JFrame {
 
     private void configureForDirect() {
         labelPanel.add(getLocalPortLabel());
-        labelPanel.add(getTestUrlLabel());
         labelPanel.add(getAutostartLabel());
 
         fieldPanel.add(wrapToPanel(getLocalPortJSpinner()));
-        fieldPanel.add(getTestUrlJTextField());
         fieldPanel.add(getAutostartCheckBox());
     }
 
@@ -565,7 +549,6 @@ public class AppFrame extends JFrame {
         labelPanel.add(getPasswordLabel());
         labelPanel.add(getStorePasswordLabel());
         labelPanel.add(getLocalPortLabel());
-        labelPanel.add(getTestUrlLabel());
         labelPanel.add(getAutostartLabel());
 
         fieldPanel.add(getProxyHostJTextField());
@@ -574,7 +557,6 @@ public class AppFrame extends JFrame {
         fieldPanel.add(getPasswordField());
         fieldPanel.add(getStorePasswordJCheckBox());
         fieldPanel.add(wrapToPanel(getLocalPortJSpinner()));
-        fieldPanel.add(getTestUrlJTextField());
         fieldPanel.add(getAutostartCheckBox());
     }
 
@@ -698,25 +680,6 @@ public class AppFrame extends JFrame {
             SwingUtils.showErrorMessage(this, "Fill in a valid local proxy port, between 1 and 65535");
             return false;
         }
-
-        if (StringUtils.isBlank(testUrlJTextField.getText())) {
-            SwingUtils.showErrorMessage(this, "Fill in the proxy test URL");
-            return false;
-        }
-
-        // Test the proxy configuration
-      /*  try {
-            proxyValidator.testProxyConfig();
-        } catch (InvalidProxySettingsException e) {
-            logger.error("Invalid proxy settings", e);
-            SwingUtils.showErrorMessage(this, e.getMessage());
-            return false;
-        } catch (Exception e) {
-            logger.error("Validation error", e);
-            SwingUtils.showErrorMessage(this, "Validation error: "
-                    + (e.getMessage() != null ? e.getMessage() : "See the log file for details!"));
-            return false;
-        }*/
 
         return true;
     }

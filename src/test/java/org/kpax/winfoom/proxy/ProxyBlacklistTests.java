@@ -17,6 +17,7 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.kpax.winfoom.FoomApplicationTest;
 import org.kpax.winfoom.config.ProxyConfig;
+import org.kpax.winfoom.util.ReflectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -53,15 +54,15 @@ class ProxyBlacklistTests {
     }
 
     @BeforeAll
-    void beforeAll() {
-        ReflectionTestUtils.setField(proxyBlacklist, "temporalUnit", ChronoUnit.SECONDS);
+    void beforeAll() throws Exception {
+        ReflectUtils.setFinalStatic(proxyBlacklist, "TEMPORAL_UNIT", ChronoUnit.SECONDS);
         proxyBlacklist.clear();
     }
 
     @Order(0)
     @Test
     void changeTemporalUnit_ToSeconds_True() {
-        ChronoUnit temporalUnit = (ChronoUnit) ReflectionTestUtils.getField(proxyBlacklist, "temporalUnit");
+        ChronoUnit temporalUnit = (ChronoUnit) ReflectionTestUtils.getField(proxyBlacklist, "TEMPORAL_UNIT");
         Assertions.assertSame(temporalUnit, ChronoUnit.SECONDS);
     }
 

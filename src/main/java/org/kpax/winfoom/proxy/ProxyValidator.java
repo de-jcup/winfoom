@@ -28,7 +28,6 @@ import org.kpax.winfoom.util.HttpUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -51,19 +50,15 @@ public class ProxyValidator {
     @Autowired
     private ProxyController proxyController;
 
-    @Lazy
     @Autowired
     private PacScriptEvaluator pacScriptEvaluator;
 
-    @Lazy
     @Autowired
     private ProxyBlacklist proxyBlacklist;
 
-    @Lazy
     @Autowired
     private SocksConnectionSocketFactory socksConnectionSocketFactory;
 
-    @Lazy
     @Autowired
     private Socks4ConnectionSocketFactory socks4ConnectionSocketFactory;
 
@@ -94,7 +89,8 @@ public class ProxyValidator {
                     } else if (statusCode == HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED) {
                         throw new InvalidProxySettingsException("Wrong user/password");
                     } else {
-                        throw new InvalidProxySettingsException("Validation failed with statusCode: " + statusCode);
+                        throw new InvalidProxySettingsException("Validation failed with statusCode: " + statusCode +
+                                " reason: " + response.getStatusLine().getReasonPhrase());
                     }
                 }
             }

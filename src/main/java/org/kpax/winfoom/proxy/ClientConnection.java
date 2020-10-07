@@ -282,7 +282,7 @@ final class ClientConnection implements StreamSource, AutoCloseable {
     /**
      * Write a simple response with only the status line and date header, followed by an empty line.
      *
-     * @param statusCode      the request's status code.
+     * @param statusCode the request's status code.
      */
     void writeErrorResponse(int statusCode) {
         writeErrorResponse(statusCode, null);
@@ -291,8 +291,8 @@ final class ClientConnection implements StreamSource, AutoCloseable {
     /**
      * Write a simple response with only the status line and date header, followed by an empty line.
      *
-     * @param statusCode      the request's status code.
-     * @param reasonPhrase    the request's reason code
+     * @param statusCode   the request's status code.
+     * @param reasonPhrase the request's reason code
      */
     void writeErrorResponse(int statusCode, String reasonPhrase) {
         try {

@@ -12,18 +12,19 @@
 
 package org.kpax.winfoom.proxy;
 
-import org.kpax.winfoom.annotation.ProxySessionScope;
 import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.util.HttpUtils;
 import org.kpax.winfoom.util.InputOutputs;
+import org.kpax.winfoom.util.functional.Resettable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PreDestroy;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -36,9 +37,8 @@ import java.net.SocketException;
  */
 @ThreadSafe
 @Order(0)
-@ProxySessionScope
 @Component
-class LocalProxyServer implements AutoCloseable {
+class LocalProxyServer implements Resettable {
 
     private final Logger logger = LoggerFactory.getLogger(LocalProxyServer.class);
 
@@ -116,17 +116,17 @@ class LocalProxyServer implements AutoCloseable {
             logger.info("Server started, listening on port: " + proxyConfig.getLocalPort());
         } catch (Exception e) {
             // Cleanup on exception
-            close();
+            reset();
             throw e;
         }
     }
 
+    @PreDestroy
     @Override
-    public synchronized void close() {
-        logger.info("Now stop running the local proxy server");
+    public synchronized void reset() {
+        logger.info("Reset the local proxy server");
         try {
-            logger.info("Close the server socket");
-            serverSocket.close();
+            InputOutputs.close(serverSocket);
         } catch (Exception e) {
             logger.warn("Error on closing server socket", e);
         }

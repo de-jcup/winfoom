@@ -4,7 +4,7 @@
 
 setlocal EnableDelayedExpansion
 
-set ARGS=-server -Dnashorn.args=--no-deprecation-warning
+set ARGS=-server -XX:+UseG1GC -XX:MaxHeapFreeRatio=30 -XX:MinHeapFreeRatio=10 -Dnashorn.args=--no-deprecation-warning
 
 FOR %%a IN (%*) DO (
     SET "_arg_=%%~a"

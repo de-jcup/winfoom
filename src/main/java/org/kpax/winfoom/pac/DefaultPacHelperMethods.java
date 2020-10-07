@@ -39,7 +39,6 @@ import org.kpax.winfoom.pac.net.IpAddresses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.net.Inet4Address;
@@ -56,7 +55,6 @@ import java.util.stream.Collectors;
 /**
  * Default implementation of a the PAC 'helper functions'.
  */
-@Lazy
 @Component
 public class DefaultPacHelperMethods implements PacHelperMethodsNetscape, PacHelperMethodsMicrosoft {
 
@@ -67,7 +65,6 @@ public class DefaultPacHelperMethods implements PacHelperMethodsNetscape, PacHel
     @Autowired
     private SystemConfig systemConfig;
 
-    @Lazy
     @Autowired
     private GlobPatternMatcher globPatternMatcher;
 

@@ -16,6 +16,7 @@ import org.kpax.winfoom.util.InputOutputs;
 import org.springframework.util.Assert;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 
 
 /**
@@ -31,7 +32,7 @@ import java.util.Optional;
  * @param <E3> the third {@link Exception} type
  */
 public class TripleExceptionSingletonSupplier<T, E1 extends Exception, E2 extends Exception, E3 extends Exception>
-        implements TripleExceptionSupplier<T, E1, E2, E3> {
+        implements TripleExceptionSupplier<T, E1, E2, E3>, Resettable {
 
     /**
      * For thread safety purposes.
@@ -63,6 +64,7 @@ public class TripleExceptionSingletonSupplier<T, E1 extends Exception, E2 extend
      *
      * @return the value
      */
+    @Override
     public T get() throws E1, E2, E3 {
         if (t == null) {
             synchronized (LOCK) {
@@ -82,6 +84,7 @@ public class TripleExceptionSingletonSupplier<T, E1 extends Exception, E2 extend
     /**
      * If the value is an {@link AutoCloseable} close it, then nullify the value in a thread safe manner.
      */
+    @Override
     public void reset() {
         synchronized (LOCK) {
             if (t instanceof AutoCloseable) {
@@ -89,6 +92,13 @@ public class TripleExceptionSingletonSupplier<T, E1 extends Exception, E2 extend
             }
             t = null;
         }
+    }
+
+    public void reset(Consumer<T> beforeReset) {
+        if (t != null) {
+            beforeReset.accept(t);
+        }
+        reset();
     }
 
     /**

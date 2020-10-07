@@ -15,7 +15,6 @@ package org.kpax.winfoom.pac;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
@@ -24,7 +23,6 @@ import java.util.regex.Pattern;
 /**
  * GLOB pattern matcher.
  */
-@Lazy
 @Component
 public class GlobPatternMatcher {
 

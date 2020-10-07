@@ -20,7 +20,6 @@ import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.util.HttpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -30,7 +29,6 @@ import java.net.*;
  * A {@link ConnectionSocketFactory} implementation for SOCKS proxy.
  */
 @ThreadSafe
-@Lazy
 @Component
 class SocksConnectionSocketFactory implements ConnectionSocketFactory {
 
