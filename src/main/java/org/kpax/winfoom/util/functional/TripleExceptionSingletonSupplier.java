@@ -32,7 +32,7 @@ import java.util.function.Consumer;
  * @param <E3> the third {@link Exception} type
  */
 public class TripleExceptionSingletonSupplier<T, E1 extends Exception, E2 extends Exception, E3 extends Exception>
-        implements TripleExceptionSupplier<T, E1, E2, E3>, Resettable {
+        implements TripleExceptionSupplier<T, E1, E2, E3>, Resetable {
 
     /**
      * For thread safety purposes.

@@ -13,6 +13,6 @@
 package org.kpax.winfoom.util.functional;
 
 @FunctionalInterface
-public interface Resettable {
+public interface Resetable {
     void reset();
 }

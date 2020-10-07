@@ -98,7 +98,7 @@ public class AppFrame extends JFrame {
     void init() {
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         setResizable(false);
-
+        setMinimumSize(new Dimension(250, 150));
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {

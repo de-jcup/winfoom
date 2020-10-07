@@ -17,7 +17,7 @@ import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.util.HttpUtils;
 import org.kpax.winfoom.util.InputOutputs;
-import org.kpax.winfoom.util.functional.Resettable;
+import org.kpax.winfoom.util.functional.Resetable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +38,7 @@ import java.net.SocketException;
 @ThreadSafe
 @Order(0)
 @Component
-class LocalProxyServer implements Resettable {
+class LocalProxyServer implements Resetable {
 
     private final Logger logger = LoggerFactory.getLogger(LocalProxyServer.class);
 

@@ -39,7 +39,7 @@ import org.kpax.winfoom.exception.PacScriptException;
 import org.kpax.winfoom.proxy.ProxyInfo;
 import org.kpax.winfoom.util.HttpUtils;
 import org.kpax.winfoom.util.functional.DoubleExceptionSingletonSupplier;
-import org.kpax.winfoom.util.functional.Resettable;
+import org.kpax.winfoom.util.functional.Resetable;
 import org.kpax.winfoom.util.functional.SingletonSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,7 +64,7 @@ import java.util.Objects;
 @ThreadSafe
 @Order(3)
 @Component
-public class DefaultPacScriptEvaluator implements PacScriptEvaluator, Resettable {
+public class DefaultPacScriptEvaluator implements PacScriptEvaluator, Resetable {
 
     private final Logger logger = LoggerFactory.getLogger(DefaultPacScriptEvaluator.class);
 

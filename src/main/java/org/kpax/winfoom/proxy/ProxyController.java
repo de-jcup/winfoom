@@ -15,7 +15,7 @@ package org.kpax.winfoom.proxy;
 import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.pac.net.IpAddresses;
-import org.kpax.winfoom.util.functional.Resettable;
+import org.kpax.winfoom.util.functional.Resetable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,13 +102,14 @@ public class ProxyController {
      */
     void resetAllResettableSingletons() {
         logger.debug("Reset all resettable singletons");
-        Stream.of(applicationContext.getBeanNamesForType(Resettable.class)).
+        Stream.of(applicationContext.getBeanNamesForType(Resetable.class)).
                 map(applicationContext.getBeanFactory()::getSingleton).
                 filter(b -> b != null).
-                sorted(AnnotationAwareOrderComparator.INSTANCE).forEach(bean -> {
-            logger.debug("Reset bean of type {}", bean.getClass());
-            ((Resettable) bean).reset();
-        });
+                sorted(AnnotationAwareOrderComparator.INSTANCE).
+                forEach(bean -> {
+                    logger.debug("Reset bean of type {}", bean.getClass());
+                    ((Resetable) bean).reset();
+                });
     }
 
     public boolean isRunning() {
