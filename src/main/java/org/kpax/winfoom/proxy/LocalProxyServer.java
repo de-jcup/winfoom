@@ -17,14 +17,12 @@ import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.util.HttpUtils;
 import org.kpax.winfoom.util.InputOutputs;
-import org.kpax.winfoom.util.functional.Resetable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PreDestroy;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -38,7 +36,7 @@ import java.net.SocketException;
 @ThreadSafe
 @Order(0)
 @Component
-class LocalProxyServer implements Resetable {
+class LocalProxyServer implements AutoCloseable {
 
     private final Logger logger = LoggerFactory.getLogger(LocalProxyServer.class);
 
@@ -106,29 +104,28 @@ class LocalProxyServer implements Resetable {
                 }
             });
 
-            try {
-                // Save the user properties
-                proxyConfig.save();
-            } catch (Exception e) {
-                logger.warn("Error on saving user configuration", e);
-            }
-
             logger.info("Server started, listening on port: " + proxyConfig.getLocalPort());
         } catch (Exception e) {
             // Cleanup on exception
-            reset();
+            close();
             throw e;
         }
     }
 
-    @PreDestroy
     @Override
-    public synchronized void reset() {
-        logger.info("Reset the local proxy server");
+    public synchronized void close() {
+        logger.info("Close the local proxy server");
         try {
             InputOutputs.close(serverSocket);
         } catch (Exception e) {
             logger.warn("Error on closing server socket", e);
+        }
+
+        // Save the user properties
+        try {
+            proxyConfig.save();
+        } catch (Exception e) {
+            logger.warn("Error on saving user configuration", e);
         }
     }
 

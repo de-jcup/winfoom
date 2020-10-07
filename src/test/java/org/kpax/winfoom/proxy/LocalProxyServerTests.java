@@ -65,7 +65,7 @@ class LocalProxyServerTests {
     @AfterAll
     void after() throws Exception {
         if (localProxyServer != null) {
-            localProxyServer.reset();
+            localProxyServer.close();
         }
     }
 }

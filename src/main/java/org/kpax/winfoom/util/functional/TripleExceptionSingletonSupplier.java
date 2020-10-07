@@ -32,7 +32,7 @@ import java.util.function.Consumer;
  * @param <E3> the third {@link Exception} type
  */
 public class TripleExceptionSingletonSupplier<T, E1 extends Exception, E2 extends Exception, E3 extends Exception>
-        implements TripleExceptionSupplier<T, E1, E2, E3>, Resetable {
+        implements TripleExceptionSupplier<T, E1, E2, E3> {
 
     /**
      * For thread safety purposes.
@@ -84,7 +84,6 @@ public class TripleExceptionSingletonSupplier<T, E1 extends Exception, E2 extend
     /**
      * If the value is an {@link AutoCloseable} close it, then nullify the value in a thread safe manner.
      */
-    @Override
     public void reset() {
         synchronized (LOCK) {
             if (t instanceof AutoCloseable) {

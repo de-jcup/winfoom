@@ -12,14 +12,12 @@
 
 package org.kpax.winfoom.proxy;
 
-import org.kpax.winfoom.util.functional.Resetable;
 import org.kpax.winfoom.util.functional.SingletonSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PreDestroy;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.*;
@@ -31,7 +29,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Order(2)
 @Component
-public class ProxyExecutorService implements ExecutorService, Resetable {
+public class ProxyExecutorService implements ExecutorService, AutoCloseable {
 
     private final Logger logger = LoggerFactory.getLogger(ProxyExecutorService.class);
 
@@ -105,9 +103,8 @@ public class ProxyExecutorService implements ExecutorService, Resetable {
         return threadPoolSupplier.hasValue() && threadPoolSupplier.get().isTerminated();
     }
 
-    @PreDestroy
     @Override
-    public void reset() {
+    public void close() {
         logger.debug("Reset the proxy executor service");
         threadPoolSupplier.reset(ExecutorService::shutdownNow);
     }

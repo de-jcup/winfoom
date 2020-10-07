@@ -19,7 +19,6 @@ import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.SystemConfig;
-import org.kpax.winfoom.util.functional.Resetable;
 import org.kpax.winfoom.util.functional.SingletonSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +28,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
-import javax.annotation.PreDestroy;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -41,7 +39,7 @@ import java.util.concurrent.TimeUnit;
 @ThreadSafe
 @Order(1)
 @Component
-class ConnectionPoolingManager implements Resetable {
+class ConnectionPoolingManager implements AutoCloseable {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -179,9 +177,8 @@ class ConnectionPoolingManager implements Resetable {
         return createConnectionManager(socketFactoryRegistry);
     }
 
-    @PreDestroy
     @Override
-    public void reset() {
+    public void close() {
         logger.debug("Close all active connection managers and reset the suppliers");
         poolingHttpSuppliers.stream().filter(SingletonSupplier::hasValue).
                 forEach(SingletonSupplier::reset);

@@ -39,7 +39,6 @@ import org.kpax.winfoom.exception.PacScriptException;
 import org.kpax.winfoom.proxy.ProxyInfo;
 import org.kpax.winfoom.util.HttpUtils;
 import org.kpax.winfoom.util.functional.DoubleExceptionSingletonSupplier;
-import org.kpax.winfoom.util.functional.Resetable;
 import org.kpax.winfoom.util.functional.SingletonSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +47,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
-import javax.annotation.PreDestroy;
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -64,7 +62,7 @@ import java.util.Objects;
 @ThreadSafe
 @Order(3)
 @Component
-public class DefaultPacScriptEvaluator implements PacScriptEvaluator, Resetable {
+public class DefaultPacScriptEvaluator implements PacScriptEvaluator, AutoCloseable {
 
     private final Logger logger = LoggerFactory.getLogger(DefaultPacScriptEvaluator.class);
 
@@ -190,9 +188,8 @@ public class DefaultPacScriptEvaluator implements PacScriptEvaluator, Resetable 
         }
     }
 
-    @PreDestroy
     @Override
-    public void reset() {
+    public void close() {
         logger.debug("Reset the scriptEngineSupplier");
         scriptEngineSupplier.reset();
     }

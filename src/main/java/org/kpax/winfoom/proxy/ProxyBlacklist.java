@@ -14,13 +14,11 @@ package org.kpax.winfoom.proxy;
 
 import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.ProxyConfig;
-import org.kpax.winfoom.util.functional.Resetable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PreDestroy;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
@@ -35,7 +33,7 @@ import java.util.stream.Collectors;
  */
 @ThreadSafe
 @Component
-public class ProxyBlacklist implements Resetable {
+public class ProxyBlacklist implements AutoCloseable {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -127,9 +125,8 @@ public class ProxyBlacklist implements Resetable {
                         collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
     }
 
-    @PreDestroy
     @Override
-    public void reset() {
+    public void close() {
         logger.debug("Clear the blacklist");
         blacklistMap.clear();
     }
