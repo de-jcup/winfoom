@@ -106,6 +106,7 @@ public class PacProxyClientConnectionTests {
 
     @BeforeAll
     void before() throws Exception {
+        when(proxyConfig.getProxyType()).thenReturn(ProxyConfig.Type.PAC);
         ReflectionTestUtils.setField(systemConfig, "socketConnectTimeout", connectTimeout);
 
         remoteServer = ServerBootstrap.bootstrap().registerHandler("/get", new HttpRequestHandler() {

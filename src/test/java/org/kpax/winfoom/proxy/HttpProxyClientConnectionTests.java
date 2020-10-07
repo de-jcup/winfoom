@@ -98,6 +98,7 @@ class HttpProxyClientConnectionTests {
 
     @BeforeAll
     void before() throws Exception {
+        when(proxyConfig.getProxyType()).thenReturn(ProxyConfig.Type.HTTP);
         remoteProxyServer = DefaultHttpProxyServer.bootstrap()
                 .withPort(PROXY_PORT)
                 .withName("AuthenticatedUpstreamProxy")

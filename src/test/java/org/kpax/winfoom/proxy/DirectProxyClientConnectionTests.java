@@ -88,6 +88,7 @@ public class DirectProxyClientConnectionTests {
 
     @BeforeAll
     void before() throws Exception {
+        when(proxyConfig.getProxyType()).thenReturn(ProxyConfig.Type.DIRECT);
         remoteServer = ServerBootstrap.bootstrap().registerHandler("/get", new HttpRequestHandler() {
 
             @Override
