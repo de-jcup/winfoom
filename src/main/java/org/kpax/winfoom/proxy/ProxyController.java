@@ -30,7 +30,6 @@ import java.util.stream.Stream;
 
 /**
  * Provide methods to begin, end or clear proxy session.
- * <p>We rely on the Spring context to close this instance!
  *
  * @author Eugen Covaci
  */

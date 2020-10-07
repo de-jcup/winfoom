@@ -98,8 +98,7 @@ class SocketConnectClientConnectionProcessor implements ClientConnectionProcesso
                 // between the client and the remote proxy
                 // This usually ends on connection reset, timeout or any other error
                 InputOutputs.duplex(executorService,
-                        StreamSource.from(socket.getInputStream(),
-                                socket.getOutputStream()),
+                        StreamSource.from(socket.getInputStream(), socket.getOutputStream()),
                         clientConnection);
             } catch (Exception e) {
                 logger.error("Error on full duplex", e);
