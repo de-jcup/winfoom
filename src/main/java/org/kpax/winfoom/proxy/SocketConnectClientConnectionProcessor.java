@@ -74,8 +74,11 @@ class SocketConnectClientConnectionProcessor implements ClientConnectionProcesso
             } catch (UnknownHostException e) {
                 clientConnection.writeErrorResponse(HttpStatus.SC_NOT_FOUND, e.getMessage());
                 return;
+            }  catch (SocketTimeoutException e) {
+                clientConnection.writeErrorResponse(HttpStatus.SC_REQUEST_TIMEOUT, e.getMessage());
+                return;
             } catch (SocketException e) {
-                if (HttpUtils.isConnectionRefused(e)) {
+                if (HttpUtils.isConnectionRefused(e) || HttpUtils.isConnectionTimeout(e)) {
                     throw new ConnectException(e.getMessage());
                 } else if (HttpUtils.isSOCKSAuthenticationFailed(e)) {
                     clientConnection.writeErrorResponse(HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED);

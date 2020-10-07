@@ -125,7 +125,11 @@ class NonConnectClientConnectionProcessor implements ClientConnectionProcessor {
                 clientConnection.writeErrorResponse(HttpStatus.SC_NOT_FOUND, e.getMessage());
             } catch (ConnectTimeoutException e) {
                 logger.debug("Connect timeout error", e);
-                throw new ConnectException(e.getMessage());
+                if (e.getCause() instanceof SocketTimeoutException) {
+                    clientConnection.writeErrorResponse(HttpStatus.SC_REQUEST_TIMEOUT, e.getMessage());
+                } else {
+                    throw new ConnectException(e.getMessage());
+                }
             } catch (SocketException e) {
                 if (HttpUtils.isSOCKSAuthenticationFailed(e)) {
                     clientConnection.writeErrorResponse(HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED);
