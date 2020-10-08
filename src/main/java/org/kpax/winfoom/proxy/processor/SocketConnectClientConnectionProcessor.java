@@ -52,7 +52,7 @@ class SocketConnectClientConnectionProcessor extends ClientConnectionProcessor {
     private ProxyExecutorService executorService;
 
     @Override
-    void handleRequest(final ClientConnection clientConnection, final ProxyInfo proxyInfo, int processingIndex)
+    void handleRequest(final ClientConnection clientConnection, final ProxyInfo proxyInfo)
             throws IOException {
         logger.debug("Handle socket connect request");
         RequestLine requestLine = clientConnection.getRequestLine();

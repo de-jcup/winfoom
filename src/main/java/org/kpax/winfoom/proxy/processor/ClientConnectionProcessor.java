@@ -42,21 +42,20 @@ public abstract class ClientConnectionProcessor {
      *
      * @param clientConnection the {@link ClientConnection} instance.
      * @param proxyInfo        The {@link ProxyInfo} used to make the remote HTTP request.
-     * @param processingIndex
      * @throws HttpException if a HTTP exception has occurred
      * @throws IOException   if an input/output error occurs
      */
-    abstract void handleRequest(final ClientConnection clientConnection, final ProxyInfo proxyInfo, int processingIndex)
+    abstract void handleRequest(final ClientConnection clientConnection, final ProxyInfo proxyInfo)
             throws IOException, HttpException;
 
     /**
-     * Handle the exception thrown by {@link #handleRequest(ClientConnection, ProxyInfo, int)} method.
+     * Handle the exception thrown by {@link #handleRequest(ClientConnection, ProxyInfo)} method.
      * <p>The implementations are free to overwrite this method as needed.</p>
      * <p><b>Note: This method must commit the response or throw a {@link ProxyConnectException}</b></p>
      *
      * @param clientConnection the {@link ClientConnection} instance.
      * @param proxyInfo        The {@link ProxyInfo} used to make the remote HTTP request.
-     * @param e                The exception thrown by {@link #handleRequest(ClientConnection, ProxyInfo, int)} method
+     * @param e                The exception thrown by {@link #handleRequest(ClientConnection, ProxyInfo)} method
      * @throws ProxyConnectException
      */
     void handleError(final ClientConnection clientConnection, final ProxyInfo proxyInfo, final Exception e) throws ProxyConnectException {
@@ -64,18 +63,17 @@ public abstract class ClientConnectionProcessor {
     }
 
     /**
-     * Call the {@link #handleRequest(ClientConnection, ProxyInfo, int)} method then {@link #handleError(ClientConnection, ProxyInfo, Exception)}
+     * Call the {@link #handleRequest(ClientConnection, ProxyInfo)} method then {@link #handleError(ClientConnection, ProxyInfo, Exception)}
      * if an exception occurs.
      *
      * @param clientConnection the {@link ClientConnection} instance.
      * @param proxyInfo        the {@link ProxyInfo} used to make the remote HTTP request.
-     * @param processingIndex  the current index of the proxy withing the proxy list (zero based).
      * @throws ProxyConnectException
      */
-    public final void process(final ClientConnection clientConnection, final ProxyInfo proxyInfo, int processingIndex) throws ProxyConnectException {
+    public final void process(final ClientConnection clientConnection, final ProxyInfo proxyInfo) throws ProxyConnectException {
         logger.debug("Process {} for {}", clientConnection, proxyInfo);
         try {
-            handleRequest(clientConnection, proxyInfo, processingIndex);
+            handleRequest(clientConnection, proxyInfo);
         } catch (Exception e) {
             logger.debug("Error on handling request", e);
             handleError(clientConnection, proxyInfo, e);

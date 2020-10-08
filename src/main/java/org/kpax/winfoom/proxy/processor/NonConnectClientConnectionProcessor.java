@@ -62,10 +62,10 @@ class NonConnectClientConnectionProcessor extends ClientConnectionProcessor {
     private HttpClientBuilderFactory clientBuilderFactory;
 
     @Override
-    void handleRequest(final ClientConnection clientConnection, final ProxyInfo proxyInfo, int processingIndex)
+    void handleRequest(final ClientConnection clientConnection, final ProxyInfo proxyInfo)
             throws IOException {
         final HttpRequest request = clientConnection.getRequest();
-        if (processingIndex == 0) {
+        if (clientConnection.isFirstProcessing()) {
             logger.debug("Prepare the clientConnection for request");
             // Prepare the request for execution:
             // remove some headers, fix VIA header and set a proper entity

@@ -46,7 +46,7 @@ class HttpConnectClientConnectionProcessor extends ClientConnectionProcessor {
     private TunnelConnection tunnelConnection;
 
     @Override
-    void handleRequest(final ClientConnection clientConnection, final ProxyInfo proxyInfo, int processingIndex)
+    void handleRequest(final ClientConnection clientConnection, final ProxyInfo proxyInfo)
             throws IOException, HttpException {
         logger.debug("Handle HTTP connect request");
         RequestLine requestLine = clientConnection.getRequestLine();

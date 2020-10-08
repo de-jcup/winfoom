@@ -42,7 +42,7 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
+import java.util.ListIterator;
 import java.util.Set;
 
 /**
@@ -103,7 +103,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
      */
     private final URI requestUri;
 
-    private final Iterator<ProxyInfo> proxyInfoIterator;
+    private final ListIterator<ProxyInfo> proxyInfoIterator;
 
     /**
      * Constructor.<br>
@@ -166,7 +166,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
             logger.debug("Extracted URI from request {}", requestUri);
             try {
                 this.proxyInfoIterator = proxyBlacklist.removeBlacklistedProxies(
-                        pacScriptEvaluator.findProxyForURL(requestUri)).iterator();
+                        pacScriptEvaluator.findProxyForURL(requestUri)).listIterator();
             } catch (Exception e) {
                 writeErrorResponse(
                         HttpStatus.SC_INTERNAL_SERVER_ERROR,
@@ -186,7 +186,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
                     new HttpHost(proxyConfig.getProxyHost(), proxyConfig.getProxyPort());
             logger.debug("Manual case, proxy host: {}", proxyHost);
             this.proxyInfoIterator = Collections.singletonList(new ProxyInfo(proxyConfig.getProxyType(), proxyHost)).
-                    iterator();
+                    listIterator();
         }
     }
 
@@ -326,14 +326,17 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
         return autoCloseables.add(autoCloseable);
     }
 
+    public boolean isFirstProcessing() {
+        return proxyInfoIterator.previousIndex() < 1;
+    }
+
     void process() {
-        int processingIndex = -1;
         while (proxyInfoIterator.hasNext()) {
             ProxyInfo proxyInfo = proxyInfoIterator.next();
             ClientConnectionProcessor connectionProcessor = connectionProcessorSelector.selectConnectionProcessor(
                     isConnect(), proxyInfo);
             try {
-                connectionProcessor.process(this, proxyInfo, ++processingIndex);
+                connectionProcessor.process(this, proxyInfo);
                 break;
             } catch (ProxyConnectException e) {
                 logger.debug("Proxy connect error", e);
