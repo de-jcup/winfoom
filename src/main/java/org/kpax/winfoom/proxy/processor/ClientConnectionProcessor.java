@@ -43,12 +43,11 @@ public abstract class ClientConnectionProcessor {
      * @param clientConnection the {@link ClientConnection} instance.
      * @param proxyInfo        The {@link ProxyInfo} used to make the remote HTTP request.
      * @param processingIndex
-     * @throws ProxyConnectException if fail to connect to the proxy
      * @throws HttpException         if a HTTP exception has occurred
      * @throws IOException           if an input/output error occurs
      */
     abstract void handleRequest(final ClientConnection clientConnection, final ProxyInfo proxyInfo, int processingIndex)
-            throws IOException, HttpException, ProxyConnectException;
+            throws IOException, HttpException;
 
     /**
      * Handle the exception thrown by {@link #handleRequest(ClientConnection, ProxyInfo, int)} method.

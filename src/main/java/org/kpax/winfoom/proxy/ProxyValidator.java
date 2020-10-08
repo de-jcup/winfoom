@@ -45,22 +45,7 @@ public class ProxyValidator {
     private ProxyConfig proxyConfig;
 
     @Autowired
-    private SystemConfig systemConfig;
-
-    @Autowired
-    private ProxyController proxyController;
-
-    @Autowired
     private PacScriptEvaluator pacScriptEvaluator;
-
-    @Autowired
-    private ProxyBlacklist proxyBlacklist;
-
-    @Autowired
-    private SocksConnectionSocketFactory socksConnectionSocketFactory;
-
-    @Autowired
-    private Socks4ConnectionSocketFactory socks4ConnectionSocketFactory;
 
     /**
      * Test the proxy settings.
