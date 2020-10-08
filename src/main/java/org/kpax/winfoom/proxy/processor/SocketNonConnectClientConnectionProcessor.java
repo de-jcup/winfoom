@@ -30,7 +30,7 @@ import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
 /**
- *  Process any type of non-CONNECT request for SOCKS/DIRECT proxy.
+ * Process any type of non-CONNECT request for SOCKS/DIRECT proxy.
  */
 @ThreadSafe
 @Component

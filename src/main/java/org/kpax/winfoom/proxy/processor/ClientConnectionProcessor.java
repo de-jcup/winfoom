@@ -43,8 +43,8 @@ public abstract class ClientConnectionProcessor {
      * @param clientConnection the {@link ClientConnection} instance.
      * @param proxyInfo        The {@link ProxyInfo} used to make the remote HTTP request.
      * @param processingIndex
-     * @throws HttpException         if a HTTP exception has occurred
-     * @throws IOException           if an input/output error occurs
+     * @throws HttpException if a HTTP exception has occurred
+     * @throws IOException   if an input/output error occurs
      */
     abstract void handleRequest(final ClientConnection clientConnection, final ProxyInfo proxyInfo, int processingIndex)
             throws IOException, HttpException;
@@ -68,8 +68,8 @@ public abstract class ClientConnectionProcessor {
      * if an exception occurs.
      *
      * @param clientConnection the {@link ClientConnection} instance.
-     * @param proxyInfo        The {@link ProxyInfo} used to make the remote HTTP request.
-     * @param processingIndex
+     * @param proxyInfo        the {@link ProxyInfo} used to make the remote HTTP request.
+     * @param processingIndex  the current index of the proxy withing the proxy list (zero based).
      * @throws ProxyConnectException
      */
     public final void process(final ClientConnection clientConnection, final ProxyInfo proxyInfo, int processingIndex) throws ProxyConnectException {

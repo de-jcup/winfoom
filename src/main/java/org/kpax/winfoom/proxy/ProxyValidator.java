@@ -21,7 +21,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.ProxyConfig;
-import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.exception.InvalidProxySettingsException;
 import org.kpax.winfoom.pac.PacScriptEvaluator;
 import org.kpax.winfoom.util.HttpUtils;
