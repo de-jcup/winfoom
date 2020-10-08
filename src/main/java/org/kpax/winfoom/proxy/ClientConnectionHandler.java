@@ -18,8 +18,6 @@ import org.apache.http.RequestLine;
 import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.config.SystemConfig;
-import org.kpax.winfoom.exception.PacFileException;
-import org.kpax.winfoom.exception.PacScriptException;
 import org.kpax.winfoom.pac.PacScriptEvaluator;
 import org.kpax.winfoom.proxy.processor.ConnectionProcessorSelector;
 import org.kpax.winfoom.util.InputOutputs;
@@ -67,7 +65,7 @@ public class ClientConnectionHandler {
      * @throws HttpException
      */
     public void handleConnection(final Socket socket)
-            throws IOException, HttpException, PacFileException, PacScriptException {
+            throws Exception {
         ClientConnection.ClientConnectionBuilder clientConnectionBuilder =
                 new ClientConnection.ClientConnectionBuilder().
                         withSocket(socket).

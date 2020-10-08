@@ -22,8 +22,6 @@ import org.apache.http.util.EntityUtils;
 import org.kpax.winfoom.annotation.NotThreadSafe;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.config.SystemConfig;
-import org.kpax.winfoom.exception.PacFileException;
-import org.kpax.winfoom.exception.PacScriptException;
 import org.kpax.winfoom.exception.ProxyConnectException;
 import org.kpax.winfoom.pac.PacScriptEvaluator;
 import org.kpax.winfoom.proxy.processor.ClientConnectionProcessor;
@@ -42,7 +40,10 @@ import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 /**
  * It encapsulates a client's connection.
@@ -122,7 +123,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
                              final ConnectionProcessorSelector connectionProcessorSelector,
                              final PacScriptEvaluator pacScriptEvaluator,
                              final ProxyBlacklist proxyBlacklist)
-            throws IOException, HttpException, PacFileException, PacScriptException {
+            throws Exception {
         this.socket = socket;
         this.proxyConfig = proxyConfig;
         this.systemConfig = systemConfig;
@@ -405,7 +406,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
         }
 
         ClientConnection build()
-                throws HttpException, PacScriptException, PacFileException, IOException {
+                throws Exception {
             return new ClientConnection(socket, proxyConfig, systemConfig, connectionProcessorSelector, pacScriptEvaluator, proxyBlacklist);
         }
     }
