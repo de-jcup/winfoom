@@ -22,6 +22,7 @@ import org.springframework.stereotype.Component;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -76,6 +77,17 @@ public class ProxyBlacklist implements AutoCloseable {
                 return value;
             }
         });
+    }
+
+    List<ProxyInfo> removeBlacklistedProxies(final List<ProxyInfo> proxies) {
+        if (proxyConfig.getBlacklistTimeout() < 1) {
+            return proxies;
+        }
+        Instant now = Instant.now();
+        return proxies.stream().
+                filter(proxyInfo -> blacklistMap.computeIfPresent(
+                        proxyInfo, (key, value) -> value.isBefore(now) ? null : value) == null).
+                collect(Collectors.toList());
     }
 
     /**

@@ -14,15 +14,14 @@ package org.kpax.winfoom.proxy;
 
 
 import org.apache.http.HttpException;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpStatus;
 import org.apache.http.RequestLine;
 import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.config.SystemConfig;
+import org.kpax.winfoom.exception.PacFileException;
 import org.kpax.winfoom.exception.PacScriptException;
 import org.kpax.winfoom.pac.PacScriptEvaluator;
-import org.kpax.winfoom.util.HttpUtils;
+import org.kpax.winfoom.proxy.processor.ConnectionProcessorSelector;
 import org.kpax.winfoom.util.InputOutputs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,12 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.net.ConnectException;
 import java.net.Socket;
-import java.net.URI;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * Responsible for handling client's connection.
@@ -59,14 +53,7 @@ public class ClientConnectionHandler {
     private ProxyBlacklist proxyBlacklist;
 
     @Autowired
-    private HttpConnectClientConnectionProcessor httpConnectClientConnectionProcessor;
-
-    @Autowired
-    private SocketConnectClientConnectionProcessor socketConnectClientConnectionProcessor;
-
-    @Autowired
-    private NonConnectClientConnectionProcessor nonConnectClientConnectionProcessor;
-
+    private ConnectionProcessorSelector connectionProcessorSelector;
 
     /**
      * Process the client connection with each available proxy.<br>
@@ -79,91 +66,24 @@ public class ClientConnectionHandler {
      * @throws IOException
      * @throws HttpException
      */
-    public void handleConnection(final Socket socket) throws IOException, HttpException {
-        final ClientConnection clientConnection = new ClientConnection(socket, proxyConfig, systemConfig);
+    public void handleConnection(final Socket socket)
+            throws IOException, HttpException, PacFileException, PacScriptException {
+        ClientConnection.ClientConnectionBuilder clientConnectionBuilder =
+                new ClientConnection.ClientConnectionBuilder().
+                        withSocket(socket).
+                        withProxyConfig(proxyConfig).
+                        withSystemConfig(systemConfig).
+                        withConnectionProcessorSelector(connectionProcessorSelector);
+        if (proxyConfig.isAutoConfig()) {
+            clientConnectionBuilder.withPacScriptEvaluator(pacScriptEvaluator);
+            clientConnectionBuilder.withProxyBlacklist(proxyBlacklist);
+        }
+
+        final ClientConnection clientConnection = clientConnectionBuilder.build();
         RequestLine requestLine = clientConnection.getRequestLine();
         logger.debug("Handle request: {}", requestLine);
-
         try {
-            List<ProxyInfo> proxyInfoList;
-            if (proxyConfig.isAutoConfig()) {
-                URI requestUri = clientConnection.getRequestUri();
-                logger.debug("Extracted URI from request {}", requestUri);
-                proxyInfoList = pacScriptEvaluator.findProxyForURL(requestUri);
-            } else {
-
-                // Manual proxy case
-                HttpHost proxyHost = proxyConfig.getProxyType().isDirect() ? null :
-                        new HttpHost(proxyConfig.getProxyHost(), proxyConfig.getProxyPort());
-                logger.debug("Manual case, proxy host: {}", proxyHost);
-                proxyInfoList = Collections.singletonList(new ProxyInfo(proxyConfig.getProxyType(), proxyHost));
-            }
-            logger.debug("proxyInfoList {}", proxyInfoList);
-
-            ClientConnectionProcessor connectionProcessor;
-            for (Iterator<ProxyInfo> itr = proxyInfoList.iterator(); itr.hasNext(); ) {
-                ProxyInfo proxyInfo = itr.next();
-                if (itr.hasNext()) {
-                    if (proxyBlacklist.checkBlacklist(proxyInfo)) {
-                        logger.debug("Blacklisted proxy {} - skip it", proxyInfo);
-                        continue;
-                    }
-                }
-
-                // Select the processor
-                if (clientConnection.isConnect()) {
-                    if (proxyInfo.getType().isSocks() || proxyInfo.getType().isDirect()) {
-                        connectionProcessor = socketConnectClientConnectionProcessor;
-                    } else {
-                        connectionProcessor = httpConnectClientConnectionProcessor;
-                    }
-                } else {
-                    connectionProcessor = nonConnectClientConnectionProcessor;
-                }
-
-                try {
-                    logger.debug("Process connection with proxy: {}", proxyInfo);
-                    connectionProcessor.process(clientConnection, proxyInfo);
-
-                    // Success, break the iteration
-                    break;
-                } catch (ConnectException e) {// Cannot reach the proxy: try the next one
-                    // otherwise give an error response
-                    if (itr.hasNext()) {
-                        logger.debug("Failed to connect with proxy: {}, retry with the next one",
-                                proxyInfo);
-                        proxyBlacklist.blacklist(proxyInfo);
-                    } else {
-                        logger.debug("Failed to connect with proxy: {}, send the error response",
-                                proxyInfo);
-
-                        // Cannot connect to the remote proxy,
-                        // give back a 502 error code
-                        clientConnection.writeErrorResponse(HttpStatus.SC_BAD_GATEWAY, e.getMessage());
-                    }
-                } catch (Exception e) {
-                    logger.debug("Connection processing error", e);
-                    if (HttpUtils.isConnectionAborted(e)) {
-                        logger.debug("Client's connection aborted", e);
-                    } else {
-                        logger.debug("Generic error, send the error response", e);
-
-                        // Any other error, including client errors
-                        clientConnection.writeErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-                    }
-                    break;
-                }
-            }
-        } catch (PacScriptException e) {
-            clientConnection.writeErrorResponse(
-                    HttpStatus.SC_INTERNAL_SERVER_ERROR,
-                    "Proxy Auto Config file error");
-            logger.debug("Proxy Auto Config file error", e);
-        } catch (Exception e) {
-            clientConnection.writeErrorResponse(
-                    HttpStatus.SC_INTERNAL_SERVER_ERROR,
-                    e.getMessage());
-            logger.debug("Error on handling request", e);
+            clientConnection.process();
         } finally {
             InputOutputs.close(clientConnection);
         }

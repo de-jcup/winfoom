@@ -36,7 +36,7 @@ import java.nio.file.StandardOpenOption;
  * Created on 4/6/2020
  */
 @NotThreadSafe
-class RepeatableHttpEntity extends AbstractHttpEntity implements Closeable {
+public class RepeatableHttpEntity extends AbstractHttpEntity implements Closeable {
 
     private final SessionInputBufferImpl inputBuffer;
 

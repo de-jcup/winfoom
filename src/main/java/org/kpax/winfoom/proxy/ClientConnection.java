@@ -12,7 +12,6 @@
 
 package org.kpax.winfoom.proxy;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.*;
 import org.apache.http.config.MessageConstraints;
 import org.apache.http.impl.io.DefaultHttpRequestParser;
@@ -23,6 +22,12 @@ import org.apache.http.util.EntityUtils;
 import org.kpax.winfoom.annotation.NotThreadSafe;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.config.SystemConfig;
+import org.kpax.winfoom.exception.PacFileException;
+import org.kpax.winfoom.exception.PacScriptException;
+import org.kpax.winfoom.exception.ProxyConnectException;
+import org.kpax.winfoom.pac.PacScriptEvaluator;
+import org.kpax.winfoom.proxy.processor.ClientConnectionProcessor;
+import org.kpax.winfoom.proxy.processor.ConnectionProcessorSelector;
 import org.kpax.winfoom.util.HttpUtils;
 import org.kpax.winfoom.util.InputOutputs;
 import org.kpax.winfoom.util.ObjectFormat;
@@ -37,9 +42,7 @@ import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * It encapsulates a client's connection.
@@ -50,7 +53,7 @@ import java.util.Set;
  * @author Eugen Covaci
  */
 @NotThreadSafe
-final class ClientConnection implements StreamSource, AutoCloseable {
+public final class ClientConnection implements StreamSource, AutoCloseable {
 
     private final Logger logger = LoggerFactory.getLogger(ClientConnection.class);
 
@@ -67,6 +70,12 @@ final class ClientConnection implements StreamSource, AutoCloseable {
     private final ProxyConfig proxyConfig;
 
     private final SystemConfig systemConfig;
+
+    private final PacScriptEvaluator pacScriptEvaluator;
+
+    private final ProxyBlacklist proxyBlacklist;
+
+    private final ConnectionProcessorSelector connectionProcessorSelector;
 
     /**
      * The socket's input stream.
@@ -93,28 +102,37 @@ final class ClientConnection implements StreamSource, AutoCloseable {
      */
     private final URI requestUri;
 
-    private boolean prepareAttempted;
+    private final Iterator<ProxyInfo> proxyInfoIterator;
 
     /**
      * Constructor.<br>
      * Has the responsibility of parsing the request.
      *
-     * @param socket       the underlying socket.
+     * @param socket                      the underlying socket.
      * @param proxyConfig
      * @param systemConfig
+     * @param connectionProcessorSelector
+     * @param proxyBlacklist
      * @throws IOException
      * @throws HttpException
      */
-    ClientConnection(final Socket socket,
-                     final ProxyConfig proxyConfig,
-                     final SystemConfig systemConfig) throws IOException, HttpException {
+    private ClientConnection(final Socket socket,
+                             final ProxyConfig proxyConfig,
+                             final SystemConfig systemConfig,
+                             final ConnectionProcessorSelector connectionProcessorSelector,
+                             final PacScriptEvaluator pacScriptEvaluator,
+                             final ProxyBlacklist proxyBlacklist)
+            throws IOException, HttpException, PacFileException, PacScriptException {
         this.socket = socket;
         this.proxyConfig = proxyConfig;
         this.systemConfig = systemConfig;
+        this.pacScriptEvaluator = pacScriptEvaluator;
 
         // Set the streams
         this.inputStream = socket.getInputStream();
         this.outputStream = socket.getOutputStream();
+        this.proxyBlacklist = proxyBlacklist;
+        this.connectionProcessorSelector = connectionProcessorSelector;
 
         // Parse the request
         try {
@@ -141,6 +159,34 @@ final class ClientConnection implements StreamSource, AutoCloseable {
             }
             throw e;
         }
+
+        if (proxyConfig.isAutoConfig()) {
+            URI requestUri = getRequestUri();
+            logger.debug("Extracted URI from request {}", requestUri);
+            try {
+                this.proxyInfoIterator = proxyBlacklist.removeBlacklistedProxies(
+                        pacScriptEvaluator.findProxyForURL(requestUri)).iterator();
+            } catch (Exception e) {
+                writeErrorResponse(
+                        HttpStatus.SC_INTERNAL_SERVER_ERROR,
+                        "Proxy Auto Config file error: " + e.getMessage());
+                throw e;
+            }
+            if (!this.proxyInfoIterator.hasNext()) {
+                writeErrorResponse(
+                        HttpStatus.SC_BAD_GATEWAY,
+                        "Proxy Auto Config error: no available proxy server!");
+                throw new IllegalStateException("All proxy servers are blacklisted!");
+            }
+        } else {
+
+            // Manual proxy case
+            HttpHost proxyHost = proxyConfig.getProxyType().isDirect() ? null :
+                    new HttpHost(proxyConfig.getProxyHost(), proxyConfig.getProxyPort());
+            logger.debug("Manual case, proxy host: {}", proxyHost);
+            this.proxyInfoIterator = Collections.singletonList(new ProxyInfo(proxyConfig.getProxyType(), proxyHost)).
+                    iterator();
+        }
     }
 
     /**
@@ -162,90 +208,21 @@ final class ClientConnection implements StreamSource, AutoCloseable {
     /**
      * @return the session input buffer used to parse the request into a {@link HttpRequest} instance
      */
-    SessionInputBufferImpl getSessionInputBuffer() {
+    public SessionInputBufferImpl getSessionInputBuffer() {
         return sessionInputBuffer;
     }
 
     /**
      * @return the HTTP request.
      */
-    HttpRequest getRequest() {
+    public HttpRequest getRequest() {
         return request;
-    }
-
-    /**
-     * Prepare the request for execution, if hasn't been already prepared.
-     *
-     * @return the HTTP request, prepared for execution.
-     */
-    HttpRequest getPreparedRequest() throws IOException {
-        if (!prepareAttempted) {
-            prepareAttempted = true;
-            logger.debug("Prepare the clientConnection for request");
-            // Prepare the request for execution:
-            // remove some headers, fix VIA header and set a proper entity
-            if (request instanceof HttpEntityEnclosingRequest) {
-                logger.debug("Set enclosing entity");
-                RepeatableHttpEntity entity = new RepeatableHttpEntity(request,
-                        this.sessionInputBuffer,
-                        proxyConfig.getTempDirectory(),
-                        systemConfig.getInternalBufferLength());
-                registerAutoCloseable(entity);
-
-                Header transferEncoding = request.getFirstHeader(HTTP.TRANSFER_ENCODING);
-                if (transferEncoding != null
-                        && StringUtils.containsIgnoreCase(transferEncoding.getValue(), HTTP.CHUNK_CODING)) {
-                    logger.debug("Mark entity as chunked");
-                    entity.setChunked(true);
-
-                    // Apache HttpClient adds a Transfer-Encoding header's chunk directive
-                    // so remove or strip the existent one from chunk directive
-                    request.removeHeader(transferEncoding);
-                    String nonChunkedTransferEncoding = HttpUtils.stripChunked(transferEncoding.getValue());
-                    if (StringUtils.isNotEmpty(nonChunkedTransferEncoding)) {
-                        request.addHeader(
-                                HttpUtils.createHttpHeader(HttpHeaders.TRANSFER_ENCODING,
-                                        nonChunkedTransferEncoding));
-                        logger.debug("Add chunk-striped request header");
-                    } else {
-                        logger.debug("Remove transfer encoding chunked request header");
-                    }
-
-                }
-                ((HttpEntityEnclosingRequest) request).setEntity(entity);
-            } else {
-                logger.debug("No enclosing entity");
-            }
-
-            // Remove banned headers
-            List<String> bannedHeaders = request instanceof HttpEntityEnclosingRequest ?
-                    HttpUtils.ENTITY_BANNED_HEADERS : HttpUtils.DEFAULT_BANNED_HEADERS;
-            for (Header header : request.getAllHeaders()) {
-                if (bannedHeaders.contains(header.getName())) {
-                    request.removeHeader(header);
-                    logger.debug("Request header {} removed", header);
-                } else {
-                    logger.debug("Allow request header {}", header);
-                }
-            }
-
-            // Add a Via header and remove the existent one(s)
-            Header viaHeader = request.getFirstHeader(HttpHeaders.VIA);
-            request.removeHeaders(HttpHeaders.VIA);
-            request.setHeader(HttpUtils.createViaHeader(getRequestLine().getProtocolVersion(),
-                    viaHeader));
-        }
-        return request;
-    }
-
-    boolean isPrepareAttempted() {
-        return prepareAttempted;
     }
 
     /**
      * @return the request URI extracted from the request line.
      */
-    URI getRequestUri() {
+    public URI getRequestUri() {
         return requestUri;
     }
 
@@ -255,7 +232,7 @@ final class ClientConnection implements StreamSource, AutoCloseable {
      * @param obj the object
      * @throws IOException
      */
-    void write(Object obj) throws IOException {
+    public void write(Object obj) throws IOException {
         outputStream.write(ObjectFormat.toCrlf(obj));
     }
 
@@ -264,27 +241,16 @@ final class ClientConnection implements StreamSource, AutoCloseable {
      *
      * @throws IOException
      */
-    void writeln() throws IOException {
+    public void writeln() throws IOException {
         outputStream.write(ObjectFormat.CRLF.getBytes());
     }
-
-    /**
-     * Write a simple response with only the status line with protocol version 1.1 and date header,
-     * followed by an empty line.
-     *
-     * @param statusCode the status code.
-     * @param e          the message of this error becomes the reasonPhrase from the status line.
-     */
-/*    void writeErrorResponse(int statusCode, Exception e) {
-        writeErrorResponse(statusCode, e.getMessage());
-    }*/
 
     /**
      * Write a simple response with only the status line and date header, followed by an empty line.
      *
      * @param statusCode the request's status code.
      */
-    void writeErrorResponse(int statusCode) {
+    public void writeErrorResponse(int statusCode) {
         writeErrorResponse(statusCode, null);
     }
 
@@ -294,7 +260,7 @@ final class ClientConnection implements StreamSource, AutoCloseable {
      * @param statusCode   the request's status code.
      * @param reasonPhrase the request's reason code
      */
-    void writeErrorResponse(int statusCode, String reasonPhrase) {
+    public void writeErrorResponse(int statusCode, String reasonPhrase) {
         try {
             write(HttpUtils.toStatusLine(request != null ? request.getProtocolVersion() : HttpVersion.HTTP_1_1, statusCode, reasonPhrase));
             write(HttpUtils.createHttpHeader(HTTP.DATE_HEADER, HttpUtils.getCurrentDate()));
@@ -310,7 +276,7 @@ final class ClientConnection implements StreamSource, AutoCloseable {
      * @param httpResponse the HTTP response
      * @throws Exception
      */
-    void writeHttpResponse(final HttpResponse httpResponse) throws Exception {
+    public void writeHttpResponse(final HttpResponse httpResponse) throws Exception {
         StatusLine statusLine = httpResponse.getStatusLine();
         logger.debug("Write statusLine {}", statusLine);
         write(statusLine);
@@ -331,7 +297,7 @@ final class ClientConnection implements StreamSource, AutoCloseable {
         EntityUtils.consume(entity);
     }
 
-    boolean isConnect() {
+    public boolean isConnect() {
         return HttpUtils.HTTP_CONNECT.equalsIgnoreCase(request.getRequestLine().getMethod());
     }
 
@@ -345,7 +311,7 @@ final class ClientConnection implements StreamSource, AutoCloseable {
     /**
      * @return the request's line
      */
-    RequestLine getRequestLine() {
+    public RequestLine getRequestLine() {
         return request.getRequestLine();
     }
 
@@ -355,12 +321,92 @@ final class ClientConnection implements StreamSource, AutoCloseable {
      * @param autoCloseable the {@link AutoCloseable} to be closed.
      * @return {@code true} if the specified element isn't already registered
      */
-    boolean registerAutoCloseable(AutoCloseable autoCloseable) {
+    public boolean registerAutoCloseable(AutoCloseable autoCloseable) {
         return autoCloseables.add(autoCloseable);
+    }
+
+    void process() {
+        int processingIndex = -1;
+        while (proxyInfoIterator.hasNext()) {
+            ProxyInfo proxyInfo = proxyInfoIterator.next();
+            ClientConnectionProcessor connectionProcessor = connectionProcessorSelector.selectConnectionProcessor(
+                    isConnect(), proxyInfo);
+            try {
+                connectionProcessor.process(this, proxyInfo, ++processingIndex);
+                break;
+            } catch (ProxyConnectException e) {
+                logger.debug("Proxy connect error", e);
+                if (proxyConfig.isAutoConfig()) {
+                    proxyBlacklist.blacklist(proxyInfo);
+                }
+                if (proxyInfoIterator.hasNext()) {
+                    logger.debug("Failed to connect to proxy: {}, retry with the next one", proxyInfo);
+                } else {
+                    logger.debug("Failed to connect to proxy: {}, send the error response", proxyInfo);
+
+                    // Cannot connect to the remote proxy,
+                    // give back a 502 error code
+                    writeErrorResponse(HttpStatus.SC_BAD_GATEWAY, e.getMessage());
+                    break;
+                }
+            }
+        }
     }
 
     @Override
     public void close() {
         autoCloseables.forEach(InputOutputs::close);
+    }
+
+    @Override
+    public String toString() {
+        return "ClientConnection{" +
+                "requestUri=" + requestUri +
+                '}';
+    }
+
+    static class ClientConnectionBuilder {
+
+        private Socket socket;
+        private ProxyConfig proxyConfig;
+        private SystemConfig systemConfig;
+        private PacScriptEvaluator pacScriptEvaluator;
+        private ProxyBlacklist proxyBlacklist;
+        private ConnectionProcessorSelector connectionProcessorSelector;
+
+        ClientConnectionBuilder withSocket(Socket socket) {
+            this.socket = socket;
+            return this;
+        }
+
+        ClientConnectionBuilder withProxyConfig(ProxyConfig proxyConfig) {
+            this.proxyConfig = proxyConfig;
+            return this;
+        }
+
+        ClientConnectionBuilder withSystemConfig(SystemConfig systemConfig) {
+            this.systemConfig = systemConfig;
+            return this;
+        }
+
+        ClientConnectionBuilder withPacScriptEvaluator(PacScriptEvaluator pacScriptEvaluator) {
+            this.pacScriptEvaluator = pacScriptEvaluator;
+            return this;
+        }
+
+        public ClientConnectionBuilder withProxyBlacklist(ProxyBlacklist proxyBlacklist) {
+            this.proxyBlacklist = proxyBlacklist;
+            return this;
+        }
+
+        public ClientConnectionBuilder withConnectionProcessorSelector(ConnectionProcessorSelector connectionProcessorSelector) {
+            this.connectionProcessorSelector = connectionProcessorSelector;
+            return this;
+        }
+
+        ClientConnection build()
+                throws HttpException, PacScriptException, PacFileException, IOException {
+            return new ClientConnection(socket, proxyConfig, systemConfig, connectionProcessorSelector, pacScriptEvaluator, proxyBlacklist);
+        }
     }
 }

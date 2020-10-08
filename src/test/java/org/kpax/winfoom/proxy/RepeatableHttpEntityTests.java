@@ -24,8 +24,11 @@ import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 import org.junit.jupiter.api.*;
 import org.kpax.winfoom.TestConstants;
+import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.util.HttpUtils;
 import org.kpax.winfoom.util.InputOutputs;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -40,6 +43,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.kpax.winfoom.TestConstants.PROXY_PORT;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Eugen Covaci {@literal eugen.covaci.q@gmail.com}
@@ -64,8 +69,17 @@ class RepeatableHttpEntityTests {
 
     private Path tempDirectory;
 
+    @Mock
+    private ProxyConfig proxyConfig;
+
     @BeforeAll
     void before() throws IOException {
+        MockitoAnnotations.initMocks(this);
+        when(proxyConfig.getProxyType()).thenReturn(ProxyConfig.Type.HTTP);
+        when(proxyConfig.isAutoConfig()).thenReturn(false);
+        when(proxyConfig.getProxyHost()).thenReturn("localhost");
+        when(proxyConfig.getProxyPort()).thenReturn(PROXY_PORT);
+
         tempDirectory = Paths.get(System.getProperty("user.dir"), "target", "temp");
         Files.createDirectories(tempDirectory);
         logger.info("Using temp directory {}", tempDirectory);
@@ -82,7 +96,8 @@ class RepeatableHttpEntityTests {
 
                         // Handle this connection.
                         try {
-                            ClientConnection clientConnection = new ClientConnection(socket, null, null);
+                            ClientConnection clientConnection = new ClientConnection.ClientConnectionBuilder().
+                                    withSocket(socket).withProxyConfig(proxyConfig).build();
                             RepeatableHttpEntity requestEntity;
                             HttpRequest request = clientConnection.getRequest();
                             try {

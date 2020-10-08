@@ -33,7 +33,7 @@ import org.springframework.stereotype.Component;
  */
 @ThreadSafe
 @Component
-class HttpClientBuilderFactory {
+public class HttpClientBuilderFactory {
 
     @Autowired
     private SystemConfig systemConfig;
@@ -50,7 +50,7 @@ class HttpClientBuilderFactory {
      * @param proxyInfo the proxy.
      * @return a pre-configured {@link HttpClientBuilder} instance for the requested proxy.
      */
-    HttpClientBuilder createClientBuilder(final ProxyInfo proxyInfo) {
+    public HttpClientBuilder createClientBuilder(final ProxyInfo proxyInfo) {
         if (proxyInfo.getType().isSocks()) {
             return createSocksClientBuilder(proxyInfo.getType().isSocks4());
         } else if (proxyInfo.getType().isHttp()) {

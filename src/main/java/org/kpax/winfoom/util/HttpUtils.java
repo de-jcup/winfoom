@@ -21,6 +21,8 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicStatusLine;
 import org.apache.http.protocol.HTTP;
 import org.kpax.winfoom.proxy.ProxyInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
 import java.io.ByteArrayOutputStream;
@@ -85,6 +87,8 @@ public final class HttpUtils {
      */
     public static final TimeZone GMT = TimeZone.getTimeZone("GMT");
 
+    private static final Logger logger = LoggerFactory.getLogger(HttpUtils.class);
+
     private HttpUtils() {
     }
 
@@ -140,6 +144,7 @@ public final class HttpUtils {
                 return toUri(requestLine.getUri());
             }
         } catch (Exception e) {
+            logger.debug("Error on parsing request URI", e);
             if (e instanceof URISyntaxException) {
                 throw e;
             }
