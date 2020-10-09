@@ -108,6 +108,17 @@ The available settings:
 * For HTTP proxy type, Winfoom uses the current Windows user credentials to authenticate to the remote proxy.
 * For SOCKS5 proxy type, the user/password need the be provided when required.
 
+### Error codes
+Starting with v2.6.0 Winfoom gives back the following HTTP error codes when there is no response from the remote proxy for various reasons:
+
+| Proxy type         |  HTTP error code  |  When  |
+|--------------------|:-----------------:|:------:|
+|HTTP|502|The remote proxy is not available|
+|SOCKS/DIRECT|502|The remote proxy is not available|
+|SOCKS/DIRECT|504|The giving address is not reachable|
+|HTTP/SOCKS/DIRECT|500|Any other error|
+
+
 ### Test
 To test it, open a browser, let's say Firefox and configure proxy like this:
 
