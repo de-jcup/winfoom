@@ -62,7 +62,7 @@ class LocalProxyServer implements AutoCloseable {
      * <li>When a connection arrives, it delegates the handling to the {@link ClientConnectionHandler}, on a new
      * thread.</li>
      * </ul>
-     * The proxy settings are saved after the local proxy server successfully starts.
+     * The proxy settings are saved after the local proxy server is stopped.
      *
      * @throws IllegalStateException if the server had been started.
      * @throws Exception
