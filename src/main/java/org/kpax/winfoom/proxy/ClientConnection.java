@@ -305,7 +305,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
     /**
      * @return {@code true} iff the underlying socket is closed.
      */
-    boolean isClosed() {
+    public boolean isClosed() {
         return socket.isClosed();
     }
 
@@ -399,12 +399,12 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
             return this;
         }
 
-        public ClientConnectionBuilder withProxyBlacklist(ProxyBlacklist proxyBlacklist) {
+        ClientConnectionBuilder withProxyBlacklist(ProxyBlacklist proxyBlacklist) {
             this.proxyBlacklist = proxyBlacklist;
             return this;
         }
 
-        public ClientConnectionBuilder withConnectionProcessorSelector(ConnectionProcessorSelector connectionProcessorSelector) {
+        ClientConnectionBuilder withConnectionProcessorSelector(ConnectionProcessorSelector connectionProcessorSelector) {
             this.connectionProcessorSelector = connectionProcessorSelector;
             return this;
         }
