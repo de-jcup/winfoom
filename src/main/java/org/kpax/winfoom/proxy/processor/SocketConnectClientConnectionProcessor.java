@@ -54,10 +54,8 @@ class SocketConnectClientConnectionProcessor extends ClientConnectionProcessor {
     @Override
     void handleRequest(final ClientConnection clientConnection, final ProxyInfo proxyInfo)
             throws IOException {
-        logger.debug("Handle socket connect request");
         RequestLine requestLine = clientConnection.getRequestLine();
         HttpHost target = HttpHost.create(requestLine.getUri());
-
         Proxy proxy;
         if (proxyInfo.getType().isSocks()) {
             proxy = new Proxy(Proxy.Type.SOCKS,

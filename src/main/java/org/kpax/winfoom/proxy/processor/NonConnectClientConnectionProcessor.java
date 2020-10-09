@@ -121,13 +121,11 @@ class NonConnectClientConnectionProcessor extends ClientConnectionProcessor {
                     viaHeader));
         }
 
-        logger.debug("Handle non-connect request");
         try (CloseableHttpClient httpClient = clientBuilderFactory.createClientBuilder(proxyInfo).build()) {
             URI uri = clientConnection.getRequestUri();
             HttpHost target = new HttpHost(uri.getHost(),
                     uri.getPort(),
                     uri.getScheme());
-
             HttpClientContext context = HttpClientContext.create();
             if (proxyInfo.getType().isSocks()) {
                 InetSocketAddress proxySocketAddress = new InetSocketAddress(proxyInfo.getProxyHost().getHostName(),

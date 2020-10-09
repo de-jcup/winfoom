@@ -48,11 +48,9 @@ class HttpConnectClientConnectionProcessor extends ClientConnectionProcessor {
     @Override
     void handleRequest(final ClientConnection clientConnection, final ProxyInfo proxyInfo)
             throws IOException, HttpException {
-        logger.debug("Handle HTTP connect request");
         RequestLine requestLine = clientConnection.getRequestLine();
         HttpHost target = HttpHost.create(requestLine.getUri());
         HttpHost proxy = new HttpHost(proxyInfo.getProxyHost().getHostName(), proxyInfo.getProxyHost().getPort());
-
         try (Tunnel tunnel = tunnelConnection.open(proxy, target, requestLine.getProtocolVersion())) {
             try {
                 // Handle the tunnel response

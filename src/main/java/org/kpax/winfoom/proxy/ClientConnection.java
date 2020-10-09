@@ -40,10 +40,7 @@ import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.ListIterator;
-import java.util.Set;
+import java.util.*;
 
 /**
  * It encapsulates a client's connection.
@@ -165,8 +162,11 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
             URI requestUri = getRequestUri();
             logger.debug("Extracted URI from request {}", requestUri);
             try {
-                this.proxyInfoIterator = proxyBlacklist.removeBlacklistedProxies(
-                        pacScriptEvaluator.findProxyForURL(requestUri)).listIterator();
+                List<ProxyInfo> proxies = pacScriptEvaluator.findProxyForURL(requestUri);
+                logger.debug("Proxies: {}", proxies);
+                List<ProxyInfo> nonBlacklistedProxies = proxyBlacklist.removeBlacklistedProxies(proxies);
+                logger.debug("NonBlacklistedProxies: {}", nonBlacklistedProxies);
+                this.proxyInfoIterator = nonBlacklistedProxies.listIterator();
             } catch (Exception e) {
                 writeErrorResponse(
                         HttpStatus.SC_INTERNAL_SERVER_ERROR,
@@ -335,6 +335,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
             ProxyInfo proxyInfo = proxyInfoIterator.next();
             ClientConnectionProcessor connectionProcessor = connectionProcessorSelector.selectConnectionProcessor(
                     isConnect(), proxyInfo);
+            logger.debug("Using connectionProcessor: {}", connectionProcessor);
             try {
                 connectionProcessor.process(this, proxyInfo);
                 break;
