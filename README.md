@@ -115,9 +115,8 @@ Starting with v2.6.0 Winfoom gives back the following HTTP error codes when ther
 |--------------------|:-----------------:|:------:|
 |ALL|502|The remote proxy is not available|
 |SOCKS/DIRECT|504|The giving address is not reachable|
-|ALL|500|Any other error|
 |PAC|502|All remote proxies are blacklisted|
-
+|ALL|500|Any other error|
 
 ### Test
 To test it, open a browser, let's say Firefox and configure proxy like this:
