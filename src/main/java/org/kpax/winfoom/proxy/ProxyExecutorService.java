@@ -12,6 +12,7 @@
 
 package org.kpax.winfoom.proxy;
 
+import org.kpax.winfoom.util.functional.Resetable;
 import org.kpax.winfoom.util.functional.SingletonSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Order(2)
 @Component
-public class ProxyExecutorService implements ExecutorService, AutoCloseable {
+public class ProxyExecutorService implements ExecutorService, Resetable {
 
     private final Logger logger = LoggerFactory.getLogger(ProxyExecutorService.class);
 

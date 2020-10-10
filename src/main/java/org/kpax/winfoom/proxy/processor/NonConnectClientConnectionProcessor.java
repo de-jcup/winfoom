@@ -16,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.*;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.protocol.HTTP;
@@ -38,6 +39,7 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.util.List;
 
 /**
@@ -196,6 +198,8 @@ class NonConnectClientConnectionProcessor extends ClientConnectionProcessor {
             } else {
                 clientConnection.writeErrorResponse(HttpStatus.SC_GATEWAY_TIMEOUT, e.getMessage());
             }
+        } else if (e instanceof ConnectTimeoutException || e instanceof UnknownHostException) {
+            throw new ProxyConnectException(e.getMessage(), e);
         } else {
             // Generic error
             clientConnection.writeErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());

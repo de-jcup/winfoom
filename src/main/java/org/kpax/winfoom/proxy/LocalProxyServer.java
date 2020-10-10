@@ -17,6 +17,7 @@ import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.util.HttpUtils;
 import org.kpax.winfoom.util.InputOutputs;
+import org.kpax.winfoom.util.functional.Resetable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +37,7 @@ import java.net.SocketException;
 @ThreadSafe
 @Order(0)
 @Component
-class LocalProxyServer implements AutoCloseable {
+class LocalProxyServer implements Resetable {
 
     private final Logger logger = LoggerFactory.getLogger(LocalProxyServer.class);
 
@@ -62,7 +63,6 @@ class LocalProxyServer implements AutoCloseable {
      * <li>When a connection arrives, it delegates the handling to the {@link ClientConnectionHandler}, on a new
      * thread.</li>
      * </ul>
-     * The proxy settings are saved after the local proxy server is stopped.
      *
      * @throws Exception
      */
@@ -119,13 +119,6 @@ class LocalProxyServer implements AutoCloseable {
             InputOutputs.close(serverSocket);
         } catch (Exception e) {
             logger.warn("Error on closing server socket", e);
-        }
-
-        // Save the user properties
-        try {
-            proxyConfig.save();
-        } catch (Exception e) {
-            logger.warn("Error on saving user configuration", e);
         }
     }
 

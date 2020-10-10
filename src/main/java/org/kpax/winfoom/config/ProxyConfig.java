@@ -49,7 +49,7 @@ import java.util.List;
 @Component
 @PropertySource(value = "file:${user.home}/" + SystemConfig.APP_HOME_DIR_NAME + "/" + ProxyConfig.FILENAME,
         ignoreResourceNotFound = true)
-public class ProxyConfig {
+public class ProxyConfig implements AutoCloseable {
 
     public static final String FILENAME = "proxy.properties";
 
@@ -319,7 +319,7 @@ public class ProxyConfig {
      *
      * @throws ConfigurationException
      */
-    public void save() throws ConfigurationException {
+    private void save() throws ConfigurationException {
         File userProperties = Paths.get(System.getProperty("user.home"), SystemConfig.APP_HOME_DIR_NAME,
                 ProxyConfig.FILENAME).toFile();
         FileBasedConfigurationBuilder<PropertiesConfiguration> propertiesBuilder = new Configurations()
@@ -419,6 +419,16 @@ public class ProxyConfig {
                 ", autostart=" + autostart +
                 ", tempDirectory=" + tempDirectory +
                 '}';
+    }
+
+    @Override
+    public void close() throws Exception {
+        // Save the user properties
+        try {
+            save();
+        } catch (Exception e) {
+            logger.warn("Error on saving user configuration", e);
+        }
     }
 
     public enum Type implements ProxyType {

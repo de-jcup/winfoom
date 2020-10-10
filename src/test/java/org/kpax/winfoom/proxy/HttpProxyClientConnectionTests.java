@@ -12,7 +12,6 @@
 
 package org.kpax.winfoom.proxy;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -33,7 +32,6 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.kpax.winfoom.FoomApplicationTest;
-import org.kpax.winfoom.TestConstants;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.littleshoot.proxy.HttpProxyServer;
 import org.littleshoot.proxy.ProxyAuthenticator;
@@ -48,9 +46,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -83,8 +78,6 @@ class HttpProxyClientConnectionTests {
     @Autowired
     private ProxyController proxyController;
 
-    private ServerSocket serverSocket;
-
     private HttpServer remoteServer;
 
     private static HttpProxyServer remoteProxyServer;
@@ -93,12 +86,13 @@ class HttpProxyClientConnectionTests {
     void beforeEach() {
         when(proxyConfig.getProxyHost()).thenReturn("localhost");
         when(proxyConfig.getProxyPort()).thenReturn(PROXY_PORT);
+        when(proxyConfig.getLocalPort()).thenReturn(LOCAL_PROXY_PORT);
         when(proxyConfig.getProxyType()).thenReturn(ProxyConfig.Type.HTTP);
     }
 
     @BeforeAll
     void before() throws Exception {
-        when(proxyConfig.getProxyType()).thenReturn(ProxyConfig.Type.HTTP);
+        beforeEach();
         remoteProxyServer = DefaultHttpProxyServer.bootstrap()
                 .withPort(PROXY_PORT)
                 .withName("AuthenticatedUpstreamProxy")
@@ -125,35 +119,10 @@ class HttpProxyClientConnectionTests {
         }).create();
         remoteServer.start();
 
-        serverSocket = new ServerSocket(TestConstants.LOCAL_PROXY_PORT);
-
         if (!proxyController.isRunning()) {
             proxyController.start();
         }
 
-        new Thread(() -> {
-            while (!serverSocket.isClosed()) {
-                try {
-                    Socket socket = serverSocket.accept();
-                    socket.setSoTimeout(socketTimeout * 1000);
-                    new Thread(() -> {
-
-                        // Handle this connection.
-                        try {
-                            clientConnectionHandler.handleConnection(socket);
-                        } catch (Exception e) {
-                            logger.error("Error on handling connection", e);
-                        }
-                    }).start();
-                } catch (SocketException e) {
-                    if (!StringUtils.startsWithIgnoreCase(e.getMessage(), "Interrupted function call")) {
-                        logger.error("Socket error on getting connection", e);
-                    }
-                } catch (Exception e) {
-                    logger.error("Error on getting connection", e);
-                }
-            }
-        }).start();
     }
 
     @Test
@@ -226,13 +195,68 @@ class HttpProxyClientConnectionTests {
         }
     }
 
+    @Test
+    @Order(5)
+    void httpProxy_ConnectNoRemoteProxy_502BadGateway() throws IOException {
+        remoteProxyServer.stop();
+        HttpHost localProxy = new HttpHost("localhost", LOCAL_PROXY_PORT, "http");
+        try (CloseableHttpClient httpClient = HttpClientBuilder.create().setProxy(localProxy).build()) {
+            HttpHost target = HttpHost.create("http://localhost:" + remoteServer.getLocalPort());
+            HttpRequest request = new BasicHttpRequest("CONNECT", "localhost:" + remoteServer.getLocalPort());
+            try (CloseableHttpResponse response = httpClient.execute(target, request)) {
+                assertEquals(HttpStatus.SC_BAD_GATEWAY, response.getStatusLine().getStatusCode());
+            }
+        }
+    }
+
+    @Test
+    @Order(6)
+    void httpProxy_ConnectNoRemoteProxyNonExistentDomain_502BadGateway() throws IOException {
+        remoteProxyServer.stop();
+        HttpHost localProxy = new HttpHost("localhost", LOCAL_PROXY_PORT, "http");
+        try (CloseableHttpClient httpClient = HttpClientBuilder.create().setProxy(localProxy).build()) {
+            HttpHost target = HttpHost.create("http://blabla:" + remoteServer.getLocalPort());
+            HttpRequest request = new BasicHttpRequest("CONNECT", "blabla:" + remoteServer.getLocalPort());
+            try (CloseableHttpResponse response = httpClient.execute(target, request)) {
+                assertEquals(HttpStatus.SC_BAD_GATEWAY, response.getStatusLine().getStatusCode());
+            }
+        }
+    }
+
+    @Test
+    @Order(7)
+    void httpProxy_ConnectNoRemoteProxyRandomAddress_502BadGateway() throws IOException {
+        remoteProxyServer.stop();
+        HttpHost localProxy = new HttpHost("localhost", LOCAL_PROXY_PORT, "http");
+        try (CloseableHttpClient httpClient = HttpClientBuilder.create().setProxy(localProxy).build()) {
+            HttpHost target = HttpHost.create("http://123.123.123.0:" + remoteServer.getLocalPort());
+            HttpRequest request = new BasicHttpRequest("CONNECT", "123.123.123.0:" + remoteServer.getLocalPort());
+            try (CloseableHttpResponse response = httpClient.execute(target, request)) {
+                assertEquals(HttpStatus.SC_BAD_GATEWAY, response.getStatusLine().getStatusCode());
+            }
+        }
+    }
+
+    @Test
+    @Order(8)
+    void httpProxy_ConnectWrongRemoteProxyRandomAddress_502BadGateway() throws Exception {
+        remoteProxyServer.stop();
+        when(proxyConfig.getProxyHost()).thenReturn("localhost");
+        when(proxyConfig.getProxyPort()).thenReturn(PROXY_PORT);
+        proxyController.restart();
+        HttpHost localProxy = new HttpHost("localhost", LOCAL_PROXY_PORT, "http");
+        try (CloseableHttpClient httpClient = HttpClientBuilder.create().setProxy(localProxy).build()) {
+            HttpHost target = HttpHost.create("http://123.123.123.0:" + remoteServer.getLocalPort());
+            HttpRequest request = new BasicHttpRequest("CONNECT", "123.123.123.0:" + remoteServer.getLocalPort());
+            try (CloseableHttpResponse response = httpClient.execute(target, request)) {
+                assertEquals(HttpStatus.SC_BAD_GATEWAY, response.getStatusLine().getStatusCode());
+            }
+        }
+    }
+
+
     @AfterAll
     void after() {
-        try {
-            serverSocket.close();
-        } catch (IOException e) {
-            // Ignore
-        }
         remoteProxyServer.stop();
         remoteServer.stop();
         when(proxyConfig.getProxyType()).thenReturn(ProxyConfig.Type.HTTP);

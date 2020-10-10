@@ -59,8 +59,7 @@ class SocksConnectionSocketFactory implements ConnectionSocketFactory {
         } catch (SocketTimeoutException e) {
             throw new ConnectTimeoutException(e, host, remoteAddress.getAddress());
         } catch (SocketException e) {
-
-            // Remap some exception to
+            // Remap some exceptions to
             // single out the connection failed case.
             if (HttpUtils.isConnectionRefused(e)
                     || HttpUtils.isConnectionTimeout(e)) {

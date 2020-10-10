@@ -14,6 +14,7 @@ package org.kpax.winfoom.proxy;
 
 import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.ProxyConfig;
+import org.kpax.winfoom.util.functional.Resetable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +35,7 @@ import java.util.stream.Collectors;
  */
 @ThreadSafe
 @Component
-public class ProxyBlacklist implements AutoCloseable {
+public class ProxyBlacklist implements Resetable {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 

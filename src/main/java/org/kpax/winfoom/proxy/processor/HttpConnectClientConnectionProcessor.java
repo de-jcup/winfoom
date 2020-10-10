@@ -12,13 +12,12 @@
 
 package org.kpax.winfoom.proxy.processor;
 
-import org.apache.http.Header;
-import org.apache.http.HttpException;
-import org.apache.http.HttpHost;
-import org.apache.http.RequestLine;
+import org.apache.http.*;
 import org.apache.http.impl.execchain.TunnelRefusedException;
 import org.kpax.winfoom.annotation.ThreadSafe;
+import org.kpax.winfoom.exception.ProxyConnectException;
 import org.kpax.winfoom.proxy.*;
+import org.kpax.winfoom.util.HttpUtils;
 import org.kpax.winfoom.util.InputOutputs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +25,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.net.ConnectException;
+import java.net.UnknownHostException;
 
 /**
  * Process a CONNECT request through a HTTP proxy.
@@ -82,4 +83,21 @@ class HttpConnectClientConnectionProcessor extends ClientConnectionProcessor {
 
     }
 
+    @Override
+    void handleError(ClientConnection clientConnection, ProxyInfo proxyInfo, Exception e) throws ProxyConnectException {
+        if (e instanceof ConnectException) {
+            if (HttpUtils.isConnectionTimeout((ConnectException)e) || HttpUtils.isConnectionRefused((ConnectException)e)) {
+                throw new ProxyConnectException(e.getMessage(), e);
+            } else {
+                clientConnection.writeErrorResponse(HttpStatus.SC_GATEWAY_TIMEOUT, e.getMessage());
+            }
+        } else if (e instanceof UnknownHostException) {
+            throw new ProxyConnectException(e.getMessage(), e);
+        } else if (e instanceof NoHttpResponseException) {
+            clientConnection.writeErrorResponse(HttpStatus.SC_GATEWAY_TIMEOUT, e.getMessage());
+        } else {
+            // Generic error
+            clientConnection.writeErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
 }

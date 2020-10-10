@@ -19,6 +19,7 @@ import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.SystemConfig;
+import org.kpax.winfoom.util.functional.Resetable;
 import org.kpax.winfoom.util.functional.SingletonSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,7 +40,7 @@ import java.util.concurrent.TimeUnit;
 @ThreadSafe
 @Order(1)
 @Component
-class ConnectionPoolingManager implements AutoCloseable {
+class ConnectionPoolingManager implements Resetable {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 

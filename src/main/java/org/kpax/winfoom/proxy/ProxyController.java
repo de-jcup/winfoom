@@ -16,6 +16,7 @@ import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.pac.net.IpAddresses;
 import org.kpax.winfoom.util.InputOutputs;
+import org.kpax.winfoom.util.functional.Resetable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,7 +81,7 @@ public class ProxyController {
     public synchronized void stop() {
         if (started) {
             started = false;
-            resetAllAutoCloseableSingletons();
+            resetAllResetableSingletons();
 
             // We reset these suppliers because the network state
             // might have changed during the proxy session.
@@ -96,9 +97,9 @@ public class ProxyController {
 
     }
 
-    void resetAllAutoCloseableSingletons() {
+    void resetAllResetableSingletons() {
         logger.debug("Reset all autocloseable singletons");
-        Stream.of(applicationContext.getBeanNamesForType(AutoCloseable.class)).
+        Stream.of(applicationContext.getBeanNamesForType(Resetable.class)).
                 map(applicationContext.getBeanFactory()::getSingleton).
                 filter(b -> b != null).
                 sorted(AnnotationAwareOrderComparator.INSTANCE).
@@ -106,6 +107,11 @@ public class ProxyController {
                     logger.debug("Close bean of type {}", bean.getClass());
                     InputOutputs.close((AutoCloseable) bean);
                 });
+    }
+
+    void restart() throws Exception {
+        stop();
+        start();
     }
 
     public boolean isRunning() {
