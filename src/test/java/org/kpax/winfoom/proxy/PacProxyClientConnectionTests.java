@@ -12,7 +12,6 @@
 
 package org.kpax.winfoom.proxy;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -32,7 +31,6 @@ import org.apache.http.util.EntityUtils;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.kpax.winfoom.FoomApplicationTest;
-import org.kpax.winfoom.TestConstants;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.pac.PacScriptEvaluator;
@@ -49,9 +47,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketException;
 import java.net.URL;
 import java.time.Instant;
 import java.util.Map;
@@ -93,12 +88,11 @@ public class PacProxyClientConnectionTests {
     @Autowired
     private ProxyController proxyController;
 
-    private ServerSocket serverSocket;
-
     private HttpServer remoteServer;
 
     @BeforeEach
     void beforeEach() {
+        when(proxyConfig.getLocalPort()).thenReturn(LOCAL_PROXY_PORT);
         when(proxyConfig.getProxyType()).thenReturn(ProxyConfig.Type.PAC);
         when(proxyConfig.isAutoConfig()).thenReturn(true);
         when(proxyConfig.getBlacklistTimeout()).thenReturn(1);
@@ -106,63 +100,29 @@ public class PacProxyClientConnectionTests {
 
     @BeforeAll
     void before() throws Exception {
-        when(proxyConfig.getProxyType()).thenReturn(ProxyConfig.Type.PAC);
+        beforeEach();
         ReflectionTestUtils.setField(systemConfig, "socketConnectTimeout", connectTimeout);
-
         remoteServer = ServerBootstrap.bootstrap().registerHandler("/get", new HttpRequestHandler() {
-
             @Override
             public void handle(HttpRequest request, HttpResponse response, HttpContext context)
                     throws IOException {
                 response.setEntity(new StringEntity("12345"));
             }
-
         }).create();
         remoteServer.start();
-
-        serverSocket = new ServerSocket(TestConstants.LOCAL_PROXY_PORT);
-
-        if (!proxyController.isRunning()) {
-            proxyController.start();
-        }
-
-        new Thread(() -> {
-            while (!serverSocket.isClosed()) {
-                try {
-                    Socket socket = serverSocket.accept();
-                    socket.setSoTimeout(socketTimeout * 1000);
-                    new Thread(() -> {
-
-                        // Handle this connection.
-                        try {
-                            clientConnectionHandler.handleConnection(socket);
-                        } catch (Exception e) {
-                            logger.error("Error on handling connection", e);
-                        }
-                    }).start();
-                } catch (SocketException e) {
-                    if (!StringUtils.startsWithIgnoreCase(e.getMessage(), "Interrupted function call")) {
-                        logger.error("Socket error on getting connection", e);
-                    }
-                } catch (Exception e) {
-                    logger.error("Error on getting connection", e);
-                }
-            }
-        }).start();
+        proxyController.start();
     }
 
     @Order(1)
     @Test
-    void singleProxy_socks4ConnectAndNonConnect_CorrectResponse() throws IOException {
+    void singleProxy_socks4ConnectAndNonConnect_CorrectResponse() throws Exception {
         ClientAndServer proxyServer = ClientAndServer.startClientAndServer();
         try {
             String content = String.format("function FindProxyForURL(url, host) {return \"SOCKS4 localhost:%s\";}", proxyServer.getLocalPort());
             logger.debug("content {}", content);
-
-            proxyController.resetAllResetableSingletons();
             URL pacFileUrl = InMemoryURLFactory.getInstance().build("/fake/url/to/pac/file", content);
             when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(pacFileUrl);
-
+            proxyController.restart();
             HttpHost localProxy = new HttpHost("localhost", LOCAL_PROXY_PORT, "http");
             try (CloseableHttpClient httpClient = HttpClientBuilder.create().disableAutomaticRetries().build()) {
                 RequestConfig config = RequestConfig.custom()
@@ -195,15 +155,14 @@ public class PacProxyClientConnectionTests {
 
     @Order(2)
     @Test
-    void singleProxy_Socks5ConnectAndNonConnect_CorrectResponse() throws IOException {
+    void singleProxy_Socks5ConnectAndNonConnect_CorrectResponse() throws Exception {
         ClientAndServer proxyServer = ClientAndServer.startClientAndServer();
         try {
             String content = String.format("function FindProxyForURL(url, host) {return \"SOCKS5 localhost:%s\";}", proxyServer.getLocalPort());
             logger.debug("content {}", content);
-            proxyController.resetAllResetableSingletons();
             URL pacFileUrl = InMemoryURLFactory.getInstance().build("/fake/url/to/pac/file", content);
             when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(pacFileUrl);
-
+            proxyController.restart();
             HttpHost localProxy = new HttpHost("localhost", LOCAL_PROXY_PORT, "http");
             try (CloseableHttpClient httpClient = HttpClientBuilder.create().disableAutomaticRetries().build()) {
                 RequestConfig config = RequestConfig.custom()
@@ -235,15 +194,14 @@ public class PacProxyClientConnectionTests {
 
     @Order(3)
     @Test
-    void singleProxy_HttpConnectAndNonConnect_CorrectResponse() throws IOException {
+    void singleProxy_HttpConnectAndNonConnect_CorrectResponse() throws Exception {
         ClientAndServer proxyServer = ClientAndServer.startClientAndServer();
         try {
             String content = String.format("function FindProxyForURL(url, host) {return \"HTTP localhost:%s\";}", proxyServer.getLocalPort());
             logger.debug("content {}", content);
-            proxyController.resetAllResetableSingletons();
             URL pacFileUrl = InMemoryURLFactory.getInstance().build("/fake/url/to/pac/file", content);
             when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(pacFileUrl);
-
+            proxyController.restart();
             HttpHost localProxy = new HttpHost("localhost", LOCAL_PROXY_PORT, "http");
             try (CloseableHttpClient httpClient = HttpClientBuilder.create().disableAutomaticRetries().build()) {
                 RequestConfig config = RequestConfig.custom()
@@ -275,15 +233,14 @@ public class PacProxyClientConnectionTests {
 
     @Order(4)
     @Test
-    void singleProxy_ProxyConnectAndNonConnect_CorrectResponse() throws IOException {
+    void singleProxy_ProxyConnectAndNonConnect_CorrectResponse() throws Exception {
         ClientAndServer proxyServer = ClientAndServer.startClientAndServer();
         try {
             String content = String.format("function FindProxyForURL(url, host) {return \"PROXY localhost:%s\";}", proxyServer.getLocalPort());
             logger.debug("content {}", content);
-            proxyController.resetAllResetableSingletons();
             URL pacFileUrl = InMemoryURLFactory.getInstance().build("/fake/url/to/pac/file", content);
             when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(pacFileUrl);
-
+            proxyController.restart();
             HttpHost localProxy = new HttpHost("localhost", LOCAL_PROXY_PORT, "http");
             try (CloseableHttpClient httpClient = HttpClientBuilder.create().disableAutomaticRetries().build()) {
                 RequestConfig config = RequestConfig.custom()
@@ -315,15 +272,14 @@ public class PacProxyClientConnectionTests {
 
     @Order(5)
     @Test
-    void singleProxy_SocksConnectAndNonConnect_CorrectResponse() throws IOException {
+    void singleProxy_SocksConnectAndNonConnect_CorrectResponse() throws Exception {
         ClientAndServer proxyServer = ClientAndServer.startClientAndServer();
         try {
             String content = String.format("function FindProxyForURL(url, host) {return \"SOCKS localhost:%s\";}", proxyServer.getLocalPort());
             logger.debug("content {}", content);
-            proxyController.resetAllResetableSingletons();
             URL pacFileUrl = InMemoryURLFactory.getInstance().build("/fake/url/to/pac/file", content);
             when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(pacFileUrl);
-
+            proxyController.restart();
             HttpHost localProxy = new HttpHost("localhost", LOCAL_PROXY_PORT, "http");
             try (CloseableHttpClient httpClient = HttpClientBuilder.create().disableAutomaticRetries().build()) {
                 RequestConfig config = RequestConfig.custom()
@@ -355,13 +311,12 @@ public class PacProxyClientConnectionTests {
 
     @Order(6)
     @Test
-    void singleProxy_DirectConnectAndNonConnect_CorrectResponse() throws IOException {
+    void singleProxy_DirectConnectAndNonConnect_CorrectResponse() throws Exception {
         String content = String.format("function FindProxyForURL(url, host) {return \"DIRECT\";}");
         logger.debug("content {}", content);
-        proxyController.resetAllResetableSingletons();
         URL pacFileUrl = InMemoryURLFactory.getInstance().build("/fake/url/to/pac/file", content);
         when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(pacFileUrl);
-
+        proxyController.restart();
         HttpHost localProxy = new HttpHost("localhost", LOCAL_PROXY_PORT, "http");
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().disableAutomaticRetries().build()) {
             RequestConfig config = RequestConfig.custom()
@@ -391,7 +346,7 @@ public class PacProxyClientConnectionTests {
     @Order(7)
     @Test
     void multipleProxiesFirstDown_socks4AndHttpConnectAndNonConnect_CorrectResponse()
-            throws IOException {
+            throws Exception {
         ClientAndServer proxyServer = ClientAndServer.startClientAndServer();
         proxyBlacklist.clear();
         try {
@@ -399,10 +354,9 @@ public class PacProxyClientConnectionTests {
                     "function FindProxyForURL(url, host) {return \"SOCKS4 192.168.111.000:1234;HTTP localhost:%s\";}",
                     proxyServer.getLocalPort());
             logger.debug("content {}", content);
-            proxyController.resetAllResetableSingletons();
             URL pacFileUrl = InMemoryURLFactory.getInstance().build("/fake/url/to/pac/file", content);
             when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(pacFileUrl);
-
+            proxyController.restart();
             HttpHost localProxy = new HttpHost("localhost", LOCAL_PROXY_PORT, "http");
             try (CloseableHttpClient httpClient = HttpClientBuilder.create().disableAutomaticRetries().build()) {
                 RequestConfig config = RequestConfig.custom()
@@ -444,13 +398,12 @@ public class PacProxyClientConnectionTests {
 
     @Order(8)
     @Test
-    void nullProxyLine_DirectConnectAndNonConnect_NoProxyCorrectResponse() throws IOException {
+    void nullProxyLine_DirectConnectAndNonConnect_NoProxyCorrectResponse() throws Exception {
         String content = String.format("function FindProxyForURL(url, host) {return null;}");
         logger.debug("content {}", content);
-        proxyController.resetAllResetableSingletons();
         URL pacFileUrl = InMemoryURLFactory.getInstance().build("/fake/url/to/pac/file", content);
         when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(pacFileUrl);
-
+        proxyController.restart();
         HttpHost localProxy = new HttpHost("localhost", LOCAL_PROXY_PORT, "http");
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().disableAutomaticRetries().build()) {
             RequestConfig config = RequestConfig.custom()
@@ -479,11 +432,6 @@ public class PacProxyClientConnectionTests {
 
     @AfterAll
     void after() {
-        try {
-            serverSocket.close();
-        } catch (IOException e) {
-            // Ignore
-        }
         remoteServer.stop();
         when(proxyConfig.getProxyType()).thenReturn(ProxyConfig.Type.PAC);
         proxyController.stop();
