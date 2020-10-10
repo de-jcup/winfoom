@@ -37,8 +37,9 @@ public abstract class ClientConnectionProcessor {
      * <ul>
      * <li>Prepare the client's request to make a remote HTTP request through the proxy or direct.</li>
      * <li>Make the remote HTTP request.</li>
-     * <li>Give back to the client the resulted response.</li>
+     * <li>Give back to the client the resulted response (commit the response).</li>
      * </ul>
+     * <p><b>Note: This method must not commit the response if doesn't return normally.</b></p>
      *
      * @param clientConnection the {@link ClientConnection} instance.
      * @param proxyInfo        The {@link ProxyInfo} used to make the remote HTTP request.
@@ -51,7 +52,7 @@ public abstract class ClientConnectionProcessor {
     /**
      * Handle the exception thrown by {@link #handleRequest(ClientConnection, ProxyInfo)} method.
      * <p>The implementations are free to overwrite this method as needed.</p>
-     * <p><b>Note: This method must commit the response or throw a {@link ProxyConnectException}</b></p>
+     * <p><b>Note: This method must either commit the response or throw a {@link ProxyConnectException}</b></p>
      *
      * @param clientConnection the {@link ClientConnection} instance.
      * @param proxyInfo        The {@link ProxyInfo} used to make the remote HTTP request.
@@ -65,6 +66,7 @@ public abstract class ClientConnectionProcessor {
     /**
      * Call the {@link #handleRequest(ClientConnection, ProxyInfo)} method then {@link #handleError(ClientConnection, ProxyInfo, Exception)}
      * if an exception occurs.
+     * <p>If it returns normally, the response will be committed.</p>
      *
      * @param clientConnection the {@link ClientConnection} instance.
      * @param proxyInfo        the {@link ProxyInfo} used to make the remote HTTP request.

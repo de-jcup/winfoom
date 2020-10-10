@@ -104,9 +104,10 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
 
     /**
      * Constructor.<br>
-     * Has the responsibility of parsing the request.
+     * Has the responsibility of parsing the request and initiate various objects.
+     * <p><b>The response should be committed before throwing any exception.</b></p>
      *
-     * @param socket                      the underlying socket.
+     * @param socket
      * @param proxyConfig
      * @param systemConfig
      * @param connectionProcessorSelector
@@ -330,6 +331,13 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
         return proxyInfoIterator.previousIndex() < 1;
     }
 
+    /**
+     * Delegate the request processing to an appropriate {@link ClientConnectionProcessor}
+     * and process the client connection with each available proxy.<br>
+     * Un un-responding to connect proxy is blacklisted only if it is not the last
+     * one available.<br>
+     * <p>After calling this method, the response should be committed.</p>
+     */
     void process() {
         while (proxyInfoIterator.hasNext()) {
             ProxyInfo proxyInfo = proxyInfoIterator.next();

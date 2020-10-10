@@ -13,7 +13,6 @@
 package org.kpax.winfoom.proxy;
 
 
-import org.apache.http.HttpException;
 import org.apache.http.RequestLine;
 import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.ProxyConfig;
@@ -26,7 +25,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.net.Socket;
 
 /**
@@ -54,18 +52,12 @@ public class ClientConnectionHandler {
     private ConnectionProcessorSelector connectionProcessorSelector;
 
     /**
-     * Process the client connection with each available proxy.<br>
-     * Un un-responding to connect proxy is blacklisted only if it is not the last
-     * one available.<br>
-     * <b>Note:</b> If the {@link ClientConnection} is successfully created,
-     * a proper response <i>must</i> be sent to the client.
+     * Create a {@link ClientConnection} instance then process it.
      *
      * @param socket the client's socket
-     * @throws IOException
-     * @throws HttpException
+     * @throws Exception
      */
-    public void handleConnection(final Socket socket)
-            throws Exception {
+    public void handleConnection(final Socket socket) throws Exception {
         ClientConnection.ClientConnectionBuilder clientConnectionBuilder =
                 new ClientConnection.ClientConnectionBuilder().
                         withSocket(socket).

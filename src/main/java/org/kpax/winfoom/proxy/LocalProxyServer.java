@@ -64,7 +64,6 @@ class LocalProxyServer implements AutoCloseable {
      * </ul>
      * The proxy settings are saved after the local proxy server is stopped.
      *
-     * @throws IllegalStateException if the server had been started.
      * @throws Exception
      */
     synchronized void start() throws Exception {
@@ -94,7 +93,8 @@ class LocalProxyServer implements AutoCloseable {
                             break;
                         }
 
-                        // Get this whenever stop the server socket.
+                        // Get connection interrupted error whenever stop the server socket,
+                        // there is no reason to debug it
                         if (!HttpUtils.isConnectionInterrupted(e)) {
                             logger.debug("Socket error on getting connection", e);
                         }
