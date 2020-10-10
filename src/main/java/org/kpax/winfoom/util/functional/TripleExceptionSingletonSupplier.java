@@ -93,6 +93,11 @@ public class TripleExceptionSingletonSupplier<T, E1 extends Exception, E2 extend
         }
     }
 
+    /**
+     * Consume a {@link Consumer} before resetting.
+     *
+     * @param beforeReset the {@link Consumer} to call before resetting (not null).
+     */
     public void reset(Consumer<T> beforeReset) {
         if (t != null) {
             beforeReset.accept(t);

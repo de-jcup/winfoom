@@ -36,7 +36,7 @@ public class JarUtils {
         if (version != null) {
             return version.toString();
         } else {
-            throw new IllegalStateException("Version not found withing the MANIFEST.MF file");
+            throw new IllegalStateException("Version not found within the MANIFEST.MF file");
         }
     }
 }

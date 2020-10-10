@@ -49,7 +49,6 @@ public class ProxyValidator {
     /**
      * Test the proxy settings by issuing a request through the proxy facade.
      *
-     * @throws IOException                   when the validation cannot be performed
      * @throws InvalidProxySettingsException
      */
     public void testProxy() throws IOException, InvalidProxySettingsException {

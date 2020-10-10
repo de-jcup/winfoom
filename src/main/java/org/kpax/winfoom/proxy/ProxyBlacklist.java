@@ -79,6 +79,13 @@ public class ProxyBlacklist implements AutoCloseable {
         });
     }
 
+    /**
+     * Remove the blacklisted proxies from the given list of {@link ProxyInfo} instances.
+     *
+     * @param proxies the given list of {@link ProxyInfo} instances.
+     * @return the same list if the blacklisting mechanism is disabled
+     * or o new list containing the active proxies of the given list
+     */
     List<ProxyInfo> removeBlacklistedProxies(final List<ProxyInfo> proxies) {
         if (proxyConfig.getBlacklistTimeout() < 1) {
             return proxies;

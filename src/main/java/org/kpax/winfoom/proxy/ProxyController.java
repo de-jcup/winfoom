@@ -29,7 +29,7 @@ import java.net.PasswordAuthentication;
 import java.util.stream.Stream;
 
 /**
- * Provide methods to begin, end or clear proxy session.
+ * Provide methods to begin, end proxy session.
  *
  * @author Eugen Covaci
  */
