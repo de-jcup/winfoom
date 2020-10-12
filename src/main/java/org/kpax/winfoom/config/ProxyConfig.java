@@ -28,6 +28,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -49,7 +50,7 @@ import java.util.List;
 @Component
 @PropertySource(value = "file:${user.home}/" + SystemConfig.APP_HOME_DIR_NAME + "/" + ProxyConfig.FILENAME,
         ignoreResourceNotFound = true)
-public class ProxyConfig implements AutoCloseable {
+public class ProxyConfig {
 
     public static final String FILENAME = "proxy.properties";
 
@@ -319,7 +320,9 @@ public class ProxyConfig implements AutoCloseable {
      *
      * @throws ConfigurationException
      */
-    private void save() throws ConfigurationException {
+    @PreDestroy
+    void save() throws ConfigurationException {
+        logger.info("Save proxy settings");
         File userProperties = Paths.get(System.getProperty("user.home"), SystemConfig.APP_HOME_DIR_NAME,
                 ProxyConfig.FILENAME).toFile();
         FileBasedConfigurationBuilder<PropertiesConfiguration> propertiesBuilder = new Configurations()
@@ -367,16 +370,6 @@ public class ProxyConfig implements AutoCloseable {
         propertiesBuilder.save();
     }
 
-    public void saveAutostart() throws ConfigurationException {
-        File userProperties = Paths.get(System.getProperty("user.home"), SystemConfig.APP_HOME_DIR_NAME,
-                ProxyConfig.FILENAME).toFile();
-        FileBasedConfigurationBuilder<PropertiesConfiguration> propertiesBuilder = new Configurations()
-                .propertiesBuilder(userProperties);
-        Configuration config = propertiesBuilder.getConfiguration();
-        config.setProperty("autostart", autostart);
-        propertiesBuilder.save();
-    }
-
     /**
      * Check whether a {@link Configuration} instance is compatible with the current {@link ProxyConfig} structure.
      *
@@ -419,16 +412,6 @@ public class ProxyConfig implements AutoCloseable {
                 ", autostart=" + autostart +
                 ", tempDirectory=" + tempDirectory +
                 '}';
-    }
-
-    @Override
-    public void close() throws Exception {
-        // Save the user properties
-        try {
-            save();
-        } catch (Exception e) {
-            logger.warn("Error on saving user configuration", e);
-        }
     }
 
     public enum Type implements ProxyType {

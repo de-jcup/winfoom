@@ -12,7 +12,6 @@
 
 package org.kpax.winfoom.view;
 
-import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.exception.InvalidProxySettingsException;
@@ -341,14 +340,6 @@ public class AppFrame extends JFrame {
                     "<br>it will automatically start the proxy and minimize the window to tray."));
             autostartCheckBox.addActionListener((event -> {
                 proxyConfig.setAutostart(autostartCheckBox.isSelected());
-                if (!proxyConfig.isAutostart()) {
-                    try {
-                        proxyConfig.saveAutostart();
-                    } catch (ConfigurationException e) {
-                        logger.error("Error on saving autostart option", e);
-                        SwingUtils.showErrorMessage(AppFrame.this, "Failed to save autostart option: " + e.getMessage());
-                    }
-                }
             }));
         }
         return autostartCheckBox;
