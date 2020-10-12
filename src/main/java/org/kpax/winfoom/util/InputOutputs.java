@@ -49,7 +49,7 @@ public final class InputOutputs {
      * @param inputBuffer The input buffer.
      * @return <code>false</code> iff EOF has been reached.
      */
-    public static boolean isAvailable(SessionInputBufferImpl inputBuffer) {
+    public static boolean isAvailable(final SessionInputBufferImpl inputBuffer) {
         try {
             return inputBuffer.hasBufferedData() || inputBuffer.fillBuffer() > -1;
         } catch (IOException e) {
@@ -64,8 +64,8 @@ public final class InputOutputs {
      * @param firstSource     The first source.
      * @param secondSource    The second source.
      */
-    public static void duplex(ExecutorService executorService, StreamSource firstSource,
-                              StreamSource secondSource) {
+    public static void duplex(final ExecutorService executorService, final StreamSource firstSource,
+                              final StreamSource secondSource) {
         logger.debug("Start full duplex communication");
         Future<?> secondToFirst = executorService.submit(
                 () -> secondSource.getInputStream().transferTo(firstSource.getOutputStream()));

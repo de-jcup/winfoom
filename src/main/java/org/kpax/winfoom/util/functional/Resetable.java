@@ -12,5 +12,9 @@
 
 package org.kpax.winfoom.util.functional;
 
+/**
+ * For every Spring singleton beans implementing this interface the method {@link #close()} is called
+ * when the local facade is stopped.
+ */
 public interface Resetable extends AutoCloseable {
 }
