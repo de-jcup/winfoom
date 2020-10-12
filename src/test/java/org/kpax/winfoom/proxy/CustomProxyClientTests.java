@@ -99,7 +99,6 @@ class CustomProxyClientTests {
         HttpHost proxy = new HttpHost(proxyConfig.getProxyHost(), proxyConfig.getProxyPort(), "http");
         credentialsProvider.clear();
         credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(USERNAME, PASSWORD));
-
         Tunnel tunnel = applicationContext.getBean(TunnelConnection.class)
                 .open(proxy, target, HttpVersion.HTTP_1_1);
         tunnel.close();
@@ -135,6 +134,5 @@ class CustomProxyClientTests {
     void afterClass() {
         proxyServer.stop();
     }
-
 
 }

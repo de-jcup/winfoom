@@ -334,8 +334,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
     /**
      * Delegate the request processing to an appropriate {@link ClientConnectionProcessor}
      * and process the client connection with each available proxy.<br>
-     * Un un-responding to connect proxy is blacklisted only if it is not the last
-     * one available.<br>
+     * The remote proxy is blacklisted if it is not available.<br>
      * <p>After calling this method, the response should be committed.</p>
      */
     void process() {

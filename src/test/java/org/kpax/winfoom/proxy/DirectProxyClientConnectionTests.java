@@ -106,7 +106,6 @@ public class DirectProxyClientConnectionTests {
             HttpHost target = HttpHost.create("http://localhost:" + remoteServer.getLocalPort());
             HttpGet request = new HttpGet("/get");
             request.setConfig(config);
-
             try (CloseableHttpResponse response = httpClient.execute(target, request)) {
                 assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
                 String responseBody = EntityUtils.toString(response.getEntity());

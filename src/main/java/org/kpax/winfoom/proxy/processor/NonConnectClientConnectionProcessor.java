@@ -198,7 +198,8 @@ class NonConnectClientConnectionProcessor extends ClientConnectionProcessor {
             } else {
                 clientConnection.writeErrorResponse(HttpStatus.SC_GATEWAY_TIMEOUT, e.getMessage());
             }
-        } else if (e instanceof ConnectTimeoutException || e instanceof UnknownHostException) {
+        } else if (e instanceof ConnectTimeoutException
+                || e instanceof UnknownHostException) {
             throw new ProxyConnectException(e.getMessage(), e);
         } else {
             // Generic error

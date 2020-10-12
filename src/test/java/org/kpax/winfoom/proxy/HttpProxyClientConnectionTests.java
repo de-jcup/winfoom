@@ -137,7 +137,6 @@ class HttpProxyClientConnectionTests {
             HttpPost request = new HttpPost("/post");
             request.setConfig(config);
             request.setEntity(new StringEntity("whatever"));
-
             try (CloseableHttpResponse response = httpClient.execute(target, request)) {
                 assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
                 String responseBody = EntityUtils.toString(response.getEntity());
@@ -188,7 +187,6 @@ class HttpProxyClientConnectionTests {
             HttpPost request = new HttpPost("/post");
             request.setConfig(config);
             request.setEntity(new StringEntity("whatever"));
-
             try (CloseableHttpResponse response = httpClient.execute(target, request)) {
                 assertEquals(HttpStatus.SC_BAD_GATEWAY, response.getStatusLine().getStatusCode());
             }
