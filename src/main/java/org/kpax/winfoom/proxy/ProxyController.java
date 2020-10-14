@@ -76,7 +76,7 @@ public class ProxyController {
 
     /**
      * End the proxy session.
-     * <p>Also, it removes the {@link Authenticator} - if any.link
+     * <p>Also, it removes the {@link Authenticator}, if any.
      */
     public synchronized void stop() {
         if (started) {

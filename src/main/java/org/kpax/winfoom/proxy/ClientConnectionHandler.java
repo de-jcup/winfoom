@@ -19,7 +19,6 @@ import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.pac.PacScriptEvaluator;
 import org.kpax.winfoom.proxy.processor.ConnectionProcessorSelector;
-import org.kpax.winfoom.util.InputOutputs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,15 +68,12 @@ public class ClientConnectionHandler {
             clientConnectionBuilder.withProxyBlacklist(proxyBlacklist);
         }
 
-        final ClientConnection clientConnection = clientConnectionBuilder.build();
-        RequestLine requestLine = clientConnection.getRequestLine();
-        logger.debug("Handle request: {}", requestLine);
-        try {
+        try (final ClientConnection clientConnection = clientConnectionBuilder.build()) {
+            RequestLine requestLine = clientConnection.getRequestLine();
+            logger.debug("Handle request: {}", requestLine);
             clientConnection.process();
-        } finally {
-            InputOutputs.close(clientConnection);
+            logger.debug("Done handling request: {}", requestLine);
         }
-        logger.debug("Done handling request: {}", requestLine);
     }
 
 }
