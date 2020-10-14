@@ -34,7 +34,7 @@ import java.net.UnknownHostException;
  */
 @ThreadSafe
 @Component
-class SocketNonConnectClientConnectionProcessor extends NonConnectClientConnectionProcessor {
+class SocksNonConnectClientConnectionProcessor extends NonConnectClientConnectionProcessor {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Override

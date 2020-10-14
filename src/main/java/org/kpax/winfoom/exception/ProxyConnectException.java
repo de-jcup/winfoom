@@ -14,7 +14,12 @@ package org.kpax.winfoom.exception;
 
 import java.net.ConnectException;
 
+/**
+ * Thrown when the local facade cannot connect to the remote proxy.
+ * <p>The method throwing this method should have not committed the response.</p>
+ */
 public class ProxyConnectException extends ConnectException {
+
     private static final long serialVersionUID = 5211364632246265538L;
 
     public ProxyConnectException() {

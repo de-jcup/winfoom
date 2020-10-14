@@ -59,12 +59,14 @@ public abstract class ClientConnectionProcessor {
      * @param e                The exception thrown by {@link #handleRequest(ClientConnection, ProxyInfo)} method
      * @throws ProxyConnectException
      */
-    void handleError(final ClientConnection clientConnection, final ProxyInfo proxyInfo, final Exception e) throws ProxyConnectException {
+    void handleError(final ClientConnection clientConnection, final ProxyInfo proxyInfo, final Exception e)
+            throws ProxyConnectException {
         clientConnection.writeErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     }
 
     /**
-     * Call the {@link #handleRequest(ClientConnection, ProxyInfo)} method then {@link #handleError(ClientConnection, ProxyInfo, Exception)}
+     * Call the {@link #handleRequest(ClientConnection, ProxyInfo)} method
+     * then {@link #handleError(ClientConnection, ProxyInfo, Exception)} method
      * if an exception occurs.
      * <p>If it returns normally, the response will be committed.</p>
      *
@@ -72,7 +74,8 @@ public abstract class ClientConnectionProcessor {
      * @param proxyInfo        the {@link ProxyInfo} used to make the remote HTTP request.
      * @throws ProxyConnectException
      */
-    public final void process(final ClientConnection clientConnection, final ProxyInfo proxyInfo) throws ProxyConnectException {
+    public final void process(final ClientConnection clientConnection, final ProxyInfo proxyInfo)
+            throws ProxyConnectException {
         logger.debug("Process {} for {}", clientConnection, proxyInfo);
         try {
             handleRequest(clientConnection, proxyInfo);

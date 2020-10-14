@@ -41,7 +41,7 @@ import java.net.*;
  */
 @ThreadSafe
 @Component
-class SocketConnectClientConnectionProcessor extends ClientConnectionProcessor {
+class SocksConnectClientConnectionProcessor extends ClientConnectionProcessor {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 

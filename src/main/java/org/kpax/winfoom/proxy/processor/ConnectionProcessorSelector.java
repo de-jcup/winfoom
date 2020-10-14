@@ -26,24 +26,24 @@ public class ConnectionProcessorSelector {
     private HttpConnectClientConnectionProcessor httpConnectClientConnectionProcessor;
 
     @Autowired
-    private SocketConnectClientConnectionProcessor socketConnectClientConnectionProcessor;
+    private SocksConnectClientConnectionProcessor socksConnectClientConnectionProcessor;
 
     @Autowired
     private NonConnectClientConnectionProcessor nonConnectClientConnectionProcessor;
 
     @Autowired
-    private SocketNonConnectClientConnectionProcessor socketNonConnectClientConnectionProcessor;
+    private SocksNonConnectClientConnectionProcessor socksNonConnectClientConnectionProcessor;
 
     public ClientConnectionProcessor selectConnectionProcessor(boolean isConnect, ProxyInfo proxyInfo) {
         if (isConnect) {
             if (proxyInfo.getType().isSocks() || proxyInfo.getType().isDirect()) {
-                return socketConnectClientConnectionProcessor;
+                return socksConnectClientConnectionProcessor;
             } else {
                 return httpConnectClientConnectionProcessor;
             }
         } else {
             if (proxyInfo.getType().isSocks() || proxyInfo.getType().isDirect()) {
-                return socketNonConnectClientConnectionProcessor;
+                return socksNonConnectClientConnectionProcessor;
             } else {
                 return nonConnectClientConnectionProcessor;
             }

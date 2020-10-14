@@ -62,7 +62,7 @@ public class TripleExceptionSingletonSupplier<T, E1 extends Exception, E2 extend
     /**
      * Get the cached value (if any) otherwise a new value is created in a thread safe manner.
      *
-     * @return the value
+     * @return the value, never null.
      */
     @Override
     public T get() throws E1, E2, E3 {
