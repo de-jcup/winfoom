@@ -14,7 +14,7 @@ FOR %%a IN (%*) DO (
 	)
 
 	IF "%%a"=="--debug" (
-		SET ARGS=%ARGS% -Dlogging.level.root=DEBUG
+		SET ARGS=%ARGS% -Dlogging.level.root=DEBUG -Dlogging.level.java.awt=INFO -Dlogging.level.sun.awt=INFO -Dlogging.level.javax.swing=INFO -Dlogging.level.jdk=INFO
 	)
 
 	IF "%%a"=="--systemjre" (
