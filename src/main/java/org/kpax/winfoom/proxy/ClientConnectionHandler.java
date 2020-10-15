@@ -14,6 +14,7 @@ package org.kpax.winfoom.proxy;
 
 
 import org.apache.http.RequestLine;
+import org.kpax.winfoom.annotation.NotNull;
 import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.config.SystemConfig;
@@ -56,7 +57,7 @@ public class ClientConnectionHandler {
      * @param socket the client's socket
      * @throws Exception
      */
-    public void handleConnection(final Socket socket) throws Exception {
+    public void handleConnection(@NotNull final Socket socket) throws Exception {
         ClientConnection.ClientConnectionBuilder clientConnectionBuilder =
                 new ClientConnection.ClientConnectionBuilder().
                         withSocket(socket).

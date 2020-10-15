@@ -18,8 +18,10 @@ import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpHost;
 import org.kpax.winfoom.proxy.ProxyType;
-import org.kpax.winfoom.util.CommandExecutor;
+import org.kpax.winfoom.util.jna.IEProxyConfig;
+import org.kpax.winfoom.util.jna.WinHttpHelpers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,18 +31,18 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
+
 
 /**
  * The proxy facade configuration.
@@ -83,7 +85,7 @@ public class ProxyConfig {
     @Value("${proxy.test.url:http://example.com}")
     private String proxyTestUrl;
 
-    @Value("${proxy.type:HTTP}")
+    @Value("${proxy.type:DIRECT}")
     private Type proxyType;
 
     @Value("${proxy.username:#{null}}")
@@ -104,6 +106,9 @@ public class ProxyConfig {
     @Value("${autostart:false}")
     private boolean autostart;
 
+    @Value("${autodetect:false}")
+    private boolean autodetect;
+
     private Path tempDirectory;
 
     @PostConstruct
@@ -122,33 +127,6 @@ public class ProxyConfig {
             propertiesBuilder.save();
         }
 
-        if (proxyType != Type.DIRECT && StringUtils.isEmpty(getProxyHost())) {
-            try {
-                CommandExecutor.getSystemProxy().ifPresent((s) -> {
-                    logger.info("proxyLine: {}", s);
-                    String[] proxies = s.split(";");
-                    if (proxies.length > 0) {
-                        String firstProxy = proxies[0];
-                        logger.info("firstProxy: {}", firstProxy);
-                        String[] elements = firstProxy.split(":");
-                        if (elements.length > 1) {
-                            if (elements[0].startsWith("http=")) {
-                                setProxyHost(elements[0].substring("http=".length()));
-                                proxyType = Type.HTTP;
-                            } else if (elements[0].startsWith("socks=")) {
-                                setProxyHost(elements[0].substring("socks=".length()));
-                                proxyType = Type.SOCKS5;
-                            } else {
-                                setProxyHost(elements[0]);
-                            }
-                            setProxyPort(Integer.parseInt(elements[1]));
-                        }
-                    }
-                });
-            } catch (Exception e) {
-                logger.error("Error on getting system proxy", e);
-            }
-        }
         logger.info("Check temp directory");
         if (!Files.exists(tempDirectory)) {
             logger.info("Create temp directory {}", tempDirectory);
@@ -159,6 +137,63 @@ public class ProxyConfig {
         } else {
             logger.info("Using temp directory {}", tempDirectory);
         }
+    }
+
+    public boolean isAutoDetectNeeded() {
+        return autodetect ||
+                ((proxyType.isHttp() || proxyType.isSocks()) && StringUtils.isEmpty(getProxyHost())) ||
+                (proxyType.isPac() && StringUtils.isEmpty(proxyPacFileLocation));
+    }
+
+    public boolean autoDetect() throws IOException {
+        logger.info("Detecting IE proxy settings");
+        IEProxyConfig ieProxyConfig = WinHttpHelpers.readIEProxyConfig();
+        logger.info("IE settings {}", ieProxyConfig);
+        if (ieProxyConfig != null) {
+            String pacUrl = WinHttpHelpers.findPacFileLocation(ieProxyConfig);
+            if (pacUrl != null) {
+                logger.info("Proxy Auto Config file location: {}", pacUrl);
+                proxyType = Type.PAC;
+                proxyPacFileLocation = pacUrl;
+                return true;
+            } else {// Manual case
+                String proxySettings = ieProxyConfig.getProxy();
+                logger.info("Manual proxy settings: [{}]", proxySettings);
+                if (proxySettings != null) {
+                    if (proxySettings.indexOf('=') == -1) {
+                        setProxy(Type.HTTP, proxySettings);
+                        return true;
+                    } else {
+                        Properties properties = new Properties();
+                        properties.load(
+                                new ByteArrayInputStream(proxySettings.replace(';', '\n').
+                                        getBytes(StandardCharsets.ISO_8859_1)));
+                        String httpProxy = properties.getProperty("http");
+                        if (httpProxy != null) {
+                            setProxy(Type.HTTP, httpProxy);
+                            return true;
+                        } else {
+                            String socksProxy = properties.getProperty("socks");
+                            if (socksProxy != null) {
+                                setProxy(Type.SOCKS5, socksProxy);
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            logger.warn("Cannot retrieve IE settings");
+        }
+        return false;
+    }
+
+    private void setProxy(Type type, String proxy) {
+        logger.info("Set proxy type: {}, value: {}", type, proxy);
+        proxyType = type;
+        HttpHost httpHost = HttpHost.create(proxy);
+        setProxyHost(httpHost.getHostName());
+        setProxyPort(httpHost.getPort());
     }
 
     public String getAppVersion() {
@@ -310,6 +345,14 @@ public class ProxyConfig {
         return autostart;
     }
 
+    public boolean isAutodetect() {
+        return autodetect;
+    }
+
+    public void setAutodetect(boolean autodetect) {
+        this.autodetect = autodetect;
+    }
+
     @Autowired
     private void setTempDirectory(@Value("${user.home}") String userHome) {
         tempDirectory = Paths.get(userHome, SystemConfig.APP_HOME_DIR_NAME, "temp");
@@ -354,6 +397,7 @@ public class ProxyConfig {
         setProperty(config, "blacklist.timeout", blacklistTimeout);
 
         setProperty(config, "autostart", autostart);
+        setProperty(config, "autodetect", autodetect);
         propertiesBuilder.save();
     }
 
@@ -398,15 +442,20 @@ public class ProxyConfig {
         return "ProxyConfig{" +
                 "appVersion='" + appVersion + '\'' +
                 ", localPort=" + localPort +
-                ", proxyHost='" + getProxyHost() + '\'' +
+                ", proxyHttpHost='" + proxyHttpHost + '\'' +
+                ", proxySocks5Host='" + proxySocks5Host + '\'' +
+                ", proxySocks4Host='" + proxySocks4Host + '\'' +
+                ", proxyHttpPort=" + proxyHttpPort +
+                ", proxySocks5Port=" + proxySocks5Port +
+                ", proxySocks4Port=" + proxySocks4Port +
                 ", proxyTestUrl='" + proxyTestUrl + '\'' +
-                ", proxyPort=" + getProxyPort() +
                 ", proxyType=" + proxyType +
                 ", proxyUsername='" + proxyUsername + '\'' +
                 ", proxyStorePassword=" + proxyStorePassword +
                 ", proxyPacFileLocation='" + proxyPacFileLocation + '\'' +
                 ", blacklistTimeout=" + blacklistTimeout +
                 ", autostart=" + autostart +
+                ", autodetect=" + autodetect +
                 ", tempDirectory=" + tempDirectory +
                 '}';
     }

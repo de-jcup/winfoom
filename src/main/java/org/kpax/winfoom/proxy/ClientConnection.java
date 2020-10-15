@@ -19,6 +19,7 @@ import org.apache.http.impl.io.HttpTransportMetricsImpl;
 import org.apache.http.impl.io.SessionInputBufferImpl;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
+import org.kpax.winfoom.annotation.NotNull;
 import org.kpax.winfoom.annotation.NotThreadSafe;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.config.SystemConfig;
@@ -194,6 +195,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
     /**
      * @return the input stream of the client's socket
      */
+    @NotNull
     @Override
     public InputStream getInputStream() {
         return inputStream;
@@ -202,6 +204,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
     /**
      * @return the output stream of the client's socket
      */
+    @NotNull
     @Override
     public OutputStream getOutputStream() {
         return outputStream;
@@ -210,6 +213,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
     /**
      * @return the session input buffer used to parse the request into a {@link HttpRequest} instance
      */
+    @NotNull
     public SessionInputBufferImpl getSessionInputBuffer() {
         return sessionInputBuffer;
     }
@@ -217,6 +221,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
     /**
      * @return the HTTP request.
      */
+    @NotNull
     public HttpRequest getRequest() {
         return request;
     }
@@ -224,6 +229,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
     /**
      * @return the request URI extracted from the request line.
      */
+    @NotNull
     public URI getRequestUri() {
         return requestUri;
     }
@@ -278,7 +284,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
      * @param httpResponse the HTTP response
      * @throws Exception
      */
-    public void writeHttpResponse(final HttpResponse httpResponse) throws Exception {
+    public void writeHttpResponse(@NotNull final HttpResponse httpResponse) throws Exception {
         StatusLine statusLine = httpResponse.getStatusLine();
         logger.debug("Write statusLine {}", statusLine);
         write(statusLine);
@@ -323,7 +329,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
      * @param autoCloseable the {@link AutoCloseable} to be closed.
      * @return {@code true} if the specified element isn't already registered
      */
-    public boolean registerAutoCloseable(AutoCloseable autoCloseable) {
+    public boolean registerAutoCloseable(final AutoCloseable autoCloseable) {
         return autoCloseables.add(autoCloseable);
     }
 

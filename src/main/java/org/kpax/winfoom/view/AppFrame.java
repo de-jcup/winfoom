@@ -73,6 +73,9 @@ public class AppFrame extends JFrame {
     private JLabel autostartLabel;
     private JCheckBox autostartCheckBox;
 
+    private JLabel autodetectLabel;
+    private JCheckBox autodetectCheckBox;
+
     private JButton btnStart;
     private JButton btnStop;
     private JButton btnTest;
@@ -144,11 +147,13 @@ public class AppFrame extends JFrame {
         setTitle("WinFoom");
         setJMenuBar(getMainMenuBar());
         setContentPane(getMainContentPanel());
-
         ToolTipManager.sharedInstance().setDismissDelay(TOOLTIP_TIMEOUT * 1000);
 
-        getProxyTypeCombo().setSelectedItem(proxyConfig.getProxyType());
-        pack();
+        if (proxyConfig.isAutoDetectNeeded()) {
+            autoDetectProxySettings();
+        }
+
+        applyProxyType();
         setLocationRelativeTo(null);
 
         logger.info("Launch the GUI");
@@ -164,6 +169,11 @@ public class AppFrame extends JFrame {
         });
     }
 
+    private void applyProxyType() {
+        getProxyTypeCombo().setSelectedItem(proxyConfig.getProxyType());
+        pack();
+    }
+
     public void focusOnStartButton() {
         getBtnStart().requestFocus();
     }
@@ -176,6 +186,21 @@ public class AppFrame extends JFrame {
         } else {
             focusOnStartButton();
             setVisible(true);
+        }
+    }
+
+    private void autoDetectProxySettings() {
+        try {
+            boolean autoDetect = proxyConfig.autoDetect();
+            if (autoDetect) {
+                logger.info("Successfully autodetect proxy settings");
+            } else {
+                logger.warn("Failed to autodetect proxy settings");
+                SwingUtils.showWarningMessage(this, "No proxy found within Internet Explorer settings!");
+            }
+        } catch (Exception e) {
+            logger.error("Error on getting system proxy", e);
+            SwingUtils.showErrorMessage(this, "Failed to retrieve Internet Explorer settings! See the log file for details");
         }
     }
 
@@ -225,6 +250,13 @@ public class AppFrame extends JFrame {
             autostartLabel = new JLabel("Autostart ");
         }
         return autostartLabel;
+    }
+
+    private JLabel getAutoDetectLabel() {
+        if (autodetectLabel == null) {
+            autodetectLabel = new JLabel("Use system settings ");
+        }
+        return autodetectLabel;
     }
 
     // ------- End Labels
@@ -343,6 +375,29 @@ public class AppFrame extends JFrame {
             }));
         }
         return autostartCheckBox;
+    }
+
+
+    private JCheckBox getAutoDetectCheckBox() {
+        if (autodetectCheckBox == null) {
+            autodetectCheckBox = new JCheckBox();
+            autodetectCheckBox.setSelected(proxyConfig.isAutodetect());
+            autodetectCheckBox.setToolTipText(HttpUtils.toHtml("When checked, the application " +
+                    "<br>will automatically detect the proxy settings " +
+                    "<br>by interrogating Internet Explorer network settings on each startup." +
+                    "<br><b>WARNING: The existent settings will be overwritten!</b>"));
+            autodetectCheckBox.addActionListener((event -> {
+                proxyConfig.setAutodetect(autodetectCheckBox.isSelected());
+                if (proxyConfig.isAutodetect()) {
+                    SwingUtils.executeRunnable(() -> {
+                                autoDetectProxySettings();
+                                applyProxyType();
+                            }, AppFrame.this
+                    );
+                }
+            }));
+        }
+        return autodetectCheckBox;
     }
 
     private JSpinner getBlacklistTimeoutJSpinner() {
@@ -501,11 +556,13 @@ public class AppFrame extends JFrame {
         labelPanel.add(getProxyPortLabel());
         labelPanel.add(getLocalPortLabel());
         labelPanel.add(getAutostartLabel());
+        labelPanel.add(getAutoDetectLabel());
 
         fieldPanel.add(getProxyHostJTextField());
         fieldPanel.add(wrapToPanel(getProxyPortJSpinner()));
         fieldPanel.add(wrapToPanel(getLocalPortJSpinner()));
         fieldPanel.add(getAutostartCheckBox());
+        fieldPanel.add(getAutoDetectCheckBox());
     }
 
     private void configureForPac() {
@@ -513,12 +570,14 @@ public class AppFrame extends JFrame {
         labelPanel.add(getBlacklistTimeoutLabel());
         labelPanel.add(getLocalPortLabel());
         labelPanel.add(getAutostartLabel());
+        labelPanel.add(getAutoDetectLabel());
 
         fieldPanel.add(getPacFileJTextField());
         fieldPanel.add(wrapToPanel(getBlacklistTimeoutJSpinner(),
                 new JLabel(" (" + ProxyBlacklist.TEMPORAL_UNIT.toString().toLowerCase() + ")")));
         fieldPanel.add(wrapToPanel(getLocalPortJSpinner()));
         fieldPanel.add(getAutostartCheckBox());
+        fieldPanel.add(getAutoDetectCheckBox());
 
         getBtnCancelBlacklist().setEnabled(false);
         getBtnCancelBlacklist().setVisible(true);
@@ -528,9 +587,11 @@ public class AppFrame extends JFrame {
     private void configureForDirect() {
         labelPanel.add(getLocalPortLabel());
         labelPanel.add(getAutostartLabel());
+        labelPanel.add(getAutoDetectLabel());
 
         fieldPanel.add(wrapToPanel(getLocalPortJSpinner()));
         fieldPanel.add(getAutostartCheckBox());
+        fieldPanel.add(getAutoDetectCheckBox());
     }
 
     private void configureForSocks5() {
@@ -541,6 +602,7 @@ public class AppFrame extends JFrame {
         labelPanel.add(getStorePasswordLabel());
         labelPanel.add(getLocalPortLabel());
         labelPanel.add(getAutostartLabel());
+        labelPanel.add(getAutoDetectLabel());
 
         fieldPanel.add(getProxyHostJTextField());
         fieldPanel.add(wrapToPanel(getProxyPortJSpinner()));
@@ -549,6 +611,7 @@ public class AppFrame extends JFrame {
         fieldPanel.add(getStorePasswordJCheckBox());
         fieldPanel.add(wrapToPanel(getLocalPortJSpinner()));
         fieldPanel.add(getAutostartCheckBox());
+        fieldPanel.add(getAutoDetectCheckBox());
     }
 
 
@@ -643,7 +706,15 @@ public class AppFrame extends JFrame {
 
 
     private void disableAll() {
-        SwingUtils.setEnabled(getContentPane(), false);
+        SwingUtils.setEnabled(getContentPane(), false, JLabel.class);
+    }
+
+    private void setEnabledAutostart(boolean enabled) {
+        getAutostartCheckBox().setEnabled(enabled);
+    }
+
+    private void setEnabledAutodetect(boolean enabled) {
+        getAutoDetectCheckBox().setEnabled(enabled);
     }
 
     private boolean isValidInput() {
@@ -721,7 +792,7 @@ public class AppFrame extends JFrame {
     }
 
     private void enableInput() {
-        SwingUtils.setEnabled(getContentPane(), true);
+        SwingUtils.setEnabled(getContentPane(), true, JLabel.class);
         getBtnStop().setEnabled(false);
         getBtnTest().setEnabled(false);
     }

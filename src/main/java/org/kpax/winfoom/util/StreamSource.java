@@ -12,6 +12,7 @@
 
 package org.kpax.winfoom.util;
 
+import org.kpax.winfoom.annotation.NotNull;
 import org.kpax.winfoom.annotation.ThreadSafe;
 import org.springframework.util.Assert;
 
@@ -21,11 +22,13 @@ import java.io.OutputStream;
 @ThreadSafe
 public interface StreamSource {
 
+    @NotNull
     InputStream getInputStream();
 
+    @NotNull
     OutputStream getOutputStream();
 
-    static StreamSource from(final InputStream inputStream, final OutputStream outputStream) {
+    static StreamSource from(@NotNull final InputStream inputStream, @NotNull final OutputStream outputStream) {
         return new DefaultStreamSource(inputStream, outputStream);
     }
 
@@ -33,17 +36,19 @@ public interface StreamSource {
         private final InputStream inputStream;
         private final OutputStream outputStream;
 
-        private DefaultStreamSource(final InputStream inputStream, final OutputStream outputStream) {
+        private DefaultStreamSource(@NotNull final InputStream inputStream, @NotNull final OutputStream outputStream) {
             Assert.notNull(inputStream, "inputStream cannot be null");
             Assert.notNull(outputStream, "outputStream cannot be null");
             this.inputStream = inputStream;
             this.outputStream = outputStream;
         }
 
+        @NotNull
         public InputStream getInputStream() {
             return inputStream;
         }
 
+        @NotNull
         public OutputStream getOutputStream() {
             return outputStream;
         }

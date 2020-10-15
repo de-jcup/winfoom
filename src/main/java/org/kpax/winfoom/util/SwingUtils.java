@@ -23,6 +23,8 @@ import java.awt.*;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * Various Swing related methods.
@@ -43,11 +45,19 @@ public class SwingUtils {
      * @param component the {@link Component} to be enabled/disabled.
      * @param enabled   {@code true} or {@code false}.
      */
-    public static void setEnabled(final Component component, final boolean enabled) {
-        component.setEnabled(enabled);
+    public static void setEnabled(final Component component, final boolean enabled, Class... excluded) {
+        java.util.List<Class> excludedClasses;
+        if (excluded != null) {
+            excludedClasses = Arrays.asList(excluded);
+        } else {
+            excludedClasses = Collections.emptyList();
+        }
+        if (!excludedClasses.contains(component.getClass())) {
+            component.setEnabled(enabled);
+        }
         if (component instanceof Container) {
             for (Component child : ((Container) component).getComponents()) {
-                setEnabled(child, enabled);
+                setEnabled(child, enabled, excluded);
             }
         }
     }

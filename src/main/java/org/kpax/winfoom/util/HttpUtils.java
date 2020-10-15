@@ -20,6 +20,7 @@ import org.apache.http.impl.EnglishReasonPhraseCatalog;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicStatusLine;
 import org.apache.http.protocol.HTTP;
+import org.kpax.winfoom.annotation.NotNull;
 import org.kpax.winfoom.proxy.ProxyInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -323,7 +324,7 @@ public final class HttpUtils {
      * @param socket the SOCKS socket to be marked as version 4.
      * @throws UnsupportedOperationException
      */
-    public static void setSocks4(final Socket socket) throws UnsupportedOperationException {
+    public static void setSocks4(@NotNull final Socket socket) throws UnsupportedOperationException {
         try {
             Field implField = Socket.class.getDeclaredField("impl");
             implField.setAccessible(true);
@@ -366,31 +367,31 @@ public final class HttpUtils {
         return Collections.unmodifiableList(proxyInfos);
     }
 
-    public static boolean isConnectionRefused(final SocketException e) {
+    public static boolean isConnectionRefused(@NotNull final SocketException e) {
         return StringUtils.startsWithIgnoreCase(e.getMessage(), "Connection refused");
     }
 
-    public static boolean isConnectionTimeout(final SocketException e) {
+    public static boolean isConnectionTimeout(@NotNull final SocketException e) {
         return StringUtils.startsWithIgnoreCase(e.getMessage(), "connect timed out");
     }
 
-    public static boolean isConnectionTimeout(final ConnectException e) {
+    public static boolean isConnectionTimeout(@NotNull final ConnectException e) {
         return StringUtils.startsWithIgnoreCase(e.getMessage(), "Connection timed out");
     }
 
-    public static boolean isSocketClosed(final SocketException e) {
+    public static boolean isSocketClosed(@NotNull final SocketException e) {
         return StringUtils.startsWithIgnoreCase(e.getMessage(), "Socket is closed");
     }
 
-    public static boolean isSocketNotConnected(final SocketException e) {
+    public static boolean isSocketNotConnected(@NotNull final SocketException e) {
         return StringUtils.startsWithIgnoreCase(e.getMessage(), "Socket is not connected");
     }
 
-    public static boolean isConnectionInterrupted(final SocketException e) {
+    public static boolean isConnectionInterrupted(@NotNull final SocketException e) {
         return StringUtils.startsWithIgnoreCase(e.getMessage(), "Interrupted function call");
     }
 
-    public static boolean isSOCKSAuthenticationFailed(final SocketException e) {
+    public static boolean isSOCKSAuthenticationFailed(@NotNull final SocketException e) {
         return StringUtils.equalsIgnoreCase(e.getMessage(), "SOCKS : authentication failed");
     }
 
@@ -412,7 +413,7 @@ public final class HttpUtils {
      * @param viaHeader the existent Via {@link Header} (nullable)
      * @return a new Via {@link Header}
      */
-    public static Header createViaHeader(final ProtocolVersion version, final Header viaHeader) {
+    public static Header createViaHeader(@NotNull final ProtocolVersion version, final Header viaHeader) {
         Assert.notNull(version, "version cannot be null");
         String value = String.format("%s.%s winfoom", version.getMajor(), version.getMinor())
                 + (viaHeader != null ? ", " + viaHeader.getValue() : "");
@@ -428,7 +429,7 @@ public final class HttpUtils {
      * @param uri URL to be stripped
      * @return stripped URL string
      */
-    public static String toStrippedURLStr(URI uri) {
+    public static String toStrippedURLStr(@NotNull final URI uri) {
         return uri.getScheme() +
                 "://" +
                 uri.getHost() +
@@ -442,7 +443,7 @@ public final class HttpUtils {
      * @param requestLine the request's line
      * @return {@code true} iff the request method is connect
      */
-    public static boolean isConnect(RequestLine requestLine) {
+    public static boolean isConnect(@NotNull final RequestLine requestLine) {
         return HttpUtils.HTTP_CONNECT.equalsIgnoreCase(requestLine.getMethod());
     }
 
@@ -455,4 +456,5 @@ public final class HttpUtils {
         dateformat.setTimeZone(GMT);
         return dateformat.format(new Date());
     }
+
 }

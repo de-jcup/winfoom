@@ -87,8 +87,8 @@ class HttpConnectClientConnectionProcessor extends ClientConnectionProcessor {
     void handleError(ClientConnection clientConnection, ProxyInfo proxyInfo, Exception e)
             throws ProxyConnectException {
         if (e instanceof ConnectException) {
-            if (HttpUtils.isConnectionTimeout((ConnectException)e)
-                    || HttpUtils.isConnectionRefused((ConnectException)e)) {
+            if (HttpUtils.isConnectionTimeout((ConnectException) e)
+                    || HttpUtils.isConnectionRefused((ConnectException) e)) {
                 throw new ProxyConnectException(e.getMessage(), e);
             } else {
                 clientConnection.writeErrorResponse(HttpStatus.SC_GATEWAY_TIMEOUT, e.getMessage());

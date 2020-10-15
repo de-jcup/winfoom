@@ -10,13 +10,21 @@
  *  See the License for the specific language governing permissions and limitations under the License.
  */
 
-package org.kpax.winfoom.util.functional;
+package org.kpax.winfoom.annotation;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+import static java.lang.annotation.ElementType.*;
 
 /**
- * For every Spring singleton bean implementing this interface the method {@link #close()} is called
- * when the local facade is stopped.
- *
- * @see org.kpax.winfoom.proxy.ProxyController#stop()
+ * The annotated element must not be null.<br>
+ * This annotation is purely descriptive.
  */
-public interface Resetable extends AutoCloseable {
+@Target(value = {METHOD, FIELD, ANNOTATION_TYPE, PARAMETER})
+@Retention(value = RetentionPolicy.SOURCE)
+@Documented
+public @interface NotNull {
 }

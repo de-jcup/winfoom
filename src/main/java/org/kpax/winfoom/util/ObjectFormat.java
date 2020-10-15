@@ -12,6 +12,7 @@
 
 package org.kpax.winfoom.util;
 
+import org.kpax.winfoom.annotation.NotNull;
 import org.springframework.util.Assert;
 
 import java.nio.charset.Charset;
@@ -34,7 +35,7 @@ public final class ObjectFormat {
      * @param charset The charset to be used (not null).
      * @return The resulted string as bytes.
      */
-    public static byte[] toCrlf(final Object input, final Charset charset) {
+    public static byte[] toCrlf(@NotNull final Object input, final Charset charset) {
         Assert.notNull(input, "input cannot be null");
         return (input + CRLF).getBytes(charset);
     }
@@ -46,7 +47,7 @@ public final class ObjectFormat {
      * @return The resulted string as bytes.
      * @see #toCrlf(Object, Charset)
      */
-    public static byte[] toCrlf(final Object input) {
+    public static byte[] toCrlf(@NotNull final Object input) {
         return toCrlf(input, StandardCharsets.UTF_8);
     }
 

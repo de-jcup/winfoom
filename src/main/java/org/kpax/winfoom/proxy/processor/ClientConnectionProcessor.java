@@ -14,6 +14,7 @@ package org.kpax.winfoom.proxy.processor;
 
 import org.apache.http.HttpException;
 import org.apache.http.HttpStatus;
+import org.kpax.winfoom.annotation.NotNull;
 import org.kpax.winfoom.exception.ProxyConnectException;
 import org.kpax.winfoom.proxy.ClientConnection;
 import org.kpax.winfoom.proxy.ProxyInfo;
@@ -46,7 +47,7 @@ public abstract class ClientConnectionProcessor {
      * @throws HttpException if a HTTP exception has occurred
      * @throws IOException   if an input/output error occurs
      */
-    abstract void handleRequest(final ClientConnection clientConnection, final ProxyInfo proxyInfo)
+    abstract void handleRequest(@NotNull final ClientConnection clientConnection, @NotNull final ProxyInfo proxyInfo)
             throws IOException, HttpException;
 
     /**
@@ -59,7 +60,7 @@ public abstract class ClientConnectionProcessor {
      * @param e                The exception thrown by {@link #handleRequest(ClientConnection, ProxyInfo)} method
      * @throws ProxyConnectException
      */
-    void handleError(final ClientConnection clientConnection, final ProxyInfo proxyInfo, final Exception e)
+    void handleError(@NotNull final ClientConnection clientConnection, @NotNull final ProxyInfo proxyInfo, @NotNull final Exception e)
             throws ProxyConnectException {
         clientConnection.writeErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     }
@@ -74,7 +75,7 @@ public abstract class ClientConnectionProcessor {
      * @param proxyInfo        the {@link ProxyInfo} used to make the remote HTTP request.
      * @throws ProxyConnectException
      */
-    public final void process(final ClientConnection clientConnection, final ProxyInfo proxyInfo)
+    public final void process(@NotNull final ClientConnection clientConnection, @NotNull final ProxyInfo proxyInfo)
             throws ProxyConnectException {
         logger.debug("Process {} for {}", clientConnection, proxyInfo);
         try {

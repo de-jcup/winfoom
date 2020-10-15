@@ -68,7 +68,6 @@ class LocalProxyServer implements Resetable {
      */
     synchronized void start() throws Exception {
         logger.info("Start local proxy server with userConfig {}", proxyConfig);
-
         try {
             serverSocket = new ServerSocket(proxyConfig.getLocalPort(),
                     systemConfig.getServerSocketBacklog());
@@ -103,7 +102,6 @@ class LocalProxyServer implements Resetable {
                     }
                 }
             });
-
             logger.info("Server started, listening on port: " + proxyConfig.getLocalPort());
         } catch (Exception e) {
             // Cleanup on exception

@@ -94,7 +94,6 @@ public class ProxyController {
                 Authenticator.setDefault(null);
             }
         }
-
     }
 
     void resetAllResetableSingletons() {

@@ -12,6 +12,7 @@
 
 package org.kpax.winfoom.proxy;
 
+import org.kpax.winfoom.annotation.NotNull;
 import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.util.functional.Resetable;
@@ -60,7 +61,7 @@ public class ProxyBlacklist implements Resetable {
      * @param proxyInfo the proxy to be blacklisted.
      * @return the blacklist timeout {@link Instant} iff the blacklisting is enabled, {@code null} otherwise.
      */
-    Instant blacklist(final ProxyInfo proxyInfo) {
+    Instant blacklist(@NotNull final ProxyInfo proxyInfo) {
         logger.debug("Attempt to blacklist proxy {}", proxyInfo);
         if (proxyConfig.getBlacklistTimeout() < 1) {
             logger.debug("Blacklisting is disabled, nothing to do");
@@ -87,7 +88,7 @@ public class ProxyBlacklist implements Resetable {
      * @return the same list if the blacklisting mechanism is disabled
      * or o new list containing the active proxies of the given list
      */
-    List<ProxyInfo> removeBlacklistedProxies(final List<ProxyInfo> proxies) {
+    List<ProxyInfo> removeBlacklistedProxies(@NotNull final List<ProxyInfo> proxies) {
         if (proxyConfig.getBlacklistTimeout() < 1) {
             return proxies;
         }
@@ -105,7 +106,7 @@ public class ProxyBlacklist implements Resetable {
      * @param proxyInfo the proxy to be checked
      * @return {@code true} iff the proxy is blacklisted
      */
-    boolean checkBlacklist(final ProxyInfo proxyInfo) {
+    boolean checkBlacklist(@NotNull final ProxyInfo proxyInfo) {
         if (proxyConfig.getBlacklistTimeout() < 1) {
             return false;
         }

@@ -12,6 +12,7 @@
 
 package org.kpax.winfoom.proxy.processor;
 
+import org.kpax.winfoom.annotation.NotNull;
 import org.kpax.winfoom.proxy.ProxyInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -34,7 +35,7 @@ public class ConnectionProcessorSelector {
     @Autowired
     private SocksNonConnectClientConnectionProcessor socksNonConnectClientConnectionProcessor;
 
-    public ClientConnectionProcessor selectConnectionProcessor(boolean isConnect, ProxyInfo proxyInfo) {
+    public ClientConnectionProcessor selectConnectionProcessor(boolean isConnect, @NotNull ProxyInfo proxyInfo) {
         if (isConnect) {
             if (proxyInfo.getType().isSocks() || proxyInfo.getType().isDirect()) {
                 return socksConnectClientConnectionProcessor;
