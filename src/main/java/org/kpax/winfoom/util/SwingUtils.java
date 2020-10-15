@@ -14,6 +14,7 @@
 
 package org.kpax.winfoom.util;
 
+import org.kpax.winfoom.annotation.NotNull;
 import org.springframework.util.Assert;
 
 import javax.imageio.ImageIO;
@@ -138,7 +139,7 @@ public class SwingUtils {
      * @param runnable the {@link Runnable} instance (not null)
      * @param frame    the current {@link JFrame}
      */
-    public static void executeRunnable(final Runnable runnable, final JFrame frame) {
+    public static void executeRunnable(@NotNull final Runnable runnable,@NotNull final JFrame frame) {
         Assert.notNull(runnable, "runnable cannot be null");
         Assert.notNull(frame, "frame cannot be null");
         frame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
@@ -161,8 +162,8 @@ public class SwingUtils {
      * @param filename the image's filename.
      * @return the loaded {@link Image}.
      */
-    public static Image loadImage(final Class<?> cls,
-                                  final String filename) {
+    public static Image loadImage(@NotNull final Class<?> cls,
+                                  @NotNull final String filename) {
         try {
             URL resource = cls.getResource("/img/" + filename);
             if (resource != null) {
