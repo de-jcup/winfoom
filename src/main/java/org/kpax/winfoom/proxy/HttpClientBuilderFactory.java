@@ -79,10 +79,6 @@ public class HttpClientBuilderFactory {
                 .disableAutomaticRetries()
                 .disableRedirectHandling()
                 .disableCookieManagement();
-
-        if (systemConfig.isUseSystemProperties()) {
-            builder.useSystemProperties();
-        }
         return builder;
     }
 
@@ -101,10 +97,6 @@ public class HttpClientBuilderFactory {
                 .disableAutomaticRetries()
                 .disableRedirectHandling()
                 .disableCookieManagement();
-
-        if (systemConfig.isUseSystemProperties()) {
-            builder.useSystemProperties();
-        }
         return builder;
     }
 
@@ -124,10 +116,6 @@ public class HttpClientBuilderFactory {
                 .disableAutomaticRetries()
                 .disableRedirectHandling()
                 .disableCookieManagement();
-
-        if (systemConfig.isUseSystemProperties()) {
-            builder.useSystemProperties();
-        }
         return builder;
     }
 

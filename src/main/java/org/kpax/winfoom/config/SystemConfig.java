@@ -83,7 +83,7 @@ public class SystemConfig {
     /**
      * The timeout for read/write through socket channel (seconds).
      */
-    @Value("${socket.soTimeout:60}")
+    @Value("${socket.soTimeout:30}")
     private Integer socketSoTimeout;
 
     /**
@@ -93,11 +93,10 @@ public class SystemConfig {
     private Integer socketConnectTimeout;
 
     /**
-     * Whether to use the environment properties
-     * when configuring a HTTP client builder.
+     * The timeout for request connection (seconds).
      */
-    @Value("${useSystemProperties:false}")
-    private boolean useSystemProperties;
+    @Value("${connection.request.timeout:30}")
+    private Integer connectionRequestTimeout;
 
     /**
      * This is a Java system property.<br>
@@ -126,10 +125,6 @@ public class SystemConfig {
 
     public Integer getMaxConnections() {
         return maxConnections;
-    }
-
-    public boolean isUseSystemProperties() {
-        return useSystemProperties;
     }
 
     public Integer getInternalBufferLength() {
@@ -166,7 +161,7 @@ public class SystemConfig {
 
     public RequestConfig.Builder applyConfig(final RequestConfig.Builder configBuilder) {
         return configBuilder.setConnectTimeout(socketConnectTimeout * 1000)
-                .setConnectionRequestTimeout(socketSoTimeout * 1000)
+                .setConnectionRequestTimeout(connectionRequestTimeout * 1000)
                 .setSocketTimeout(socketSoTimeout * 1000);
     }
 
@@ -177,7 +172,7 @@ public class SystemConfig {
 
     @Override
     public String toString() {
-        return "SystemConfig{" +
+        return "SystemConfig {" +
                 "maxConnectionsPerRoute=" + maxConnectionsPerRoute +
                 ", maxConnections=" + maxConnections +
                 ", internalBufferLength=" + internalBufferLength +
@@ -186,7 +181,7 @@ public class SystemConfig {
                 ", serverSocketBacklog=" + serverSocketBacklog +
                 ", socketSoTimeout=" + socketSoTimeout +
                 ", socketConnectTimeout=" + socketConnectTimeout +
-                ", useSystemProperties=" + useSystemProperties +
+                ", connectionRequestTimeout=" + connectionRequestTimeout +
                 ", preferIPv6Addresses=" + preferIPv6Addresses +
                 ", cacheGlobPatternCapacity=" + cacheGlobPatternCapacity +
                 '}';
