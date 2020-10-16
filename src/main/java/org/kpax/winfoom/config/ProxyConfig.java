@@ -225,10 +225,13 @@ public class ProxyConfig {
         switch (proxyType) {
             case HTTP:
                 this.proxyHttpHost = proxyHost;
+                break;
             case SOCKS4:
                 this.proxySocks4Host = proxyHost;
+                break;
             case SOCKS5:
                 this.proxySocks5Host = proxyHost;
+                break;
         }
     }
 
@@ -248,10 +251,13 @@ public class ProxyConfig {
         switch (proxyType) {
             case HTTP:
                 this.proxyHttpPort = proxyPort;
+                break;
             case SOCKS4:
                 this.proxySocks4Port = proxyPort;
+                break;
             case SOCKS5:
                 this.proxySocks5Port = proxyPort;
+                break;
         }
     }
 
