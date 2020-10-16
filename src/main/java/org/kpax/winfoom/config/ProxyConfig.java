@@ -20,6 +20,7 @@ import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
 import org.kpax.winfoom.proxy.ProxyType;
+import org.kpax.winfoom.util.HttpUtils;
 import org.kpax.winfoom.util.jna.IEProxyConfig;
 import org.kpax.winfoom.util.jna.WinHttpHelpers;
 import org.slf4j.Logger;
@@ -324,7 +325,7 @@ public class ProxyConfig {
 
     public URL getProxyPacFileLocationAsURL() throws MalformedURLException {
         if (StringUtils.isNotEmpty(proxyPacFileLocation)) {
-            if (proxyPacFileLocation.startsWith("http")) {
+            if (HttpUtils.containsSchema(proxyPacFileLocation)) {
                 return new URL(proxyPacFileLocation);
             } else {
                 return new URL("file:///" + proxyPacFileLocation);
