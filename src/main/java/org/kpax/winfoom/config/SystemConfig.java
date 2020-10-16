@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.net.Socket;
 import java.net.SocketException;
 
@@ -114,6 +115,11 @@ public class SystemConfig {
     @Value("${cache.globPattern.capacity:100}")
     private Integer cacheGlobPatternCapacity;
 
+    @PostConstruct
+    private void init() {
+        logger.info("System settings: {}", this);
+    }
+
     public Integer getMaxConnectionsPerRoute() {
         return maxConnectionsPerRoute;
     }
@@ -169,4 +175,20 @@ public class SystemConfig {
         return socket;
     }
 
+    @Override
+    public String toString() {
+        return "SystemConfig{" +
+                "maxConnectionsPerRoute=" + maxConnectionsPerRoute +
+                ", maxConnections=" + maxConnections +
+                ", internalBufferLength=" + internalBufferLength +
+                ", connectionManagerCleanInterval=" + connectionManagerCleanInterval +
+                ", connectionManagerIdleTimeout=" + connectionManagerIdleTimeout +
+                ", serverSocketBacklog=" + serverSocketBacklog +
+                ", socketSoTimeout=" + socketSoTimeout +
+                ", socketConnectTimeout=" + socketConnectTimeout +
+                ", useSystemProperties=" + useSystemProperties +
+                ", preferIPv6Addresses=" + preferIPv6Addresses +
+                ", cacheGlobPatternCapacity=" + cacheGlobPatternCapacity +
+                '}';
+    }
 }

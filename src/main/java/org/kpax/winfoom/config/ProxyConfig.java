@@ -373,17 +373,14 @@ public class ProxyConfig {
                 .propertiesBuilder(userProperties);
         Configuration config = propertiesBuilder.getConfiguration();
         setProperty(config, "proxy.type", proxyType);
-
         setProperty(config, "proxy.http.host", proxyHttpHost);
         setProperty(config, "proxy.http.port", proxyHttpPort);
         setProperty(config, "proxy.socks4.host", proxySocks4Host);
         setProperty(config, "proxy.socks4.port", proxySocks4Port);
         setProperty(config, "proxy.socks5.host", proxySocks5Host);
         setProperty(config, "proxy.socks5.port", proxySocks5Port);
-
         setProperty(config, "local.port", localPort);
         setProperty(config, "proxy.test.url", proxyTestUrl);
-
         setProperty(config, "proxy.username", proxyUsername);
         setProperty(config, "proxy.storePassword", proxyStorePassword);
 
@@ -396,7 +393,6 @@ public class ProxyConfig {
 
         setProperty(config, "proxy.pac.fileLocation", proxyPacFileLocation);
         setProperty(config, "blacklist.timeout", blacklistTimeout);
-
         setProperty(config, "autostart", autostart);
         setProperty(config, "autodetect", autodetect);
         propertiesBuilder.save();
