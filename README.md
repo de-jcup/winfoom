@@ -100,9 +100,9 @@ The available settings:
 |connectionManager.clean.interval|The frequency of running purge idle on the connection manager pool (seconds)|Integer|30|
 |connectionManager.idleTimeout|The connections idle timeout, to be purged by a scheduled task (seconds)|Integer|30|
 |serverSocket.backlog|The maximum number of pending connections|Integer|1000|
-|socket.soTimeout|The timeout for read/write through socket channel (seconds)|Integer|30|
-|socket.connectTimeout|The timeout for socket connect (seconds)|Integer|10|
-|useSystemProperties|Whether to use the environment properties when configuring a HTTP client builder|Boolean|false|
+|socket.soTimeout|The timeout for read/write through socket channel (seconds)|Integer|60|
+|socket.connectTimeout|The timeout for socket connect (seconds)|Integer|20|
+|connection.request.timeout|The timeout for request connection (seconds)|Integer|30|
 
 ### Authentication
 * For HTTP proxy type, Winfoom uses the current Windows user credentials to authenticate to the remote proxy.
