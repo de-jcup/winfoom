@@ -12,6 +12,7 @@
 
 package org.kpax.winfoom.util.functional;
 
+import org.kpax.winfoom.annotation.NotNull;
 import org.kpax.winfoom.util.InputOutputs;
 import org.springframework.util.Assert;
 
@@ -64,6 +65,7 @@ public class TripleExceptionSingletonSupplier<T, E1 extends Exception, E2 extend
      *
      * @return the value, never null.
      */
+    @NotNull
     @Override
     public T get() throws E1, E2, E3 {
         if (t == null) {

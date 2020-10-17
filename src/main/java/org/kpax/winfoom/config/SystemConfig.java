@@ -83,7 +83,7 @@ public class SystemConfig {
     /**
      * The timeout for read/write through socket channel (seconds).
      */
-    @Value("${socket.soTimeout:60}")
+    @Value("${socket.soTimeout:80}")
     private Integer socketSoTimeout;
 
     /**
