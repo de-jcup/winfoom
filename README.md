@@ -63,7 +63,7 @@ Available commands:
 
 Winfoom can be launched with modified system or user parameters like this:
 
-`launch.bat "-Dsocket.soTimeout=10" "-DuseSystemProperties=true"`
+`launch.bat "-Dsocket.soTimeout=10" "-Dconnection.request.timeout=60"`
 
 > 👉 Note:The above command only works with Windows Command Prompt (not Windows Powershell)
 
