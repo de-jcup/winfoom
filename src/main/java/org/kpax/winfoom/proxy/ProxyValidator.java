@@ -52,7 +52,7 @@ public class ProxyValidator {
      * @throws InvalidProxySettingsException
      */
     public void testProxy() throws IOException, InvalidProxySettingsException {
-        try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
+        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
             HttpHost target = HttpHost.create(proxyConfig.getProxyTestUrl());
             HttpHost proxy = new HttpHost("localhost", proxyConfig.getLocalPort());
             RequestConfig config = RequestConfig.custom()
@@ -61,7 +61,7 @@ public class ProxyValidator {
             HttpGet request = new HttpGet("/");
             request.setConfig(config);
             logger.info("Executing request " + request.getRequestLine() + " to " + target + " via " + proxy);
-            try (CloseableHttpResponse response = httpclient.execute(target, request)) {
+            try (CloseableHttpResponse response = httpClient.execute(target, request)) {
                 int statusCode = response.getStatusLine().getStatusCode();
                 logger.info("statusCode={}", statusCode);
                 if (statusCode > HttpUtils.MAX_HTTP_SUCCESS_CODE) {

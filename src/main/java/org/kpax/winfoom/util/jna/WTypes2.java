@@ -42,10 +42,13 @@
  */
 package org.kpax.winfoom.util.jna;
 
+import com.sun.jna.Memory;
 import com.sun.jna.Pointer;
+import com.sun.jna.PointerType;
 import com.sun.jna.platform.win32.Kernel32;
 import com.sun.jna.platform.win32.WTypes;
 import com.sun.jna.ptr.ByReference;
+import org.kpax.winfoom.util.InputOutputs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,10 +81,10 @@ public class WTypes2 {
      *
      * @author phansson
      */
-    public static class LPWSTRByReference extends ByReference {
+    public static class LPWSTRByReference extends PointerType implements AutoCloseable {
 
         public LPWSTRByReference() {
-            super(Pointer.SIZE);
+            setPointer(new CloseableMemory(Pointer.SIZE));
             // memory cleanup
             getPointer().setPointer(0, null);
         }
@@ -120,9 +123,8 @@ public class WTypes2 {
          *
          * @throws Throwable Something went wrong when cleaning up the memory.
          */
-        @SuppressWarnings("deprecation")
         @Override
-        protected void finalize() throws Throwable {
+        public void close() {
             try {
                 // Free the memory occupied by the string returned
                 // from the Win32 function.
@@ -138,12 +140,26 @@ public class WTypes2 {
                                 getClass().getSimpleName());
                     }
                 }
+            } catch (Exception e) {
+                logger.warn("Fail to free the memory occupied by the string returned from the Win32 function", e);
             } finally {
                 // This will free the memory of the pointer-to-pointer
-                super.finalize();
+                InputOutputs.close((CloseableMemory) getPointer());
             }
         }
 
+    }
+
+    static class CloseableMemory extends Memory implements AutoCloseable {
+
+        public CloseableMemory(long size) {
+            super(size);
+        }
+
+        @Override
+        public void close() throws Exception {
+            dispose();
+        }
     }
 
 }

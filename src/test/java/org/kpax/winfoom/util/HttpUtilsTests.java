@@ -172,6 +172,13 @@ class HttpUtilsTests {
     }
 
     @Test
+    void stripChunked_ChunkedMultipleTokens_StripChunked() {
+        String value = "foo, chunked, bar";
+        String stripChunked = HttpUtils.stripChunked(value);
+        assertEquals("foo,bar", stripChunked);
+    }
+
+    @Test
     void createViaHeader_NonExisting_OneToken() {
         Header viaHeader = HttpUtils.createViaHeader(HttpVersion.HTTP_1_1, null);
         assertEquals(HttpHeaders.VIA, viaHeader.getName());

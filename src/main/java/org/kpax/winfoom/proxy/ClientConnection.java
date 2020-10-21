@@ -363,7 +363,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
                     logger.debug("Failed to connect to proxy: {}, send the error response", proxyInfo);
 
                     // Cannot connect to the remote proxy,
-                    // give back a 502 error code
+                    // commit a response with 502 error code
                     writeErrorResponse(HttpStatus.SC_BAD_GATEWAY, e.getMessage());
                     break;
                 }

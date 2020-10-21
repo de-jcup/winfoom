@@ -75,10 +75,13 @@ public class WinHttpHelpers {
      */
     public static String detectAutoProxyConfigUrl(WinDef.DWORD dwAutoDetectFlags) {
 
-        WTypes2.LPWSTRByReference ppwszAutoConfigUrl = new WTypes2.LPWSTRByReference();
-        boolean result;
-        try {
-            result = WinHttp.INSTANCE.WinHttpDetectAutoProxyConfigUrl(dwAutoDetectFlags, ppwszAutoConfigUrl);
+        try (WTypes2.LPWSTRByReference ppwszAutoConfigUrl = new WTypes2.LPWSTRByReference()) {
+            boolean result = WinHttp.INSTANCE.WinHttpDetectAutoProxyConfigUrl(dwAutoDetectFlags, ppwszAutoConfigUrl);
+            if (result) {
+                return ppwszAutoConfigUrl.getString();
+            } else {
+                return null;
+            }
         } catch (LastErrorException ex) {
             if (ex.getErrorCode() == WinHttp.ERROR_WINHTTP_AUTODETECTION_FAILED) {
                 // This error is to be expected. It just means that the lookup
@@ -92,11 +95,7 @@ public class WinHttpHelpers {
             logger.debug("Windows function WinHttpDetectAutoProxyConfigUrl returned error", ex);
             return null;
         }
-        if (result) {
-            return ppwszAutoConfigUrl.getString();
-        } else {
-            return null;
-        }
+
     }
 
     public static IEProxyConfig readIEProxyConfig() {
@@ -123,17 +122,18 @@ public class WinHttpHelpers {
     public static String findPacFileLocation(@NotNull final IEProxyConfig ieSettings) {
         String pacUrl = null;
         if (ieSettings.isAutoDetect()) {
-            logger.debug("Auto detecting script URL");
+            logger.debug("Auto detecting script URL ...");
             // This will take some time.
             WinDef.DWORD dwAutoDetectFlags = new WinDef.DWORD(
                     WinHttp.WINHTTP_AUTO_DETECT_TYPE_DHCP | WinHttp.WINHTTP_AUTO_DETECT_TYPE_DNS_A);
             pacUrl = WinHttpHelpers.detectAutoProxyConfigUrl(dwAutoDetectFlags);
+            logger.debug("Detected script URL: {}", pacUrl);
         }
         if (pacUrl == null) {
             pacUrl = ieSettings.getAutoConfigUrl();
         }
+        logger.debug("IE uses script: {}", pacUrl);
         if (StringUtils.isNotEmpty(pacUrl)) {
-            logger.debug("IE uses script: {}", pacUrl);
             // Fix for issue 9
             // If the IE has a file URL and it only starts has 2 slashes,
             // add a third so it can be properly converted to the URL class
