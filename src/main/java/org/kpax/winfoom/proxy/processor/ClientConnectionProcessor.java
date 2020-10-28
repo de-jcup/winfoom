@@ -47,7 +47,8 @@ public abstract class ClientConnectionProcessor {
      * @throws HttpException if a HTTP exception has occurred
      * @throws IOException   if an input/output error occurs
      */
-    abstract void handleRequest(@NotNull final ClientConnection clientConnection, @NotNull final ProxyInfo proxyInfo)
+    abstract void handleRequest(@NotNull final ClientConnection clientConnection,
+                                @NotNull final ProxyInfo proxyInfo)
             throws IOException, HttpException;
 
     /**
@@ -60,7 +61,9 @@ public abstract class ClientConnectionProcessor {
      * @param e                The exception thrown by {@link #handleRequest(ClientConnection, ProxyInfo)} method
      * @throws ProxyConnectException
      */
-    void handleError(@NotNull final ClientConnection clientConnection, @NotNull final ProxyInfo proxyInfo, @NotNull final Exception e)
+    void handleError(@NotNull final ClientConnection clientConnection,
+                     @NotNull final ProxyInfo proxyInfo,
+                     @NotNull final Exception e)
             throws ProxyConnectException {
         clientConnection.writeErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
     }
@@ -69,13 +72,14 @@ public abstract class ClientConnectionProcessor {
      * Call the {@link #handleRequest(ClientConnection, ProxyInfo)} method
      * then {@link #handleError(ClientConnection, ProxyInfo, Exception)} method
      * if an exception occurs.
-     * <p>If it returns normally, the response will be committed.</p>
+     * <p>If it returns normally, the response will be considered committed.</p>
      *
      * @param clientConnection the {@link ClientConnection} instance.
      * @param proxyInfo        the {@link ProxyInfo} used to make the remote HTTP request.
      * @throws ProxyConnectException
      */
-    public final void process(@NotNull final ClientConnection clientConnection, @NotNull final ProxyInfo proxyInfo)
+    public final void process(@NotNull final ClientConnection clientConnection,
+                              @NotNull final ProxyInfo proxyInfo)
             throws ProxyConnectException {
         logger.debug("Process {} for {}", clientConnection, proxyInfo);
         try {

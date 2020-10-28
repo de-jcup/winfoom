@@ -738,7 +738,7 @@ public class AppFrame extends JFrame {
         }
 
         Integer localPort = (Integer) localPortJSpinner.getValue();
-        if (localPort == null || !HttpUtils.isValidPort(localPort)) {
+        if (!HttpUtils.isValidPort(localPort)) {
             SwingUtils.showErrorMessage(this, "Fill in a valid local proxy port, between 1 and 65535");
             return false;
         }

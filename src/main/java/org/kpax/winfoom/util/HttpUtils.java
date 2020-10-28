@@ -266,8 +266,8 @@ public final class HttpUtils {
      * @param port the port value.
      * @return {@code true} iff the port value is between 1-65535.
      */
-    public static boolean isValidPort(final int port) {
-        return port > 0 && port < 65536;
+    public static boolean isValidPort(final Integer port) {
+        return port != null && port > 0 && port < 65536;
     }
 
     /**
@@ -276,7 +276,7 @@ public final class HttpUtils {
      * @param request the HTTP request.
      * @return the {@link ContentType} instance.
      */
-    public static ContentType getContentType(final HttpRequest request) {
+    public static ContentType getContentType(@NotNull final HttpRequest request) {
         Header contentTypeHeader = request.getFirstHeader(HttpHeaders.CONTENT_TYPE);
         Assert.isTrue(contentTypeHeader != null, "No Content-Type header found");
         String[] tokens = contentTypeHeader.getValue().split(";");
@@ -300,7 +300,7 @@ public final class HttpUtils {
      * @param httpEntity the entity to be consumed.
      * @throws IOException
      */
-    public static void consumeEntity(final HttpEntity httpEntity) throws IOException {
+    public static void consumeEntity(@NotNull final HttpEntity httpEntity) throws IOException {
         ByteArrayOutputStream outStream = new ByteArrayOutputStream();
         httpEntity.writeTo(outStream);
         outStream.flush();
@@ -342,7 +342,7 @@ public final class HttpUtils {
      * Parse the proxy line returned by PAC proxy script.
      *
      * @param proxyLine the proxy line.
-     * @return the list of {@link ProxyInfo}s.
+     * @return the immutable list of {@link ProxyInfo}s.
      */
     public static List<ProxyInfo> parsePacProxyLine(final String proxyLine) {
         if (StringUtils.isBlank(proxyLine)) {
@@ -449,6 +449,8 @@ public final class HttpUtils {
 
 
     /**
+     * Generate the current date in RFC 1123 format to be used in HTTP header.
+     *
      * @return the current date in RFC 1123 format.
      */
     public static String getCurrentDate() {
@@ -459,10 +461,11 @@ public final class HttpUtils {
 
     /**
      * Check whether an uri contains schema.
+     *
      * @param uri the uri to check.
      * @return {@code true} iff the {@code uri} contains {@code ://} string value.
      */
-    public static boolean containsSchema (@NotNull String uri) {
+    public static boolean containsSchema(@NotNull String uri) {
         return uri.indexOf("://") > -1;
     }
 

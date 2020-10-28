@@ -34,7 +34,7 @@ import java.io.IOException;
 import java.net.*;
 
 /**
- * Process a CONNECT request through a SOCKS proxy or no proxy.
+ * Process a CONNECT request through a SOCKS proxy or no proxy (DIRECT).
  *
  * @author Eugen Covaci {@literal eugen.covaci.q@gmail.com}
  * Created on 4/16/2020
@@ -98,7 +98,8 @@ class SocksConnectClientConnectionProcessor extends ClientConnectionProcessor {
     }
 
     @Override
-    void handleError(ClientConnection clientConnection, ProxyInfo proxyInfo, Exception e) throws ProxyConnectException {
+    void handleError(ClientConnection clientConnection,
+                     ProxyInfo proxyInfo, Exception e) throws ProxyConnectException {
         if (e instanceof UnknownHostException) {
             clientConnection.writeErrorResponse(HttpStatus.SC_GATEWAY_TIMEOUT, e.getMessage());
         } else if (e instanceof SocketTimeoutException) {

@@ -270,7 +270,8 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
      */
     public void writeErrorResponse(int statusCode, String reasonPhrase) {
         try {
-            write(HttpUtils.toStatusLine(request != null ? request.getProtocolVersion() : HttpVersion.HTTP_1_1, statusCode, reasonPhrase));
+            write(HttpUtils.toStatusLine(request != null ? request.getProtocolVersion() : HttpVersion.HTTP_1_1,
+                    statusCode, reasonPhrase));
             write(HttpUtils.createHttpHeader(HTTP.DATE_HEADER, HttpUtils.getCurrentDate()));
             writeln();
         } catch (Exception ex) {
@@ -341,7 +342,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
      * Delegate the request processing to an appropriate {@link ClientConnectionProcessor}
      * and process the client connection with each available proxy.<br>
      * The remote proxy is blacklisted if it is not available.<br>
-     * <p>After calling this method, the response should be committed.</p>
+     * <p><b>This method must always commit the response.</b></p>
      */
     void process() {
         while (proxyInfoIterator.hasNext()) {

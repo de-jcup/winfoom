@@ -38,7 +38,8 @@ class SocksNonConnectClientConnectionProcessor extends NonConnectClientConnectio
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Override
-    void handleError(ClientConnection clientConnection, ProxyInfo proxyInfo, Exception e) throws ProxyConnectException {
+    void handleError(ClientConnection clientConnection,
+                     ProxyInfo proxyInfo, Exception e) throws ProxyConnectException {
         if (e instanceof UnknownHostException) {
             clientConnection.writeErrorResponse(HttpStatus.SC_GATEWAY_TIMEOUT, e.getMessage());
         } else if (e instanceof ConnectTimeoutException) {
