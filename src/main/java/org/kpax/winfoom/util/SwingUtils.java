@@ -139,7 +139,7 @@ public class SwingUtils {
      * @param runnable the {@link Runnable} instance (not null)
      * @param frame    the current {@link JFrame}
      */
-    public static void executeRunnable(@NotNull final Runnable runnable,@NotNull final JFrame frame) {
+    public static void executeRunnable(@NotNull final Runnable runnable, @NotNull final JFrame frame) {
         Assert.notNull(runnable, "runnable cannot be null");
         Assert.notNull(frame, "frame cannot be null");
         frame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));

@@ -18,10 +18,16 @@ import org.kpax.winfoom.annotation.NotNull;
 import org.kpax.winfoom.exception.ProxyConnectException;
 import org.kpax.winfoom.proxy.ClientConnection;
 import org.kpax.winfoom.proxy.ProxyInfo;
+import org.kpax.winfoom.util.StreamSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 /**
  * Process a {@link ClientConnection} with a certain {@link ProxyInfo}.
@@ -32,6 +38,9 @@ import java.io.IOException;
 public abstract class ClientConnectionProcessor {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    @Autowired
+    private ExecutorService executorService;
 
     /**
      * Process the client's connection. That is:<br>
@@ -66,6 +75,39 @@ public abstract class ClientConnectionProcessor {
                      @NotNull final Exception e)
             throws ProxyConnectException {
         clientConnection.writeErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+    }
+
+    /**
+     * Transfer bytes between two sources.
+     *
+     * @param firstSource  The first source.
+     * @param secondSource The second source.
+     */
+    void duplex(@NotNull final StreamSource firstSource,
+                @NotNull final StreamSource secondSource) {
+        logger.debug("Start full duplex communication");
+        Future<?> secondToFirst = executorService.submit(
+                () -> secondSource.getInputStream().transferTo(firstSource.getOutputStream()));
+        try {
+            firstSource.getInputStream().transferTo(secondSource.getOutputStream());
+            if (!secondToFirst.isDone()) {
+
+                // Wait for the async transfer to finish
+                try {
+                    secondToFirst.get();
+                } catch (ExecutionException e) {
+                    logger.debug("Error on executing second to first transfer", e.getCause());
+                } catch (InterruptedException e) {
+                    logger.debug("Transfer from second to first interrupted", e);
+                } catch (CancellationException e) {
+                    logger.debug("Transfer from second to first cancelled", e);
+                }
+            }
+        } catch (Exception e) {
+            secondToFirst.cancel(true);
+            logger.debug("Error on executing second to first transfer", e);
+        }
+        logger.debug("End full duplex communication");
     }
 
     /**

@@ -20,10 +20,8 @@ import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.exception.ProxyConnectException;
 import org.kpax.winfoom.proxy.ClientConnection;
-import org.kpax.winfoom.proxy.ProxyExecutorService;
 import org.kpax.winfoom.proxy.ProxyInfo;
 import org.kpax.winfoom.util.HttpUtils;
-import org.kpax.winfoom.util.InputOutputs;
 import org.kpax.winfoom.util.StreamSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,9 +45,6 @@ class SocksConnectClientConnectionProcessor extends ClientConnectionProcessor {
 
     @Autowired
     private SystemConfig systemConfig;
-
-    @Autowired
-    private ProxyExecutorService executorService;
 
     @Override
     void handleRequest(final ClientConnection clientConnection, final ProxyInfo proxyInfo)
@@ -87,9 +82,7 @@ class SocksConnectClientConnectionProcessor extends ClientConnectionProcessor {
                 // The proxy facade mediates the full duplex communication
                 // between the client and the remote proxy
                 // This usually ends on connection reset, timeout or any other error
-                InputOutputs.duplex(executorService,
-                        StreamSource.from(socket.getInputStream(), socket.getOutputStream()),
-                        clientConnection);
+                duplex(StreamSource.from(socket.getInputStream(), socket.getOutputStream()), clientConnection);
             } catch (Exception e) {
                 logger.error("Error on full duplex", e);
             }

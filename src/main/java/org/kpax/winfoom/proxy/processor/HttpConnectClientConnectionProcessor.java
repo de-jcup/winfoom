@@ -16,9 +16,11 @@ import org.apache.http.*;
 import org.apache.http.impl.execchain.TunnelRefusedException;
 import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.exception.ProxyConnectException;
-import org.kpax.winfoom.proxy.*;
+import org.kpax.winfoom.proxy.ClientConnection;
+import org.kpax.winfoom.proxy.ProxyInfo;
+import org.kpax.winfoom.proxy.Tunnel;
+import org.kpax.winfoom.proxy.TunnelConnection;
 import org.kpax.winfoom.util.HttpUtils;
-import org.kpax.winfoom.util.InputOutputs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,9 +41,6 @@ import java.net.UnknownHostException;
 class HttpConnectClientConnectionProcessor extends ClientConnectionProcessor {
 
     private final Logger logger = LoggerFactory.getLogger(HttpConnectClientConnectionProcessor.class);
-
-    @Autowired
-    private ProxyExecutorService executorService;
 
     @Autowired
     private TunnelConnection tunnelConnection;
@@ -67,7 +66,7 @@ class HttpConnectClientConnectionProcessor extends ClientConnectionProcessor {
                 // The proxy facade mediates the full duplex communication
                 // between the client and the remote proxy.
                 // This usually ends on connection reset, timeout or any other error
-                InputOutputs.duplex(executorService, tunnel, clientConnection);
+                duplex(tunnel, clientConnection);
 
             } catch (Exception e) {
                 logger.debug("Error on handling CONNECT response", e);

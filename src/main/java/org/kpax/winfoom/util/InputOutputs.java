@@ -26,10 +26,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 
 /**
  * @author Eugen Covaci
@@ -57,13 +53,13 @@ public final class InputOutputs {
         }
     }
 
-    /**
+    /*    *//**
      * Transfer bytes between two sources.
      *
      * @param executorService The executor service for async support.
      * @param firstSource     The first source.
      * @param secondSource    The second source.
-     */
+     *//*
     public static void duplex(final ExecutorService executorService, final StreamSource firstSource,
                               final StreamSource secondSource) {
         logger.debug("Start full duplex communication");
@@ -89,7 +85,7 @@ public final class InputOutputs {
             logger.debug("Error on executing second to first transfer", e);
         }
         logger.debug("End full duplex communication");
-    }
+    }*/
 
     /**
      * Close an <code>AutoCloseable</code>, debug the possible error.
