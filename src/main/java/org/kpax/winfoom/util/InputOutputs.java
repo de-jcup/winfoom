@@ -53,40 +53,6 @@ public final class InputOutputs {
         }
     }
 
-    /*    *//**
-     * Transfer bytes between two sources.
-     *
-     * @param executorService The executor service for async support.
-     * @param firstSource     The first source.
-     * @param secondSource    The second source.
-     *//*
-    public static void duplex(final ExecutorService executorService, final StreamSource firstSource,
-                              final StreamSource secondSource) {
-        logger.debug("Start full duplex communication");
-        Future<?> secondToFirst = executorService.submit(
-                () -> secondSource.getInputStream().transferTo(firstSource.getOutputStream()));
-        try {
-            firstSource.getInputStream().transferTo(secondSource.getOutputStream());
-            if (!secondToFirst.isDone()) {
-
-                // Wait for the async transfer to finish
-                try {
-                    secondToFirst.get();
-                } catch (ExecutionException e) {
-                    logger.debug("Error on executing second to first transfer", e.getCause());
-                } catch (InterruptedException e) {
-                    logger.debug("Transfer from second to first interrupted", e);
-                } catch (CancellationException e) {
-                    logger.debug("Transfer from second to first cancelled", e);
-                }
-            }
-        } catch (Exception e) {
-            secondToFirst.cancel(true);
-            logger.debug("Error on executing second to first transfer", e);
-        }
-        logger.debug("End full duplex communication");
-    }*/
-
     /**
      * Close an <code>AutoCloseable</code>, debug the possible error.
      *

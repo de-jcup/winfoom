@@ -105,7 +105,7 @@ public abstract class ClientConnectionProcessor {
             }
         } catch (Exception e) {
             secondToFirst.cancel(true);
-            logger.debug("Error on executing second to first transfer", e);
+            logger.debug("Error on executing first to second transfer", e);
         }
         logger.debug("End full duplex communication");
     }
