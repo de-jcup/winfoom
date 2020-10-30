@@ -20,6 +20,7 @@ import org.springframework.util.Assert;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.Socket;
 import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -68,6 +69,27 @@ public final class InputOutputs {
             }
         }
 
+    }
+
+    public static void close(final Socket socket) {
+        logger.debug("Close socket");
+        try {
+            socket.shutdownInput();
+        } catch (Exception e) {
+            logger.debug("Fail to shutdown socket input", e);
+        }
+
+        try {
+            socket.shutdownOutput();
+        } catch (Exception e) {
+            logger.debug("Fail to shutdown socket output", e);
+        }
+
+        try {
+            socket.close();
+        } catch (Exception e) {
+            logger.debug("Fail to close socket", e);
+        }
     }
 
     public static String generateCacheFilename() {

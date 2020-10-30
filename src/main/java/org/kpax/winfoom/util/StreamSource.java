@@ -16,8 +16,10 @@ import org.kpax.winfoom.annotation.NotNull;
 import org.kpax.winfoom.annotation.ThreadSafe;
 import org.springframework.util.Assert;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.Socket;
 
 @ThreadSafe
 public interface StreamSource {
@@ -30,6 +32,10 @@ public interface StreamSource {
 
     static StreamSource from(@NotNull final InputStream inputStream, @NotNull final OutputStream outputStream) {
         return new DefaultStreamSource(inputStream, outputStream);
+    }
+
+    static StreamSource from (@NotNull final Socket socket) throws IOException {
+        return new DefaultStreamSource(socket.getInputStream(), socket.getOutputStream());
     }
 
     class DefaultStreamSource implements StreamSource {

@@ -87,25 +87,30 @@ public abstract class ClientConnectionProcessor {
                 @NotNull final StreamSource secondSource) {
         logger.debug("Start full duplex communication");
         Future<?> secondToFirst = executorService.submit(
-                () -> secondSource.getInputStream().transferTo(firstSource.getOutputStream()));
+                () -> {
+                    try {
+                        secondSource.getInputStream().transferTo(firstSource.getOutputStream());
+                    } catch (Exception e) {
+                        logger.debug("Error on executing second to first transfer", e);
+                    }
+                });
         try {
             firstSource.getInputStream().transferTo(secondSource.getOutputStream());
-            if (!secondToFirst.isDone()) {
-
-                // Wait for the async transfer to finish
-                try {
-                    secondToFirst.get();
-                } catch (ExecutionException e) {
-                    logger.debug("Error on executing second to first transfer", e.getCause());
-                } catch (InterruptedException e) {
-                    logger.debug("Transfer from second to first interrupted", e);
-                } catch (CancellationException e) {
-                    logger.debug("Transfer from second to first cancelled", e);
-                }
-            }
         } catch (Exception e) {
-            secondToFirst.cancel(true);
             logger.debug("Error on executing first to second transfer", e);
+        }
+        if (!secondToFirst.isDone()) {
+
+            // Wait for the async transfer to finish
+            try {
+                secondToFirst.get();
+            } catch (ExecutionException e) {
+                logger.debug("Error on executing second to first transfer", e.getCause());
+            } catch (InterruptedException e) {
+                logger.debug("Transfer from second to first interrupted", e);
+            } catch (CancellationException e) {
+                logger.debug("Transfer from second to first cancelled", e);
+            }
         }
         logger.debug("End full duplex communication");
     }

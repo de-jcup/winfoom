@@ -82,7 +82,7 @@ class SocksConnectClientConnectionProcessor extends ClientConnectionProcessor {
                 // The proxy facade mediates the full duplex communication
                 // between the client and the remote proxy
                 // This usually ends on connection reset, timeout or any other error
-                duplex(StreamSource.from(socket.getInputStream(), socket.getOutputStream()), clientConnection);
+                duplex(StreamSource.from(socket), clientConnection);
             } catch (Exception e) {
                 logger.error("Error on full duplex", e);
             }
