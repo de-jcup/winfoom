@@ -100,12 +100,8 @@ public class ProxyController {
         logger.debug("Reset all autocloseable singletons");
         Stream.of(applicationContext.getBeanNamesForType(Resetable.class)).
                 map(applicationContext.getBeanFactory()::getSingleton).
-                filter(b -> b != null).
-                sorted(AnnotationAwareOrderComparator.INSTANCE).
-                forEach(bean -> {
-                    logger.debug("Close bean of type {}", bean.getClass());
-                    InputOutputs.close((AutoCloseable) bean);
-                });
+                filter(b -> b != null).sorted(AnnotationAwareOrderComparator.INSTANCE).
+                map(b -> (AutoCloseable)b).forEach(InputOutputs::close);
     }
 
     void restart() throws Exception {

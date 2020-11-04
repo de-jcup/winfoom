@@ -78,7 +78,7 @@ public abstract class ClientConnectionProcessor {
     }
 
     /**
-     * Transfer bytes between two sources.
+     * Simultaneously transfer bytes between two sources in a mutually independent manner.
      *
      * @param firstSource  The first source.
      * @param secondSource The second source.
@@ -100,11 +100,10 @@ public abstract class ClientConnectionProcessor {
             logger.debug("Error on executing first to second transfer", e);
         }
         if (!secondToFirst.isDone()) {
-
             // Wait for the async transfer to finish
             try {
                 secondToFirst.get();
-            } catch (ExecutionException e) {
+            } catch (ExecutionException e) {// Normally, we shouldn't get here
                 logger.debug("Error on executing second to first transfer", e.getCause());
             } catch (InterruptedException e) {
                 logger.debug("Transfer from second to first interrupted", e);

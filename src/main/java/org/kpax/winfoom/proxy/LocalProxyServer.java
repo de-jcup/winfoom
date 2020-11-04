@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -67,6 +68,8 @@ class LocalProxyServer implements Resetable {
      * @throws Exception
      */
     synchronized void start() throws Exception {
+        Assert.isTrue(serverSocket == null || serverSocket.isClosed(),
+                "There is an active ServerSocket instance that needs to be closed before creating another one");
         logger.info("Start local proxy server with userConfig {}", proxyConfig);
         try {
             serverSocket = new ServerSocket(proxyConfig.getLocalPort(),
@@ -113,11 +116,7 @@ class LocalProxyServer implements Resetable {
     @Override
     public synchronized void close() {
         logger.info("Close the local proxy server");
-        try {
-            InputOutputs.close(serverSocket);
-        } catch (Exception e) {
-            logger.warn("Error on closing server socket", e);
-        }
+        InputOutputs.close(serverSocket);
     }
 
 }

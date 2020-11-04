@@ -240,7 +240,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
      * @param obj the object
      * @throws IOException
      */
-    public void write(Object obj) throws IOException {
+    public void write(@NotNull Object obj) throws IOException {
         outputStream.write(ObjectFormat.toCrlf(obj));
     }
 
@@ -255,6 +255,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
 
     /**
      * Write a simple response with only the status line and date header, followed by an empty line.
+     * <p><b>This method commits the response.</b></p>
      *
      * @param statusCode the request's status code.
      */
@@ -264,6 +265,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
 
     /**
      * Write a simple response with only the status line and date header, followed by an empty line.
+     * <p><b>This method commits the response.</b></p>
      *
      * @param statusCode   the request's status code.
      * @param reasonPhrase the request's reason code
@@ -281,6 +283,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
 
     /**
      * Write the response to the output stream as it is.
+     * <p><b>This method commits the response.</b></p>
      *
      * @param httpResponse the HTTP response
      * @throws Exception
