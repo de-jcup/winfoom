@@ -370,9 +370,7 @@ public class AppFrame extends JFrame {
             autostartCheckBox.setSelected(proxyConfig.isAutostart());
             autostartCheckBox.setToolTipText(HttpUtils.toHtml("When checked, next time you start the application " +
                     "<br>it will automatically start the proxy and minimize the window to tray."));
-            autostartCheckBox.addActionListener((event -> {
-                proxyConfig.setAutostart(autostartCheckBox.isSelected());
-            }));
+            autostartCheckBox.addActionListener((event -> proxyConfig.setAutostart(autostartCheckBox.isSelected())));
         }
         return autostartCheckBox;
     }
@@ -467,32 +465,30 @@ public class AppFrame extends JFrame {
         if (btnTest == null) {
             btnTest = new JButton("Test");
             btnTest.setMargin(new Insets(2, 6, 2, 6));
-            btnTest.addActionListener(event -> {
-                SwingUtils.executeRunnable(() -> {
-                    btnTest.setEnabled(false);
-                    btnStop.setEnabled(false);
-                    try {
-                        String testURL = JOptionPane.showInputDialog(AppFrame.this, "Test URL*:", proxyConfig.getProxyTestUrl());
-                        if (StringUtils.isNotBlank(testURL)) {
-                            proxyConfig.setProxyTestUrl(testURL);
-                            proxyValidator.testProxy();
-                            SwingUtils.showInfoMessage(AppFrame.this, "Success!");
-                        } else if (testURL != null) {
-                            SwingUtils.showErrorMessage(AppFrame.this, "Invalid test URL!");
-                        }
-                    } catch (InvalidProxySettingsException e) {
-                        SwingUtils.showErrorMessage(AppFrame.this, e.getMessage());
-                    } catch (Exception e) {
-                        logger.error("Error on testing proxy", e);
-                        SwingUtils.showErrorMessage(AppFrame.this, "Proxy test failed. See the log file for details");
-                    } finally {
-                        btnTest.setEnabled(true);
-                        btnStop.setEnabled(true);
+            btnTest.addActionListener(event -> SwingUtils.executeRunnable(() -> {
+                btnTest.setEnabled(false);
+                btnStop.setEnabled(false);
+                try {
+                    String testURL = JOptionPane.showInputDialog(AppFrame.this, "Test URL*:", proxyConfig.getProxyTestUrl());
+                    if (StringUtils.isNotBlank(testURL)) {
+                        proxyConfig.setProxyTestUrl(testURL);
+                        proxyValidator.testProxy();
+                        SwingUtils.showInfoMessage(AppFrame.this, "Success!");
+                    } else if (testURL != null) {
+                        SwingUtils.showErrorMessage(AppFrame.this, "Invalid test URL!");
                     }
+                } catch (InvalidProxySettingsException e) {
+                    SwingUtils.showErrorMessage(AppFrame.this, e.getMessage());
+                } catch (Exception e) {
+                    logger.error("Error on testing proxy", e);
+                    SwingUtils.showErrorMessage(AppFrame.this, "Proxy test failed. See the log file for details");
+                } finally {
+                    btnTest.setEnabled(true);
+                    btnStop.setEnabled(true);
+                }
 
 
-                }, AppFrame.this);
-            });
+            }, AppFrame.this));
             btnTest.setIcon(new TunedImageIcon("test.png"));
             btnTest.setToolTipText("Test the proxy settings");
             btnTest.setEnabled(false);

@@ -113,8 +113,7 @@ public class WTypes2 {
             if (p == null) {
                 return null;
             }
-            WTypes.LPWSTR h = new WTypes.LPWSTR(p);
-            return h;
+            return new WTypes.LPWSTR(p);
         }
 
         /**

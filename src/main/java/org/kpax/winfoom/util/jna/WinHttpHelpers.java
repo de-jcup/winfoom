@@ -88,11 +88,12 @@ public class WinHttpHelpers {
                 // using either DHCP, DNS or both, failed because there wasn't
                 // a useful reply from DHCP / DNS. (meaning the site hasn't
                 // configured their DHCP Server or their DNS Server for WPAD)
-                return null;
+                logger.debug("The DHCP Server or the DNS Server is not configured for WPAD", ex);
+            } else {
+                // Something more serious is wrong. There isn't much we can do
+                // about it but at least we would like to log it.
+                logger.warn("Windows function WinHttpDetectAutoProxyConfigUrl returned error", ex);
             }
-            // Something more serious is wrong. There isn't much we can do
-            // about it but at least we would like to log it.
-            logger.debug("Windows function WinHttpDetectAutoProxyConfigUrl returned error", ex);
             return null;
         }
 
@@ -103,19 +104,17 @@ public class WinHttpHelpers {
         // Retrieve the IE proxy configuration.
         WinHttpCurrentUserIEProxyConfig winHttpCurrentUserIeProxyConfig = new WinHttpCurrentUserIEProxyConfig();
         boolean result = WinHttp.INSTANCE.WinHttpGetIEProxyConfigForCurrentUser(winHttpCurrentUserIeProxyConfig);
-        if (!result) {
-            return null;
+        if (result) {
+            // Create IEProxyConfig instance
+            return new IEProxyConfig(winHttpCurrentUserIeProxyConfig.fAutoDetect,
+                    winHttpCurrentUserIeProxyConfig.lpszAutoConfigUrl != null
+                            ? winHttpCurrentUserIeProxyConfig.lpszAutoConfigUrl.getValue() : null,
+                    winHttpCurrentUserIeProxyConfig.lpszProxy != null ? winHttpCurrentUserIeProxyConfig.lpszProxy.getValue()
+                            : null,
+                    winHttpCurrentUserIeProxyConfig.lpszProxyBypass != null
+                            ? winHttpCurrentUserIeProxyConfig.lpszProxyBypass.getValue() : null);
         }
-
-        // Create IEProxyConfig instance
-        return new IEProxyConfig(winHttpCurrentUserIeProxyConfig.fAutoDetect,
-                winHttpCurrentUserIeProxyConfig.lpszAutoConfigUrl != null
-                        ? winHttpCurrentUserIeProxyConfig.lpszAutoConfigUrl.getValue() : null,
-                winHttpCurrentUserIeProxyConfig.lpszProxy != null ? winHttpCurrentUserIeProxyConfig.lpszProxy.getValue()
-                        : null,
-                winHttpCurrentUserIeProxyConfig.lpszProxyBypass != null
-                        ? winHttpCurrentUserIeProxyConfig.lpszProxyBypass.getValue() : null);
-
+        return null;
     }
 
 

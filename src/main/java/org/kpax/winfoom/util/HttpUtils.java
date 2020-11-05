@@ -466,7 +466,7 @@ public final class HttpUtils {
      * @return {@code true} iff the {@code uri} contains {@code ://} string value.
      */
     public static boolean containsSchema(@NotNull String uri) {
-        return uri.indexOf("://") > -1;
+        return uri.contains("://");
     }
 
 }

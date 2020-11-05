@@ -22,7 +22,6 @@ import org.apache.http.util.EntityUtils;
 import org.kpax.winfoom.annotation.NotNull;
 import org.kpax.winfoom.annotation.NotThreadSafe;
 import org.kpax.winfoom.config.ProxyConfig;
-import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.exception.ProxyConnectException;
 import org.kpax.winfoom.pac.PacScriptEvaluator;
 import org.kpax.winfoom.proxy.processor.ClientConnectionProcessor;
@@ -68,10 +67,6 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
 
     private final ProxyConfig proxyConfig;
 
-    private final SystemConfig systemConfig;
-
-    private final PacScriptEvaluator pacScriptEvaluator;
-
     private final ProxyBlacklist proxyBlacklist;
 
     private final ConnectionProcessorSelector connectionProcessorSelector;
@@ -110,7 +105,6 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
      *
      * @param socket
      * @param proxyConfig
-     * @param systemConfig
      * @param connectionProcessorSelector
      * @param proxyBlacklist
      * @throws IOException
@@ -118,15 +112,12 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
      */
     private ClientConnection(final Socket socket,
                              final ProxyConfig proxyConfig,
-                             final SystemConfig systemConfig,
                              final ConnectionProcessorSelector connectionProcessorSelector,
                              final PacScriptEvaluator pacScriptEvaluator,
                              final ProxyBlacklist proxyBlacklist)
             throws Exception {
         this.socket = socket;
         this.proxyConfig = proxyConfig;
-        this.systemConfig = systemConfig;
-        this.pacScriptEvaluator = pacScriptEvaluator;
 
         // Set the streams
         this.inputStream = socket.getInputStream();
@@ -391,7 +382,6 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
 
         private Socket socket;
         private ProxyConfig proxyConfig;
-        private SystemConfig systemConfig;
         private PacScriptEvaluator pacScriptEvaluator;
         private ProxyBlacklist proxyBlacklist;
         private ConnectionProcessorSelector connectionProcessorSelector;
@@ -403,11 +393,6 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
 
         ClientConnectionBuilder withProxyConfig(ProxyConfig proxyConfig) {
             this.proxyConfig = proxyConfig;
-            return this;
-        }
-
-        ClientConnectionBuilder withSystemConfig(SystemConfig systemConfig) {
-            this.systemConfig = systemConfig;
             return this;
         }
 
@@ -428,7 +413,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
 
         ClientConnection build()
                 throws Exception {
-            return new ClientConnection(socket, proxyConfig, systemConfig, connectionProcessorSelector, pacScriptEvaluator, proxyBlacklist);
+            return new ClientConnection(socket, proxyConfig, connectionProcessorSelector, pacScriptEvaluator, proxyBlacklist);
         }
     }
 }

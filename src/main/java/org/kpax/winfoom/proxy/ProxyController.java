@@ -27,6 +27,7 @@ import org.springframework.util.Assert;
 
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
@@ -100,8 +101,8 @@ public class ProxyController {
         logger.debug("Reset all autocloseable singletons");
         Stream.of(applicationContext.getBeanNamesForType(Resetable.class)).
                 map(applicationContext.getBeanFactory()::getSingleton).
-                filter(b -> b != null).sorted(AnnotationAwareOrderComparator.INSTANCE).
-                map(b -> (AutoCloseable)b).forEach(InputOutputs::close);
+                filter(Objects::nonNull).sorted(AnnotationAwareOrderComparator.INSTANCE).
+                map(b -> (AutoCloseable) b).forEach(InputOutputs::close);
     }
 
     void restart() throws Exception {

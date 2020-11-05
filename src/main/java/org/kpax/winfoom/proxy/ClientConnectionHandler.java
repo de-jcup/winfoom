@@ -17,7 +17,6 @@ import org.apache.http.RequestLine;
 import org.kpax.winfoom.annotation.NotNull;
 import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.ProxyConfig;
-import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.pac.PacScriptEvaluator;
 import org.kpax.winfoom.proxy.processor.ConnectionProcessorSelector;
 import org.slf4j.Logger;
@@ -40,9 +39,6 @@ public class ClientConnectionHandler {
     private ProxyConfig proxyConfig;
 
     @Autowired
-    private SystemConfig systemConfig;
-
-    @Autowired
     private PacScriptEvaluator pacScriptEvaluator;
 
     @Autowired
@@ -62,7 +58,6 @@ public class ClientConnectionHandler {
                 new ClientConnection.ClientConnectionBuilder().
                         withSocket(socket).
                         withProxyConfig(proxyConfig).
-                        withSystemConfig(systemConfig).
                         withConnectionProcessorSelector(connectionProcessorSelector);
         if (proxyConfig.isAutoConfig()) {
             clientConnectionBuilder.withPacScriptEvaluator(pacScriptEvaluator);

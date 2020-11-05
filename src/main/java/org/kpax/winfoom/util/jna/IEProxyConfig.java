@@ -45,6 +45,12 @@
  *
  * @author Markus Bernhardt, Copyright 2016
  * @author Bernd Rosstauscher, Copyright 2009
+ * <p>
+ * ***************************************************************************
+ * Proxy settings container used for the native methods. Will contain the
+ * Internet Explorer proxy settings as reported by windows WinHTTP API.
+ * @author Markus Bernhardt, Copyright 2016
+ * @author Bernd Rosstauscher, Copyright 2009
  ****************************************************************************/
 
 /**
@@ -59,10 +65,10 @@ package org.kpax.winfoom.util.jna;
 
 public class IEProxyConfig {
 
-    private boolean autoDetect;
-    private String autoConfigUrl;
-    private String proxy;
-    private String proxyBypass;
+    private final boolean autoDetect;
+    private final String autoConfigUrl;
+    private final String proxy;
+    private final String proxyBypass;
 
     /*************************************************************************
      * Constructor

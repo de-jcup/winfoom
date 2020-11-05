@@ -71,7 +71,7 @@ public class HttpClientBuilderFactory {
                 .setProxy(new HttpHost(proxyInfo.getProxyHost().getHostName(), proxyInfo.getProxyHost().getPort()))
                 .setCircularRedirectsAllowed(true)
                 .build();
-        HttpClientBuilder builder = WinHttpClients.custom().setDefaultCredentialsProvider(credentialsProvider)
+        return WinHttpClients.custom().setDefaultCredentialsProvider(credentialsProvider)
                 .setConnectionManager(connectionPoolingManager.getHttpConnectionManager())
                 .setConnectionManagerShared(true)
                 .setDefaultRequestConfig(requestConfig)
@@ -79,7 +79,6 @@ public class HttpClientBuilderFactory {
                 .disableAutomaticRetries()
                 .disableRedirectHandling()
                 .disableCookieManagement();
-        return builder;
     }
 
     /**
@@ -88,7 +87,7 @@ public class HttpClientBuilderFactory {
      * @return a pre-configured {@link HttpClientBuilder} instance for direct connections (no proxy).
      */
     private HttpClientBuilder createDirectClientBuilder() {
-        HttpClientBuilder builder = HttpClients.custom()
+        return HttpClients.custom()
                 .setConnectionManager(connectionPoolingManager.getHttpConnectionManager())
                 .setConnectionManagerShared(true)
                 .setDefaultRequestConfig(systemConfig.applyConfig(RequestConfig.custom())
@@ -97,7 +96,6 @@ public class HttpClientBuilderFactory {
                 .disableAutomaticRetries()
                 .disableRedirectHandling()
                 .disableCookieManagement();
-        return builder;
     }
 
     /**
@@ -107,7 +105,7 @@ public class HttpClientBuilderFactory {
      * @return a pre-configured {@link HttpClientBuilder} instance for SOCKS proxies.
      */
     private HttpClientBuilder createSocksClientBuilder(boolean isSocks4) {
-        HttpClientBuilder builder = HttpClients.custom()
+        return HttpClients.custom()
                 .setConnectionManager(connectionPoolingManager.getSocksConnectionManager(isSocks4))
                 .setDefaultRequestConfig(systemConfig.applyConfig(RequestConfig.custom())
                         .setCircularRedirectsAllowed(true)
@@ -116,7 +114,6 @@ public class HttpClientBuilderFactory {
                 .disableAutomaticRetries()
                 .disableRedirectHandling()
                 .disableCookieManagement();
-        return builder;
     }
 
 

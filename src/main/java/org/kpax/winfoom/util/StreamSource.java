@@ -34,7 +34,7 @@ public interface StreamSource {
         return new DefaultStreamSource(inputStream, outputStream);
     }
 
-    static StreamSource from (@NotNull final Socket socket) throws IOException {
+    static StreamSource from(@NotNull final Socket socket) throws IOException {
         return new DefaultStreamSource(socket.getInputStream(), socket.getOutputStream());
     }
 
