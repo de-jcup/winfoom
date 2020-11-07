@@ -466,8 +466,7 @@ public class AppFrame extends JFrame {
             btnTest = new JButton("Test");
             btnTest.setMargin(new Insets(2, 6, 2, 6));
             btnTest.addActionListener(event -> SwingUtils.executeRunnable(() -> {
-                btnTest.setEnabled(false);
-                btnStop.setEnabled(false);
+                setBtnEnable(false);
                 try {
                     String testURL = JOptionPane.showInputDialog(AppFrame.this, "Test URL*:", proxyConfig.getProxyTestUrl());
                     if (StringUtils.isNotBlank(testURL)) {
@@ -483,8 +482,7 @@ public class AppFrame extends JFrame {
                     logger.error("Error on testing proxy", e);
                     SwingUtils.showErrorMessage(AppFrame.this, "Proxy test failed. See the log file for details");
                 } finally {
-                    btnTest.setEnabled(true);
-                    btnStop.setEnabled(true);
+                    setBtnEnable(true);
                 }
 
 
@@ -535,6 +533,14 @@ public class AppFrame extends JFrame {
             addProxyType();
         }
         return labelsFieldsPanel;
+    }
+
+    private void setBtnEnable(boolean enabled) {
+        btnTest.setEnabled(enabled);
+        btnStop.setEnabled(enabled);
+        if (btnCancelBlacklist != null) {
+            btnCancelBlacklist.setEnabled(enabled);
+        }
     }
 
     private void addProxyType() {

@@ -13,10 +13,11 @@
 package org.kpax.winfoom.proxy.processor;
 
 import org.apache.http.HttpException;
-import org.apache.http.HttpStatus;
 import org.kpax.winfoom.annotation.NotNull;
+import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.exception.ProxyConnectException;
 import org.kpax.winfoom.proxy.ClientConnection;
+import org.kpax.winfoom.proxy.ProxyBlacklist;
 import org.kpax.winfoom.proxy.ProxyInfo;
 import org.kpax.winfoom.util.StreamSource;
 import org.slf4j.Logger;
@@ -42,6 +43,12 @@ public abstract class ClientConnectionProcessor {
     @Autowired
     private ExecutorService executorService;
 
+    @Autowired
+    private ProxyConfig proxyConfig;
+
+    @Autowired
+    private ProxyBlacklist proxyBlacklist;
+
     /**
      * Process the client's connection. That is:<br>
      * <ul>
@@ -62,7 +69,6 @@ public abstract class ClientConnectionProcessor {
 
     /**
      * Handle the exception thrown by {@link #handleRequest(ClientConnection, ProxyInfo)} method.
-     * <p>The implementations are free to overwrite this method as needed.</p>
      * <p><b>Note: This method must either commit the response or throw a {@link ProxyConnectException}</b></p>
      *
      * @param clientConnection the {@link ClientConnection} instance.
@@ -70,12 +76,10 @@ public abstract class ClientConnectionProcessor {
      * @param e                The exception thrown by {@link #handleRequest(ClientConnection, ProxyInfo)} method
      * @throws ProxyConnectException
      */
-    void handleError(@NotNull final ClientConnection clientConnection,
-                     @NotNull final ProxyInfo proxyInfo,
-                     @NotNull final Exception e)
-            throws ProxyConnectException {
-        clientConnection.writeErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-    }
+    abstract void handleError(@NotNull final ClientConnection clientConnection,
+                              @NotNull final ProxyInfo proxyInfo,
+                              @NotNull final Exception e)
+            throws ProxyConnectException;
 
     /**
      * Simultaneously transfer bytes between two sources in a mutually independent manner.
@@ -118,6 +122,7 @@ public abstract class ClientConnectionProcessor {
      * Call the {@link #handleRequest(ClientConnection, ProxyInfo)} method
      * then {@link #handleError(ClientConnection, ProxyInfo, Exception)} method
      * if an exception occurs.
+     * Also, blacklist the autoconfig proxy on {@link ProxyConnectException}.
      * <p>If it returns normally, the response will be considered committed.</p>
      *
      * @param clientConnection the {@link ClientConnection} instance.
@@ -132,7 +137,14 @@ public abstract class ClientConnectionProcessor {
             handleRequest(clientConnection, proxyInfo);
         } catch (Exception e) {
             logger.debug("Error on handling request", e);
-            handleError(clientConnection, proxyInfo, e);
+            try {
+                handleError(clientConnection, proxyInfo, e);
+            } catch (ProxyConnectException pce) {
+                if (proxyConfig.isAutoConfig()) {
+                    proxyBlacklist.blacklist(proxyInfo);
+                }
+                throw pce;
+            }
         }
     }
 }

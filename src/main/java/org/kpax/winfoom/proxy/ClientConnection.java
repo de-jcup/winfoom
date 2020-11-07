@@ -65,10 +65,6 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
      */
     private final Socket socket;
 
-    private final ProxyConfig proxyConfig;
-
-    private final ProxyBlacklist proxyBlacklist;
-
     private final ConnectionProcessorSelector connectionProcessorSelector;
 
     /**
@@ -106,23 +102,17 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
      * @param socket
      * @param proxyConfig
      * @param connectionProcessorSelector
-     * @param proxyBlacklist
      * @throws IOException
      * @throws HttpException
      */
     private ClientConnection(final Socket socket,
                              final ProxyConfig proxyConfig,
                              final ConnectionProcessorSelector connectionProcessorSelector,
-                             final PacScriptEvaluator pacScriptEvaluator,
-                             final ProxyBlacklist proxyBlacklist)
+                             final PacScriptEvaluator pacScriptEvaluator)
             throws Exception {
         this.socket = socket;
-        this.proxyConfig = proxyConfig;
-
-        // Set the streams
         this.inputStream = socket.getInputStream();
         this.outputStream = socket.getOutputStream();
-        this.proxyBlacklist = proxyBlacklist;
         this.connectionProcessorSelector = connectionProcessorSelector;
 
         // Parse the request
@@ -155,9 +145,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
             URI requestUri = getRequestUri();
             logger.debug("Extracted URI from request {}", requestUri);
             try {
-                List<ProxyInfo> proxies = pacScriptEvaluator.findProxyForURL(requestUri);
-                logger.debug("Proxies: {}", proxies);
-                List<ProxyInfo> nonBlacklistedProxies = proxyBlacklist.removeBlacklistedProxies(proxies);
+                List<ProxyInfo> nonBlacklistedProxies = pacScriptEvaluator.findActiveProxyForURL(requestUri);
                 logger.debug("NonBlacklistedProxies: {}", nonBlacklistedProxies);
                 this.proxyInfoIterator = nonBlacklistedProxies.listIterator();
             } catch (Exception e) {
@@ -173,7 +161,6 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
                 throw new IllegalStateException("All proxy servers are blacklisted!");
             }
         } else {
-
             // Manual proxy case
             HttpHost proxyHost = proxyConfig.getProxyType().isDirect() ? null :
                     new HttpHost(proxyConfig.getProxyHost(), proxyConfig.getProxyPort());
@@ -349,9 +336,6 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
                 break;
             } catch (ProxyConnectException e) {
                 logger.debug("Proxy connect error", e);
-                if (proxyConfig.isAutoConfig()) {
-                    proxyBlacklist.blacklist(proxyInfo);
-                }
                 if (proxyInfoIterator.hasNext()) {
                     logger.debug("Failed to connect to proxy: {}, retry with the next one", proxyInfo);
                 } else {
@@ -360,7 +344,6 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
                     // Cannot connect to the remote proxy,
                     // commit a response with 502 error code
                     writeErrorResponse(HttpStatus.SC_BAD_GATEWAY, e.getMessage());
-                    break;
                 }
             }
         }
@@ -383,7 +366,6 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
         private Socket socket;
         private ProxyConfig proxyConfig;
         private PacScriptEvaluator pacScriptEvaluator;
-        private ProxyBlacklist proxyBlacklist;
         private ConnectionProcessorSelector connectionProcessorSelector;
 
         ClientConnectionBuilder withSocket(Socket socket) {
@@ -401,11 +383,6 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
             return this;
         }
 
-        ClientConnectionBuilder withProxyBlacklist(ProxyBlacklist proxyBlacklist) {
-            this.proxyBlacklist = proxyBlacklist;
-            return this;
-        }
-
         ClientConnectionBuilder withConnectionProcessorSelector(ConnectionProcessorSelector connectionProcessorSelector) {
             this.connectionProcessorSelector = connectionProcessorSelector;
             return this;
@@ -413,7 +390,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
 
         ClientConnection build()
                 throws Exception {
-            return new ClientConnection(socket, proxyConfig, connectionProcessorSelector, pacScriptEvaluator, proxyBlacklist);
+            return new ClientConnection(socket, proxyConfig, connectionProcessorSelector, pacScriptEvaluator);
         }
     }
 }

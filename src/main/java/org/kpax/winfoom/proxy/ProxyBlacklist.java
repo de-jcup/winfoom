@@ -61,7 +61,7 @@ public class ProxyBlacklist implements Resetable {
      * @param proxyInfo the proxy to be blacklisted.
      * @return the blacklist timeout {@link Instant} iff the blacklisting is enabled, {@code null} otherwise.
      */
-    Instant blacklist(@NotNull final ProxyInfo proxyInfo) {
+    public Instant blacklist(@NotNull final ProxyInfo proxyInfo) {
         logger.debug("Attempt to blacklist proxy {}", proxyInfo);
         if (proxyConfig.getBlacklistTimeout() < 1) {
             logger.debug("Blacklisting is disabled, nothing to do");
@@ -88,7 +88,7 @@ public class ProxyBlacklist implements Resetable {
      * @return the same list if the blacklisting mechanism is disabled
      * or o new list containing the active proxies of the given list
      */
-    List<ProxyInfo> removeBlacklistedProxies(@NotNull final List<ProxyInfo> proxies) {
+    public List<ProxyInfo> removeBlacklistedProxies(@NotNull final List<ProxyInfo> proxies) {
         if (proxyConfig.getBlacklistTimeout() < 1) {
             return proxies;
         }

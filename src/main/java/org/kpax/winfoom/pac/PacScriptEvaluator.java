@@ -30,6 +30,7 @@ public interface PacScriptEvaluator {
      * This is JavaScript function name {@code FindProxyForURL()}.
      */
     String STANDARD_PAC_MAIN_FUNCTION = "FindProxyForURL";
+
     /**
      * Main entry point to JavaScript PAC script for IPv6 support,
      * as defined by Microsoft.
@@ -51,4 +52,16 @@ public interface PacScriptEvaluator {
      */
     List<ProxyInfo> findProxyForURL(URI uri) throws PacScriptException, PacFileException, IOException;
 
+    /**
+     * <p>
+     * Call the {@link #findProxyForURL(URI)} method then retain only the non-blacklisted proxies.
+     *
+     * @param uri URI to get proxies for.
+     * @return The {@link ProxyInfo} list.
+     * @throws PacScriptException when something goes wrong with the JavaScript function's call.
+     * @throws PacFileException   when the PAC file is invalid.
+     * @throws IOException        when the PAC file cannot be loaded.
+     * @see #findProxyForURL(URI)
+     */
+    List<ProxyInfo> findActiveProxyForURL(URI uri) throws PacScriptException, PacFileException, IOException;
 }

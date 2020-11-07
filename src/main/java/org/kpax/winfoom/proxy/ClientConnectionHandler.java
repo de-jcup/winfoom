@@ -61,7 +61,6 @@ public class ClientConnectionHandler {
                         withConnectionProcessorSelector(connectionProcessorSelector);
         if (proxyConfig.isAutoConfig()) {
             clientConnectionBuilder.withPacScriptEvaluator(pacScriptEvaluator);
-            clientConnectionBuilder.withProxyBlacklist(proxyBlacklist);
         }
 
         try (final ClientConnection clientConnection = clientConnectionBuilder.build()) {

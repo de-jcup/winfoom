@@ -36,6 +36,7 @@ import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.exception.MissingResourceException;
 import org.kpax.winfoom.exception.PacFileException;
 import org.kpax.winfoom.exception.PacScriptException;
+import org.kpax.winfoom.proxy.ProxyBlacklist;
 import org.kpax.winfoom.proxy.ProxyInfo;
 import org.kpax.winfoom.util.HttpUtils;
 import org.kpax.winfoom.util.functional.DoubleExceptionSingletonSupplier;
@@ -72,6 +73,9 @@ public class DefaultPacScriptEvaluator implements PacScriptEvaluator, Resetable 
 
     @Autowired
     private DefaultPacHelperMethods pacHelperMethods;
+
+    @Autowired
+    private ProxyBlacklist proxyBlacklist;
 
     private final DoubleExceptionSingletonSupplier<PacScriptEngine, PacFileException, IOException> scriptEngineSupplier =
             new DoubleExceptionSingletonSupplier<PacScriptEngine, PacFileException, IOException>(this::createScriptEngine);
@@ -174,6 +178,13 @@ public class DefaultPacScriptEvaluator implements PacScriptEvaluator, Resetable 
             // other unforeseen errors
             throw new PacScriptException("Error when executing PAC script function: " + scriptEngine.jsMainFunction, ex);
         }
+    }
+
+    @Override
+    public List<ProxyInfo> findActiveProxyForURL(URI uri) throws PacScriptException, PacFileException, IOException {
+        List<ProxyInfo> proxies = findProxyForURL(uri);
+        logger.debug("All proxies: {}", proxies);
+        return proxyBlacklist.removeBlacklistedProxies(proxies);
     }
 
     private boolean isJsFunctionAvailable(ScriptEngine eng, String functionName) {

@@ -51,6 +51,12 @@
  * Internet Explorer proxy settings as reported by windows WinHTTP API.
  * @author Markus Bernhardt, Copyright 2016
  * @author Bernd Rosstauscher, Copyright 2009
+ * <p>
+ * ***************************************************************************
+ * Proxy settings container used for the native methods. Will contain the
+ * Internet Explorer proxy settings as reported by windows WinHTTP API.
+ * @author Markus Bernhardt, Copyright 2016
+ * @author Bernd Rosstauscher, Copyright 2009
  ****************************************************************************/
 
 /**

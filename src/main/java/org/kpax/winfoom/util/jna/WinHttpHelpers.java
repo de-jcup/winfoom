@@ -74,13 +74,10 @@ public class WinHttpHelpers {
      * using WPAD method.
      */
     public static String detectAutoProxyConfigUrl(WinDef.DWORD dwAutoDetectFlags) {
-
         try (WTypes2.LPWSTRByReference ppwszAutoConfigUrl = new WTypes2.LPWSTRByReference()) {
             boolean result = WinHttp.INSTANCE.WinHttpDetectAutoProxyConfigUrl(dwAutoDetectFlags, ppwszAutoConfigUrl);
             if (result) {
                 return ppwszAutoConfigUrl.getString();
-            } else {
-                return null;
             }
         } catch (LastErrorException ex) {
             if (ex.getErrorCode() == WinHttp.ERROR_WINHTTP_AUTODETECTION_FAILED) {
@@ -88,19 +85,17 @@ public class WinHttpHelpers {
                 // using either DHCP, DNS or both, failed because there wasn't
                 // a useful reply from DHCP / DNS. (meaning the site hasn't
                 // configured their DHCP Server or their DNS Server for WPAD)
-                logger.debug("The DHCP Server or the DNS Server is not configured for WPAD", ex);
+                logger.debug("The DHCP Server or the DNS Server is not configured for WPAD");
             } else {
                 // Something more serious is wrong. There isn't much we can do
                 // about it but at least we would like to log it.
                 logger.warn("Windows function WinHttpDetectAutoProxyConfigUrl returned error", ex);
             }
-            return null;
         }
-
+        return null;
     }
 
     public static IEProxyConfig readIEProxyConfig() {
-
         // Retrieve the IE proxy configuration.
         WinHttpCurrentUserIEProxyConfig winHttpCurrentUserIeProxyConfig = new WinHttpCurrentUserIEProxyConfig();
         boolean result = WinHttp.INSTANCE.WinHttpGetIEProxyConfigForCurrentUser(winHttpCurrentUserIeProxyConfig);
