@@ -105,10 +105,10 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
      * @throws IOException
      * @throws HttpException
      */
-    private ClientConnection(final Socket socket,
-                             final ProxyConfig proxyConfig,
-                             final ConnectionProcessorSelector connectionProcessorSelector,
-                             final PacScriptEvaluator pacScriptEvaluator)
+    ClientConnection(final Socket socket,
+                     final ProxyConfig proxyConfig,
+                     final ConnectionProcessorSelector connectionProcessorSelector,
+                     final PacScriptEvaluator pacScriptEvaluator)
             throws Exception {
         this.socket = socket;
         this.inputStream = socket.getInputStream();
@@ -361,36 +361,4 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
                 '}';
     }
 
-    static class ClientConnectionBuilder {
-
-        private Socket socket;
-        private ProxyConfig proxyConfig;
-        private PacScriptEvaluator pacScriptEvaluator;
-        private ConnectionProcessorSelector connectionProcessorSelector;
-
-        ClientConnectionBuilder withSocket(Socket socket) {
-            this.socket = socket;
-            return this;
-        }
-
-        ClientConnectionBuilder withProxyConfig(ProxyConfig proxyConfig) {
-            this.proxyConfig = proxyConfig;
-            return this;
-        }
-
-        ClientConnectionBuilder withPacScriptEvaluator(PacScriptEvaluator pacScriptEvaluator) {
-            this.pacScriptEvaluator = pacScriptEvaluator;
-            return this;
-        }
-
-        ClientConnectionBuilder withConnectionProcessorSelector(ConnectionProcessorSelector connectionProcessorSelector) {
-            this.connectionProcessorSelector = connectionProcessorSelector;
-            return this;
-        }
-
-        ClientConnection build()
-                throws Exception {
-            return new ClientConnection(socket, proxyConfig, connectionProcessorSelector, pacScriptEvaluator);
-        }
-    }
 }

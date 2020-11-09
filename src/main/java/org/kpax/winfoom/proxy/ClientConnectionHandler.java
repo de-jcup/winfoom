@@ -41,7 +41,6 @@ public class ClientConnectionHandler {
     @Autowired
     private PacScriptEvaluator pacScriptEvaluator;
 
-    @Autowired
     private ProxyBlacklist proxyBlacklist;
 
     @Autowired
@@ -54,16 +53,8 @@ public class ClientConnectionHandler {
      * @throws Exception
      */
     public void handleConnection(@NotNull final Socket socket) throws Exception {
-        ClientConnection.ClientConnectionBuilder clientConnectionBuilder =
-                new ClientConnection.ClientConnectionBuilder().
-                        withSocket(socket).
-                        withProxyConfig(proxyConfig).
-                        withConnectionProcessorSelector(connectionProcessorSelector);
-        if (proxyConfig.isAutoConfig()) {
-            clientConnectionBuilder.withPacScriptEvaluator(pacScriptEvaluator);
-        }
-
-        try (final ClientConnection clientConnection = clientConnectionBuilder.build()) {
+        try (final ClientConnection clientConnection = new ClientConnection(socket, proxyConfig,
+                connectionProcessorSelector, pacScriptEvaluator)) {
             RequestLine requestLine = clientConnection.getRequestLine();
             logger.debug("Handle request: {}", requestLine);
             clientConnection.process();
