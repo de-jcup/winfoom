@@ -354,8 +354,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
     /**
      * Delegate the request processing to an appropriate {@link ClientConnectionProcessor}
      * and process the client connection with the provided proxy.<br>
-     * The remote proxy is blacklisted if it is not available.<br>
-     * <p><b>If processing succeeds, this method must commit the response.</b></p>
+     * <p><b>This method must commit the response if processing succeeds or there is no other available proxy.</b></p>
      *
      * @param proxyInfo the proxy to process the request with.
      * @return {@code true} iff the processing succeeded.
