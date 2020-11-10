@@ -40,7 +40,10 @@ import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Set;
 
 /**
  * It encapsulates a client's connection.
@@ -92,7 +95,15 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
      */
     private final URI requestUri;
 
-    private final ListIterator<ProxyInfo> proxyInfoIterator;
+    /**
+     * The proxy iterator for PAC.
+     */
+    private ListIterator<ProxyInfo> proxyInfoIterator;
+
+    /**
+     * The proxy for manual processing.
+     */
+    private ProxyInfo proxyInfo;
 
     /**
      * Constructor.<br>
@@ -165,8 +176,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
             HttpHost proxyHost = proxyConfig.getProxyType().isDirect() ? null :
                     new HttpHost(proxyConfig.getProxyHost(), proxyConfig.getProxyPort());
             logger.debug("Manual case, proxy host: {}", proxyHost);
-            this.proxyInfoIterator = Collections.singletonList(new ProxyInfo(proxyConfig.getProxyType(), proxyHost)).
-                    listIterator();
+            this.proxyInfo = new ProxyInfo(proxyConfig.getProxyType(), proxyHost);
         }
     }
 
@@ -316,37 +326,59 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
     }
 
     public boolean isFirstProcessing() {
-        return proxyInfoIterator.previousIndex() < 1;
+        return proxyInfo != null || proxyInfoIterator.previousIndex() < 1;
+    }
+
+    public boolean hasNextProxy() {
+        return proxyInfo == null && proxyInfoIterator.hasNext();
+    }
+
+    /**
+     * Process the client connection with each available proxy.
+     * <p><b>This method must always commit the response.</b></p>
+     */
+    void process() {
+        if (proxyInfo != null) {
+            processProxy(proxyInfo);
+        } else {
+            ProxyInfo proxyInfo;
+            while (proxyInfoIterator.hasNext()) {
+                proxyInfo = proxyInfoIterator.next();
+                if (processProxy(proxyInfo)) {
+                    break;
+                }
+            }
+        }
     }
 
     /**
      * Delegate the request processing to an appropriate {@link ClientConnectionProcessor}
-     * and process the client connection with each available proxy.<br>
+     * and process the client connection with the provided proxy.<br>
      * The remote proxy is blacklisted if it is not available.<br>
-     * <p><b>This method must always commit the response.</b></p>
+     * <p><b>If processing succeeds, this method must commit the response.</b></p>
+     *
+     * @param proxyInfo the proxy to process the request with.
+     * @return {@code true} iff the processing succeeded.
      */
-    void process() {
-        while (proxyInfoIterator.hasNext()) {
-            ProxyInfo proxyInfo = proxyInfoIterator.next();
-            ClientConnectionProcessor connectionProcessor = connectionProcessorSelector.selectConnectionProcessor(
-                    isConnect(), proxyInfo);
-            logger.debug("Using connectionProcessor: {}", connectionProcessor);
-            try {
-                connectionProcessor.process(this, proxyInfo);
-                break;
-            } catch (ProxyConnectException e) {
-                logger.debug("Proxy connect error", e);
-                if (proxyInfoIterator.hasNext()) {
-                    logger.debug("Failed to connect to proxy: {}, retry with the next one", proxyInfo);
-                } else {
-                    logger.debug("Failed to connect to proxy: {}, send the error response", proxyInfo);
-
-                    // Cannot connect to the remote proxy,
-                    // commit a response with 502 error code
-                    writeErrorResponse(HttpStatus.SC_BAD_GATEWAY, e.getMessage());
-                }
+    private boolean processProxy(ProxyInfo proxyInfo) {
+        ClientConnectionProcessor connectionProcessor = connectionProcessorSelector.selectConnectionProcessor(
+                isConnect(), proxyInfo);
+        logger.debug("Process proxy {} using connectionProcessor: {}", proxyInfo, connectionProcessor);
+        try {
+            connectionProcessor.process(this, proxyInfo);
+            return true;
+        } catch (ProxyConnectException e) {
+            logger.debug("Proxy connect error", e);
+            if (hasNextProxy()) {
+                logger.debug("Failed to connect to proxy: {}", proxyInfo);
+            } else {
+                logger.debug("Failed to connect to proxy: {}, send the error response", proxyInfo);
+                // Cannot connect to the remote proxy,
+                // commit a response with 502 error code
+                writeErrorResponse(HttpStatus.SC_BAD_GATEWAY, e.getMessage());
             }
         }
+        return false;
     }
 
     @Override
