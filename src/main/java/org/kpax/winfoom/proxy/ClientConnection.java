@@ -103,7 +103,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
     /**
      * The proxy for manual processing.
      */
-    private ProxyInfo proxyInfo;
+    private ProxyInfo manualProxy;
 
     /**
      * Constructor.<br>
@@ -156,9 +156,9 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
             URI requestUri = getRequestUri();
             logger.debug("Extracted URI from request {}", requestUri);
             try {
-                List<ProxyInfo> nonBlacklistedProxies = pacScriptEvaluator.findActiveProxyForURL(requestUri);
-                logger.debug("NonBlacklistedProxies: {}", nonBlacklistedProxies);
-                this.proxyInfoIterator = nonBlacklistedProxies.listIterator();
+                List<ProxyInfo> activeProxies = pacScriptEvaluator.findActiveProxyForURL(requestUri);
+                logger.debug("activeProxies: {}", activeProxies);
+                this.proxyInfoIterator = activeProxies.listIterator();
             } catch (Exception e) {
                 writeErrorResponse(
                         HttpStatus.SC_INTERNAL_SERVER_ERROR,
@@ -176,7 +176,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
             HttpHost proxyHost = proxyConfig.getProxyType().isDirect() ? null :
                     new HttpHost(proxyConfig.getProxyHost(), proxyConfig.getProxyPort());
             logger.debug("Manual case, proxy host: {}", proxyHost);
-            this.proxyInfo = new ProxyInfo(proxyConfig.getProxyType(), proxyHost);
+            this.manualProxy = new ProxyInfo(proxyConfig.getProxyType(), proxyHost);
         }
     }
 
@@ -326,11 +326,11 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
     }
 
     public boolean isFirstProcessing() {
-        return proxyInfo != null || proxyInfoIterator.previousIndex() < 1;
+        return manualProxy != null || proxyInfoIterator.previousIndex() < 1;
     }
 
     public boolean hasNextProxy() {
-        return proxyInfo == null && proxyInfoIterator.hasNext();
+        return manualProxy == null && proxyInfoIterator.hasNext();
     }
 
     /**
@@ -338,13 +338,11 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
      * <p><b>This method must always commit the response.</b></p>
      */
     void process() {
-        if (proxyInfo != null) {
-            processProxy(proxyInfo);
+        if (manualProxy != null) {
+            processProxy(manualProxy);
         } else {
-            ProxyInfo proxyInfo;
             while (proxyInfoIterator.hasNext()) {
-                proxyInfo = proxyInfoIterator.next();
-                if (processProxy(proxyInfo)) {
+                if (processProxy(proxyInfoIterator.next())) {
                     break;
                 }
             }
@@ -356,22 +354,22 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
      * and process the client connection with the provided proxy.<br>
      * <p><b>This method must commit the response if processing succeeds or there is no other available proxy.</b></p>
      *
-     * @param proxyInfo the proxy to process the request with.
+     * @param proxy the proxy to process the request with.
      * @return {@code true} iff the processing succeeded.
      */
-    private boolean processProxy(ProxyInfo proxyInfo) {
+    private boolean processProxy(ProxyInfo proxy) {
         ClientConnectionProcessor connectionProcessor = connectionProcessorSelector.selectConnectionProcessor(
-                isConnect(), proxyInfo);
-        logger.debug("Process proxy {} using connectionProcessor: {}", proxyInfo, connectionProcessor);
+                isConnect(), proxy);
+        logger.debug("Process proxy {} using connectionProcessor: {}", proxy, connectionProcessor);
         try {
-            connectionProcessor.process(this, proxyInfo);
+            connectionProcessor.process(this, proxy);
             return true;
         } catch (ProxyConnectException e) {
             logger.debug("Proxy connect error", e);
             if (hasNextProxy()) {
-                logger.debug("Failed to connect to proxy: {}", proxyInfo);
+                logger.debug("Failed to connect to proxy: {}", proxy);
             } else {
-                logger.debug("Failed to connect to proxy: {}, send the error response", proxyInfo);
+                logger.debug("Failed to connect to proxy: {}, send the error response", proxy);
                 // Cannot connect to the remote proxy,
                 // commit a response with 502 error code
                 writeErrorResponse(HttpStatus.SC_BAD_GATEWAY, e.getMessage());

@@ -121,8 +121,7 @@ public class ProxyBlacklist implements Resetable {
      * @return the number of currently active blacklisted proxies.
      */
     public int clear() {
-        long count = blacklistMap.keySet().stream()
-                .filter(this::checkBlacklist).count();
+        long count = blacklistMap.keySet().stream().filter(this::checkBlacklist).count();
         blacklistMap.clear();
         return (int) count;
     }
