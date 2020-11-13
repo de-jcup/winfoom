@@ -123,7 +123,7 @@ public interface WinHttp extends StdCallLibrary {
      */
     boolean WinHttpDetectAutoProxyConfigUrl(
             WinDef.DWORD dwAutoDetectFlags,
-            WTypes2.LPWSTRByReference ppwszAutoConfigUrl) throws LastErrorException;
+            LPWSTRByReference ppwszAutoConfigUrl) throws LastErrorException;
 
     /**
      * The WinHttpGetDefaultProxyConfiguration function retrieves the default

@@ -39,6 +39,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+/*
+ * Modifications copyright (c) 2020. Eugen Covaci
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *  http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and limitations under the License.
+ */
+
 package org.kpax.winfoom.util.jna;
 
 import com.sun.jna.LastErrorException;
@@ -63,7 +76,7 @@ public class WinHttpHelpers {
     /**
      * Finds the URL for the Proxy Auto-Configuration (PAC) file using WPAD.
      * This is merely a wrapper around
-     * {@link WinHttp#WinHttpDetectAutoProxyConfigUrl(WinDef.DWORD, WTypes2.LPWSTRByReference)}
+     * {@link WinHttp#WinHttpDetectAutoProxyConfigUrl(WinDef.DWORD, LPWSTRByReference)}
      * WinHttpDetectAutoProxyConfigUrl}
      *
      * <p>
@@ -74,7 +87,7 @@ public class WinHttpHelpers {
      * using WPAD method.
      */
     public static String detectAutoProxyConfigUrl(WinDef.DWORD dwAutoDetectFlags) {
-        try (WTypes2.LPWSTRByReference ppwszAutoConfigUrl = new WTypes2.LPWSTRByReference()) {
+        try (LPWSTRByReference ppwszAutoConfigUrl = new LPWSTRByReference()) {
             boolean result = WinHttp.INSTANCE.WinHttpDetectAutoProxyConfigUrl(dwAutoDetectFlags, ppwszAutoConfigUrl);
             if (result) {
                 return ppwszAutoConfigUrl.getString();

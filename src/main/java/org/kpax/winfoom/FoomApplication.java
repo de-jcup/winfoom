@@ -31,6 +31,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Date;
 
 /**
  * The entry point for Winfoom application.
@@ -42,6 +43,10 @@ public class FoomApplication {
     private static final Logger logger = LoggerFactory.getLogger(FoomApplication.class);
 
     public static void main(String[] args) {
+        logger.info("Application started at: {}", new Date());
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            logger.info("Application shutdown at: {}", new Date());
+        }));
 
         // Disable Java code execution
         // within the PAC script for safety reasons

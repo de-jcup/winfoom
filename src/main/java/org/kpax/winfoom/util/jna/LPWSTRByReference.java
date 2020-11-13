@@ -15,7 +15,6 @@
  * <p>
  * Copyright (c) 2009 Bernd Rosstauscher
  * <p>
- * <p>
  * All rights reserved.
  * <p>
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +39,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 /*
  * Modifications copyright (c) 2020. Eugen Covaci
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -55,7 +53,6 @@
 
 package org.kpax.winfoom.util.jna;
 
-import com.sun.jna.Memory;
 import com.sun.jna.Pointer;
 import com.sun.jna.PointerType;
 import com.sun.jna.platform.win32.Kernel32;
@@ -65,20 +62,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Pointer wrapper classes for various Windows SDK types. The JNA {@code WTypes}
- * class already have a few of these, but oddly not for all.
- *
- * @author phansson
- * @author ecovaci
- */
-public class WTypes2 {
-
-    private static final Logger logger = LoggerFactory.getLogger(WTypes2.class);
-
-    private WTypes2() {
-    }
-
-    /**
      * A pointer to a LPWSTR.
      *
      * <p>
@@ -94,8 +77,10 @@ public class WTypes2 {
      *
      * @author phansson
      */
-    public static class LPWSTRByReference extends PointerType implements AutoCloseable {
-
+public class LPWSTRByReference extends PointerType implements AutoCloseable {
+        
+        private final Logger logger = LoggerFactory.getLogger(LPWSTRByReference.class);
+        
         public LPWSTRByReference() {
             setPointer(new CloseableMemory(Pointer.SIZE));
             // memory cleanup
@@ -110,10 +95,7 @@ public class WTypes2 {
          */
         public WTypes.LPWSTR getValue() {
             Pointer p = getPointerToString();
-            if (p == null) {
-                return null;
-            }
-            return new WTypes.LPWSTR(p);
+            return p != null ? new WTypes.LPWSTR(p) : null;
         }
 
         /**
@@ -123,7 +105,7 @@ public class WTypes2 {
          * @return LPWSTR from this pointer
          */
         public String getString() {
-            return getValue() == null ? null : getValue().getValue();
+            return getValue() != null ? getValue().getValue() : null;
         }
 
         private Pointer getPointerToString() {
@@ -159,17 +141,3 @@ public class WTypes2 {
         }
 
     }
-
-    static class CloseableMemory extends Memory implements AutoCloseable {
-
-        public CloseableMemory(long size) {
-            super(size);
-        }
-
-        @Override
-        public void close() throws Exception {
-            dispose();
-        }
-    }
-
-}

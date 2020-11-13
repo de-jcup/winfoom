@@ -28,7 +28,7 @@ import org.kpax.winfoom.proxy.processor.ClientConnectionProcessor;
 import org.kpax.winfoom.proxy.processor.ConnectionProcessorSelector;
 import org.kpax.winfoom.util.HttpUtils;
 import org.kpax.winfoom.util.InputOutputs;
-import org.kpax.winfoom.util.ObjectFormat;
+import org.kpax.winfoom.util.CrlfConverter;
 import org.kpax.winfoom.util.StreamSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -229,7 +229,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
      * @throws IOException
      */
     public void write(@NotNull Object obj) throws IOException {
-        outputStream.write(ObjectFormat.toCrlf(obj));
+        outputStream.write(CrlfConverter.convert(obj));
     }
 
     /**
@@ -238,7 +238,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
      * @throws IOException
      */
     public void writeln() throws IOException {
-        outputStream.write(ObjectFormat.CRLF.getBytes());
+        outputStream.write(CrlfConverter.CRLF.getBytes());
     }
 
     /**

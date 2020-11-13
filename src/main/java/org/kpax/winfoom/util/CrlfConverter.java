@@ -21,11 +21,11 @@ import java.nio.charset.StandardCharsets;
 /**
  * @author Eugen Covaci
  */
-public final class ObjectFormat {
+public final class CrlfConverter {
 
     public static final String CRLF = "\r\n";
 
-    private ObjectFormat() {
+    private CrlfConverter() {
     }
 
     /**
@@ -35,20 +35,20 @@ public final class ObjectFormat {
      * @param charset The charset to be used (not null).
      * @return The resulted string as bytes.
      */
-    public static byte[] toCrlf(@NotNull final Object input, final Charset charset) {
+    public static byte[] convert(@NotNull final Object input, final Charset charset) {
         Assert.notNull(input, "input cannot be null");
         return (input + CRLF).getBytes(charset);
     }
 
     /**
-     * Call the {@link #toCrlf(Object, Charset)} method with {@link StandardCharsets#UTF_8} as argument.
+     * Call the {@link #convert(Object, Charset)} method with {@link StandardCharsets#UTF_8} as argument.
      *
      * @param input The object to be formatted (not null).
      * @return The resulted string as bytes.
-     * @see #toCrlf(Object, Charset)
+     * @see #convert(Object, Charset)
      */
-    public static byte[] toCrlf(@NotNull final Object input) {
-        return toCrlf(input, StandardCharsets.UTF_8);
+    public static byte[] convert(@NotNull final Object input) {
+        return convert(input, StandardCharsets.UTF_8);
     }
 
 }

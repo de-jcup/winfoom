@@ -43,9 +43,6 @@ public class ProxyValidator {
     @Autowired
     private ProxyConfig proxyConfig;
 
-    @Autowired
-    private PacScriptEvaluator pacScriptEvaluator;
-
     /**
      * Test the proxy settings by issuing a request through the proxy facade.
      *

@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
+@Deprecated
 public class JarUtils {
 
     private JarUtils() {
@@ -28,7 +29,6 @@ public class JarUtils {
      * @return the application's version as it appears in the pom.xml file.
      * @throws IOException
      */
-    @Deprecated
     public static String getAppVersion() throws IOException {
         Object version = new Manifest(JarUtils.class.getResourceAsStream("/META-INF/MANIFEST.MF"))
                 .getMainAttributes()
