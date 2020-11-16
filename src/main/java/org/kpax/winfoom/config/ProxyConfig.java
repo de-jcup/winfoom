@@ -378,6 +378,7 @@ public class ProxyConfig {
         FileBasedConfigurationBuilder<PropertiesConfiguration> propertiesBuilder = new Configurations()
                 .propertiesBuilder(userProperties);
         Configuration config = propertiesBuilder.getConfiguration();
+        setProperty(config, "app.version", appVersion);
         setProperty(config, "proxy.type", proxyType);
         setProperty(config, "proxy.http.host", proxyHttpHost);
         setProperty(config, "proxy.http.port", proxyHttpPort);

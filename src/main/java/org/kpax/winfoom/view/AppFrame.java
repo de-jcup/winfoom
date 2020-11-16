@@ -711,14 +711,6 @@ public class AppFrame extends JFrame {
         SwingUtils.setEnabled(getContentPane(), false, JLabel.class);
     }
 
-    private void setEnabledAutostart(boolean enabled) {
-        getAutostartCheckBox().setEnabled(enabled);
-    }
-
-    private void setEnabledAutodetect(boolean enabled) {
-        getAutoDetectCheckBox().setEnabled(enabled);
-    }
-
     private boolean isValidInput() {
 
         if ((proxyConfig.getProxyType().isSocks() || proxyConfig.getProxyType().isHttp())

@@ -41,8 +41,6 @@ public class ClientConnectionHandler {
     @Autowired
     private PacScriptEvaluator pacScriptEvaluator;
 
-    private ProxyBlacklist proxyBlacklist;
-
     @Autowired
     private ConnectionProcessorSelector connectionProcessorSelector;
 

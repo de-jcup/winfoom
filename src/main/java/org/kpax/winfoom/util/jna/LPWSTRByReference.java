@@ -94,8 +94,8 @@ public class LPWSTRByReference extends PointerType implements AutoCloseable {
          * @return LPWSTR from this pointer
          */
         public WTypes.LPWSTR getValue() {
-            Pointer p = getPointerToString();
-            return p != null ? new WTypes.LPWSTR(p) : null;
+            Pointer pointer = getPointerToString();
+            return pointer != null ? new WTypes.LPWSTR(pointer) : null;
         }
 
         /**
