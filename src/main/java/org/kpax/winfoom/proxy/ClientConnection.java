@@ -26,9 +26,9 @@ import org.kpax.winfoom.exception.ProxyConnectException;
 import org.kpax.winfoom.pac.PacScriptEvaluator;
 import org.kpax.winfoom.proxy.processor.ClientConnectionProcessor;
 import org.kpax.winfoom.proxy.processor.ConnectionProcessorSelector;
+import org.kpax.winfoom.util.CrlfConverter;
 import org.kpax.winfoom.util.HttpUtils;
 import org.kpax.winfoom.util.InputOutputs;
-import org.kpax.winfoom.util.CrlfConverter;
 import org.kpax.winfoom.util.StreamSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -335,7 +335,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
 
     /**
      * Process the client connection with each available proxy.
-     * <p><b>This method must always commit the response.</b></p>
+     * <p><b>This method must always commit the response therefore it must not be called twice.</b></p>
      */
     void process() {
         if (manualProxy != null) {
