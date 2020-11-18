@@ -326,26 +326,32 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
     }
 
     public boolean isFirstProxy() {
-        return manualProxy != null || proxyInfoIterator.previousIndex() < 1;
+        return manualProxy != null ||
+                (proxyInfoIterator != null && proxyInfoIterator.previousIndex() < 1);
     }
 
     public boolean hasNextProxy() {
-        return manualProxy == null && proxyInfoIterator.hasNext();
+        return manualProxy == null &&
+                proxyInfoIterator != null && proxyInfoIterator.hasNext();
     }
 
     /**
      * Process the client connection with each available proxy.
-     * <p><b>This method must always commit the response therefore it must not be called twice.</b></p>
+     * <p><b>This method must always commit the response.</b></p>
+     * <p>It does nothing when called more than once.
      */
     void process() {
         if (manualProxy != null) {
             processProxy(manualProxy);
-        } else {
+            manualProxy = null;
+        } else if (proxyInfoIterator != null) {
             while (proxyInfoIterator.hasNext()) {
                 if (processProxy(proxyInfoIterator.next())) {
                     break;
                 }
             }
+        } else {
+            logger.debug("This connection has been processed already");
         }
     }
 
