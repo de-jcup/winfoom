@@ -35,6 +35,7 @@ import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -344,7 +345,7 @@ public final class HttpUtils {
      * @param proxyLine the proxy line.
      * @return the immutable list of {@link ProxyInfo}s.
      */
-    public static List<ProxyInfo> parsePacProxyLine(final String proxyLine) {
+    public static List<ProxyInfo> parsePacProxyLine(final String proxyLine, Predicate<ProxyInfo> filter) {
         if (StringUtils.isBlank(proxyLine)) {
             return Collections.singletonList(new ProxyInfo(ProxyInfo.PacType.DIRECT));
         }
@@ -361,7 +362,12 @@ public final class HttpUtils {
                 Assert.isTrue(split.length > 1,
                         String.format("Invalid proxy line [%s]: proxy host:port required",
                                 proxyLine));
-                proxyInfos.add(new ProxyInfo(type, HttpHost.create(split[1].trim())));
+                ProxyInfo proxyInfo = new ProxyInfo(type, HttpHost.create(split[1].trim()));
+                if (filter.test(proxyInfo)) {
+                    proxyInfos.add(proxyInfo);
+                } else {
+                    logger.debug("Ignore blacklisted proxy {}", proxyInfo);
+                }
             }
         }
         return Collections.unmodifiableList(proxyInfos);

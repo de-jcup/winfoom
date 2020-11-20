@@ -45,7 +45,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(SpringExtension.class)
 @ActiveProfiles("test")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class DefaultPacScriptEvaluatorTests {
+public class PacScriptEvaluatorTests {
 
     @MockBean
     private ProxyConfig proxyConfig;

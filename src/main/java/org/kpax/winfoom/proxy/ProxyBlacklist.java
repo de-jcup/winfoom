@@ -106,7 +106,7 @@ public class ProxyBlacklist implements Resetable {
      * @param proxyInfo the proxy to be checked
      * @return {@code true} iff the proxy is blacklisted
      */
-    boolean checkBlacklist(@NotNull final ProxyInfo proxyInfo) {
+    public boolean isBlacklisted(@NotNull final ProxyInfo proxyInfo) {
         if (proxyConfig.getBlacklistTimeout() < 1) {
             return false;
         }
@@ -115,13 +115,17 @@ public class ProxyBlacklist implements Resetable {
         return timeoutInstant != null;
     }
 
+    public boolean isActive (@NotNull final ProxyInfo proxyInfo) {
+        return !isBlacklisted(proxyInfo);
+    }
+
     /**
      * Clear the blacklist map.
      *
-     * @return the number of currently active blacklisted proxies.
+     * @return the number of currently blacklisted proxies.
      */
     public int clear() {
-        long count = blacklistMap.keySet().stream().filter(this::checkBlacklist).count();
+        long count = blacklistMap.keySet().stream().filter(this::isBlacklisted).count();
         blacklistMap.clear();
         return (int) count;
     }
@@ -135,7 +139,7 @@ public class ProxyBlacklist implements Resetable {
     }
 
     /**
-     * @return a map containing the currently active blacklisted proxies.
+     * @return a map containing the currently blacklisted proxies.
      */
     public Map<ProxyInfo, Instant> getActiveBlacklistMap() {
         Instant now = Instant.now();

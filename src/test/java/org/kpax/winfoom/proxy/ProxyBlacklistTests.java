@@ -85,7 +85,7 @@ class ProxyBlacklistTests {
         proxyBlacklist.clear();
         ProxyInfo proxyInfo = new ProxyInfo(ProxyInfo.PacType.DIRECT);
         proxyBlacklist.blacklist(proxyInfo);
-        Assertions.assertTrue(proxyBlacklist.checkBlacklist(proxyInfo));
+        Assertions.assertTrue(proxyBlacklist.isBlacklisted(proxyInfo));
     }
 
     @Order(4)
@@ -95,7 +95,7 @@ class ProxyBlacklistTests {
         ProxyInfo proxyInfo = new ProxyInfo(ProxyInfo.PacType.DIRECT);
         proxyBlacklist.blacklist(proxyInfo);
         Thread.sleep(BLACKLIST_TIMEOUT * 1000 + 1);
-        assertFalse(proxyBlacklist.checkBlacklist(proxyInfo));
+        assertFalse(proxyBlacklist.isBlacklisted(proxyInfo));
     }
 
     @Order(5)
@@ -147,9 +147,9 @@ class ProxyBlacklistTests {
         ProxyInfo proxyInfo = new ProxyInfo(ProxyInfo.PacType.DIRECT);
         proxyBlacklist.blacklist(proxyInfo);
         Thread.sleep(BLACKLIST_TIMEOUT * 1000 + 1);
-        proxyBlacklist.checkBlacklist(proxyInfo);
+        proxyBlacklist.isBlacklisted(proxyInfo);
         assertEquals(0, proxyBlacklist.getBlacklistMap().size());
-        assertFalse(proxyBlacklist.checkBlacklist(proxyInfo));
+        assertFalse(proxyBlacklist.isBlacklisted(proxyInfo));
     }
 
 }

@@ -19,12 +19,14 @@ import org.apache.http.HttpVersion;
 import org.apache.http.entity.ContentType;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpRequest;
+import org.assertj.core.internal.Predicates;
 import org.junit.jupiter.api.Test;
 import org.kpax.winfoom.proxy.ProxyInfo;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.function.Predicate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -121,7 +123,7 @@ class HttpUtilsTests {
     @Test
     void parsePacProxyLine_directOnly_DIRECT() {
         String proxyLine = "DIRECT";
-        List<ProxyInfo> proxyInfos = HttpUtils.parsePacProxyLine(proxyLine);
+        List<ProxyInfo> proxyInfos = HttpUtils.parsePacProxyLine(proxyLine, e -> true);
         assertEquals(1, proxyInfos.size());
         assertEquals(ProxyInfo.PacType.DIRECT, proxyInfos.get(0).getType());
         assertNull(proxyInfos.get(0).getProxyHost());
@@ -131,7 +133,7 @@ class HttpUtilsTests {
     void parsePacProxyLine_proxyThenDirect_NoError() {
         String proxyLine = "PROXY localhost:1080;DIRECT";
 
-        List<ProxyInfo> proxyInfos = HttpUtils.parsePacProxyLine(proxyLine);
+        List<ProxyInfo> proxyInfos = HttpUtils.parsePacProxyLine(proxyLine, e -> true);
         assertEquals(2, proxyInfos.size());
         assertEquals(ProxyInfo.PacType.PROXY, proxyInfos.get(0).getType());
         assertEquals("localhost:1080", proxyInfos.get(0).getProxyHost().toHostString());
@@ -144,7 +146,7 @@ class HttpUtilsTests {
     void parsePacProxyLine_multiple_SpaceAgnostic() {
         String proxyLine = " PROXY  localhost:1080 ; HTTP bla:80; DIRECT ";
 
-        List<ProxyInfo> proxyInfos = HttpUtils.parsePacProxyLine(proxyLine);
+        List<ProxyInfo> proxyInfos = HttpUtils.parsePacProxyLine(proxyLine, e -> true);
         assertEquals(3, proxyInfos.size());
 
         assertEquals(ProxyInfo.PacType.PROXY, proxyInfos.get(0).getType());

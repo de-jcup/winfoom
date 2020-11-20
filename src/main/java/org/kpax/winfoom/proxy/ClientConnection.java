@@ -156,7 +156,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
             URI requestUri = getRequestUri();
             logger.debug("Extracted URI from request {}", requestUri);
             try {
-                List<ProxyInfo> activeProxies = pacScriptEvaluator.findActiveProxyForURL(requestUri);
+                List<ProxyInfo> activeProxies = pacScriptEvaluator.findProxyForURL(requestUri);
                 logger.debug("activeProxies: {}", activeProxies);
                 this.proxyInfoIterator = activeProxies.listIterator();
             } catch (Exception e) {
@@ -330,21 +330,21 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
                 (proxyInfoIterator != null && proxyInfoIterator.previousIndex() < 1);
     }
 
-    public boolean hasNextProxy() {
+    private boolean hasNextProxy() {
         return manualProxy == null &&
                 proxyInfoIterator != null && proxyInfoIterator.hasNext();
     }
 
     /**
      * Process the client connection with each available proxy.
-     * <p><b>This method must always commit the response.</b></p>
      * <p>It does nothing when called more than once.
+     * <p><b>This method must always commit the response.</b></p>
      */
     void process() {
         if (manualProxy != null) {
             processProxy(manualProxy);
             manualProxy = null;
-        } else if (proxyInfoIterator != null) {
+        } else if (proxyInfoIterator != null && proxyInfoIterator.hasNext()) {
             while (proxyInfoIterator.hasNext()) {
                 if (processProxy(proxyInfoIterator.next())) {
                     break;

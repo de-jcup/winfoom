@@ -24,7 +24,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.kpax.winfoom.FoomApplicationTest;
 import org.kpax.winfoom.config.ProxyConfig;
 import org.kpax.winfoom.exception.PacFileException;
-import org.kpax.winfoom.pac.DefaultPacScriptEvaluator;
+import org.kpax.winfoom.pac.PacScriptEvaluator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -45,7 +45,7 @@ import static org.mockito.Mockito.when;
 @SpringBootTest(classes = FoomApplicationTest.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class DefaultPacScriptEvaluatorTests {
+class PacScriptEvaluatorTests {
     @MockBean
     private ProxyConfig proxyConfig;
 
@@ -53,7 +53,7 @@ class DefaultPacScriptEvaluatorTests {
     private ApplicationContext applicationContext;
 
     @Autowired
-    private DefaultPacScriptEvaluator pacScriptEvaluator;
+    private PacScriptEvaluator pacScriptEvaluator;
 
     @Autowired
     private ProxyController proxyController;
