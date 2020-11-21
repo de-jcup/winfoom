@@ -98,7 +98,7 @@ public class ProxyController {
     }
 
     void resetAllResetableSingletons() {
-        logger.debug("Reset all autocloseable singletons");
+        logger.debug("Reset all resetable singletons");
         Stream.of(applicationContext.getBeanNamesForType(Resetable.class)).
                 map(applicationContext.getBeanFactory()::getSingleton).
                 filter(Objects::nonNull).sorted(AnnotationAwareOrderComparator.INSTANCE).

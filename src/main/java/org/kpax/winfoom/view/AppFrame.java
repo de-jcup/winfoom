@@ -178,7 +178,7 @@ public class AppFrame extends JFrame {
         getBtnStart().requestFocus();
     }
 
-    public void activate() {
+    private void activate() {
         if (proxyConfig.isAutostart()) {
             getBtnStart().doClick();
             dispatchEvent(new WindowEvent(

@@ -325,7 +325,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
         return autoCloseables.add(autoCloseable);
     }
 
-    public boolean isFirstProxy() {
+    public boolean isFirstProcessing() {
         return manualProxy != null ||
                 proxyInfoIterator.previousIndex() < 1;
     }
