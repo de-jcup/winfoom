@@ -327,31 +327,22 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
 
     public boolean isFirstProxy() {
         return manualProxy != null ||
-                (proxyInfoIterator != null && proxyInfoIterator.previousIndex() < 1);
-    }
-
-    private boolean hasNextProxy() {
-        return manualProxy == null &&
-                proxyInfoIterator != null && proxyInfoIterator.hasNext();
+                proxyInfoIterator.previousIndex() < 1;
     }
 
     /**
      * Process the client connection with each available proxy.
-     * <p>It does nothing when called more than once.
-     * <p><b>This method must always commit the response.</b></p>
+     * <p><b>This method does always commit the response.</b></p>
      */
     void process() {
         if (manualProxy != null) {
             processProxy(manualProxy);
-            manualProxy = null;
-        } else if (proxyInfoIterator != null && proxyInfoIterator.hasNext()) {
+        } else {
             while (proxyInfoIterator.hasNext()) {
                 if (processProxy(proxyInfoIterator.next())) {
                     break;
                 }
             }
-        } else {
-            logger.debug("This connection has been processed already");
         }
     }
 
@@ -372,7 +363,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
             return true;
         } catch (ProxyConnectException e) {
             logger.debug("Proxy connect error", e);
-            if (hasNextProxy()) {
+            if (proxyInfoIterator != null && proxyInfoIterator.hasNext()) {
                 logger.debug("Failed to connect to proxy: {}", proxy);
             } else {
                 logger.debug("Failed to connect to proxy: {}, send the error response", proxy);
