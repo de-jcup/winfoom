@@ -115,7 +115,7 @@ public class ProxyBlacklist implements Resetable {
         return timeoutInstant != null;
     }
 
-    public boolean isActive (@NotNull final ProxyInfo proxyInfo) {
+    public boolean isActive(@NotNull final ProxyInfo proxyInfo) {
         return !isBlacklisted(proxyInfo);
     }
 
