@@ -62,82 +62,82 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
-     * A pointer to a LPWSTR.
-     *
-     * <p>
-     * LPWSTR is itself a pointer, so a pointer to an LPWSTR is really a
-     * pointer-to-pointer. This class hides this complexity and also takes care
-     * of memory disposal.
-     *
-     * <p>
-     * The class is useful where the Windows function <i>returns</i> a result
-     * into a variable of type {@code LPWSTR*}. The class currently has no
-     * setters so it isn't useful for the opposite case, i.e. where a Windows
-     * function <i>accepts</i> a {@code LPWSTR*} as its input.
-     *
-     * @author phansson
-     */
+ * A pointer to a LPWSTR.
+ *
+ * <p>
+ * LPWSTR is itself a pointer, so a pointer to an LPWSTR is really a
+ * pointer-to-pointer. This class hides this complexity and also takes care
+ * of memory disposal.
+ *
+ * <p>
+ * The class is useful where the Windows function <i>returns</i> a result
+ * into a variable of type {@code LPWSTR*}. The class currently has no
+ * setters so it isn't useful for the opposite case, i.e. where a Windows
+ * function <i>accepts</i> a {@code LPWSTR*} as its input.
+ *
+ * @author phansson
+ */
 public class LPWSTRByReference extends PointerType implements AutoCloseable {
-        
-        private final Logger logger = LoggerFactory.getLogger(LPWSTRByReference.class);
-        
-        public LPWSTRByReference() {
-            setPointer(new CloseableMemory(Pointer.SIZE));
-            // memory cleanup
-            getPointer().setPointer(0, null);
-        }
 
-        /**
-         * Gets the LPWSTR from this pointer. In general its a lot more
-         * convenient simply to use {@link #getString() getString}.
-         *
-         * @return LPWSTR from this pointer
-         */
-        public WTypes.LPWSTR getValue() {
-            Pointer pointer = getPointerToString();
-            return pointer != null ? new WTypes.LPWSTR(pointer) : null;
-        }
+    private final Logger logger = LoggerFactory.getLogger(LPWSTRByReference.class);
 
-        /**
-         * Gets the string as pointed to by the LPWSTR or {@code null} if
-         * there's no LPWSTR.
-         *
-         * @return LPWSTR from this pointer
-         */
-        public String getString() {
-            return getValue() != null ? getValue().getValue() : null;
-        }
-
-        private Pointer getPointerToString() {
-            return getPointer().getPointer(0);
-        }
-
-        /**
-         * Memory disposal.
-         */
-        @Override
-        public void close() {
-            try {
-                // Free the memory occupied by the string returned
-                // from the Win32 function.
-                Pointer strPointer = getPointerToString();
-                if (strPointer != null) {
-                    Pointer result = Kernel32.INSTANCE.GlobalFree(strPointer);
-                    if (result != null) {
-                        // The call to GlobalFree has failed. This should never
-                        // happen. If it really does happen, there isn't much we 
-                        // can do about it other than logging it.
-                        logger.warn(
-                                "Windows function GlobalFree failed while freeing memory for {} object",
-                                getClass());
-                    }
-                }
-            } catch (Exception e) {
-                logger.warn("Fail to free the memory occupied by the string returned from the Win32 function", e);
-            } finally {
-                // This will free the memory of the pointer-to-pointer
-                InputOutputs.close((CloseableMemory) getPointer());
-            }
-        }
-
+    public LPWSTRByReference() {
+        setPointer(new CloseableMemory(Pointer.SIZE));
+        // memory cleanup
+        getPointer().setPointer(0, null);
     }
+
+    /**
+     * Gets the LPWSTR from this pointer. In general its a lot more
+     * convenient simply to use {@link #getString() getString}.
+     *
+     * @return LPWSTR from this pointer
+     */
+    public WTypes.LPWSTR getValue() {
+        Pointer pointer = getPointerToString();
+        return pointer != null ? new WTypes.LPWSTR(pointer) : null;
+    }
+
+    /**
+     * Gets the string as pointed to by the LPWSTR or {@code null} if
+     * there's no LPWSTR.
+     *
+     * @return LPWSTR from this pointer
+     */
+    public String getString() {
+        return getValue() != null ? getValue().getValue() : null;
+    }
+
+    private Pointer getPointerToString() {
+        return getPointer().getPointer(0);
+    }
+
+    /**
+     * Memory disposal.
+     */
+    @Override
+    public void close() {
+        try {
+            // Free the memory occupied by the string returned
+            // from the Win32 function.
+            Pointer strPointer = getPointerToString();
+            if (strPointer != null) {
+                Pointer result = Kernel32.INSTANCE.GlobalFree(strPointer);
+                if (result != null) {
+                    // The call to GlobalFree has failed. This should never
+                    // happen. If it really does happen, there isn't much we
+                    // can do about it other than logging it.
+                    logger.warn(
+                            "Windows function GlobalFree failed while freeing memory for {} object",
+                            getClass());
+                }
+            }
+        } catch (Exception e) {
+            logger.warn("Fail to free the memory occupied by the string returned from the Win32 function", e);
+        } finally {
+            // This will free the memory of the pointer-to-pointer
+            InputOutputs.close((CloseableMemory) getPointer());
+        }
+    }
+
+}
