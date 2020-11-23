@@ -370,7 +370,7 @@ public final class HttpUtils {
                 }
             }
         }
-        return Collections.unmodifiableList(proxyInfos);
+        return proxyInfos;
     }
 
     public static boolean isConnectionRefused(@NotNull final SocketException e) {

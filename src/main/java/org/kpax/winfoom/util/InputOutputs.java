@@ -16,6 +16,7 @@ import org.apache.http.impl.io.SessionInputBufferImpl;
 import org.kpax.winfoom.config.SystemConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.kpax.winfoom.annotation.NotNull;
 import org.springframework.util.Assert;
 
 import java.io.File;
@@ -46,12 +47,9 @@ public final class InputOutputs {
      * @param inputBuffer The input buffer.
      * @return <code>false</code> iff EOF has been reached.
      */
-    public static boolean isAvailable(final SessionInputBufferImpl inputBuffer) {
-        try {
-            return inputBuffer.hasBufferedData() || inputBuffer.fillBuffer() > -1;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    public static boolean isAvailable(@NotNull final SessionInputBufferImpl inputBuffer)
+            throws IOException {
+        return inputBuffer.hasBufferedData() || inputBuffer.fillBuffer() > -1;
     }
 
     /**
@@ -71,7 +69,7 @@ public final class InputOutputs {
 
     }
 
-    public static void close(final Socket socket) {
+    public static void close(@NotNull final Socket socket) {
         logger.debug("Close socket");
         try {
             socket.shutdownInput();
@@ -117,7 +115,7 @@ public final class InputOutputs {
      * @param file the regular file or directory to be deleted.
      * @return {@code true} if the deletion takes place.
      */
-    public static boolean deleteFile(final File file) {
+    public static boolean deleteFile(@NotNull final File file) {
         File[] files = file.listFiles();
         if (files != null) {
             for (File f : files) {
@@ -133,7 +131,7 @@ public final class InputOutputs {
      * @param directory the {@link File} to be emptied
      * @return {@code true} iff all the contained files were deleted.
      */
-    public static boolean emptyDirectory(final File directory) {
+    public static boolean emptyDirectory(@NotNull final File directory) {
         Assert.isTrue(directory.isDirectory(), "Not a directory");
         File[] files = directory.listFiles();
         for (File file : Objects.requireNonNull(files)) {

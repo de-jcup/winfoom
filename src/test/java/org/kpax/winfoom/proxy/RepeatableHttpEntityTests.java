@@ -25,12 +25,14 @@ import org.apache.http.util.EntityUtils;
 import org.junit.jupiter.api.*;
 import org.kpax.winfoom.TestConstants;
 import org.kpax.winfoom.config.ProxyConfig;
+import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.util.HttpUtils;
 import org.kpax.winfoom.util.InputOutputs;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.ByteArrayInputStream;
@@ -72,6 +74,9 @@ class RepeatableHttpEntityTests {
     @Mock
     private ProxyConfig proxyConfig;
 
+    @Autowired
+    private SystemConfig systemConfig;
+
     @BeforeAll
     void before() throws IOException {
         MockitoAnnotations.initMocks(this);
@@ -96,7 +101,7 @@ class RepeatableHttpEntityTests {
 
                         // Handle this connection.
                         try {
-                            ClientConnection clientConnection = new ClientConnection(socket, proxyConfig, null, null);
+                            ClientConnection clientConnection = new ClientConnection(socket, proxyConfig, systemConfig, null, null);
                             RepeatableHttpEntity requestEntity;
                             HttpRequest request = clientConnection.getRequest();
                             try {
@@ -191,7 +196,7 @@ class RepeatableHttpEntityTests {
             try (CloseableHttpResponse response = httpClient.execute(target, request)) {
                 assertEquals(response.getStatusLine().getStatusCode(), HttpStatus.SC_OK);
                 EntityUtils.consume(response.getEntity());
-                assertEquals("true", response.getFirstHeader(streamingHeader).getValue());
+                assertEquals("false", response.getFirstHeader(streamingHeader).getValue());
                 assertFalse(response.containsHeader(tempFilenameHeader));
                 assertEquals(String.valueOf(content.getBytes().length),
                         response.getFirstHeader(bufferedBytesHeader).getValue());
@@ -211,7 +216,7 @@ class RepeatableHttpEntityTests {
             try (CloseableHttpResponse response = httpClient.execute(target, request)) {
                 assertEquals(response.getStatusLine().getStatusCode(), HttpStatus.SC_OK);
                 EntityUtils.consume(response.getEntity());
-                assertEquals("true", response.getFirstHeader(streamingHeader).getValue());
+                assertEquals("false", response.getFirstHeader(streamingHeader).getValue());
                 assertFalse(response.containsHeader(tempFilenameHeader));
                 assertEquals(String.valueOf(content.getBytes().length),
                         response.getFirstHeader(bufferedBytesHeader).getValue());
@@ -279,7 +284,7 @@ class RepeatableHttpEntityTests {
             try (CloseableHttpResponse response = httpClient.execute(target, request)) {
                 assertEquals(response.getStatusLine().getStatusCode(), HttpStatus.SC_OK);
                 EntityUtils.consume(response.getEntity());
-                assertEquals("true", response.getFirstHeader(streamingHeader).getValue());
+                assertEquals("false", response.getFirstHeader(streamingHeader).getValue());
                 assertFalse(response.containsHeader(tempFilenameHeader));
             }
         }

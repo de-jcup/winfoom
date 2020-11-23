@@ -51,6 +51,11 @@ public class RepeatableHttpEntity extends AbstractHttpEntity implements Closeabl
     private final long contentLength;
 
     /**
+     * The max amount of  internally cached bytes.
+     */
+    private final int internalBufferLength;
+
+    /**
      * Write into this buffer when contentLength < maximum buffered.
      */
     private byte[] bufferedBytes;
@@ -68,38 +73,13 @@ public class RepeatableHttpEntity extends AbstractHttpEntity implements Closeabl
     public RepeatableHttpEntity(final HttpRequest request,
                                 final SessionInputBufferImpl inputBuffer,
                                 final Path tempDirectory,
-                                final int internalBufferLength) throws IOException {
+                                final int internalBufferLength) {
         this.inputBuffer = inputBuffer;
         this.tempDirectory = tempDirectory;
         this.contentType = request.getFirstHeader(HttpHeaders.CONTENT_TYPE);
         this.contentEncoding = request.getFirstHeader(HttpHeaders.CONTENT_ENCODING);
         this.contentLength = HttpUtils.getContentLength(request);
-        if (this.contentLength > 0 && this.contentLength <= internalBufferLength) {
-            writeToBuffer();
-        }
-    }
-
-    /**
-     * Read from the {@link SessionInputBufferImpl} into an internal buffer,
-     * no more than {@link #contentLength} bytes.
-     *
-     * @throws IOException
-     */
-    private void writeToBuffer() throws IOException {
-        int length;
-        byte[] buffer = new byte[OUTPUT_BUFFER_SIZE];
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        long remaining = contentLength;
-        while (remaining > 0 && InputOutputs.isAvailable(inputBuffer)) {
-            length = inputBuffer.read(buffer, 0, (int) Math.min(OUTPUT_BUFFER_SIZE, remaining));
-            if (length == -1) {
-                break;
-            }
-            out.write(buffer, 0, length);
-            remaining -= length;
-        }
-        out.flush();
-        bufferedBytes = out.toByteArray();
+        this.internalBufferLength = internalBufferLength;
     }
 
     @Override
@@ -114,9 +94,7 @@ public class RepeatableHttpEntity extends AbstractHttpEntity implements Closeabl
 
     @Override
     public InputStream getContent() throws IOException, UnsupportedOperationException {
-        if (bufferedBytes != null) {
-            return new ByteArrayInputStream(bufferedBytes);
-        } else if (contentLength == 0) {
+        if (contentLength == 0) {
             return new ByteArrayInputStream(new byte[0]);
         } else {
             if (streaming) {
@@ -132,18 +110,37 @@ public class RepeatableHttpEntity extends AbstractHttpEntity implements Closeabl
                     }
                 };
             } else {
-                return Files.newInputStream(tempFilepath);
+                if (bufferedBytes != null) {
+                    return new ByteArrayInputStream(bufferedBytes);
+                } else {
+                    return Files.newInputStream(tempFilepath);
+                }
             }
         }
     }
 
     @Override
     public void writeTo(OutputStream outStream) throws IOException {
-        if (bufferedBytes != null) {
-            outStream.write(bufferedBytes);
-            outStream.flush();
-        } else if (contentLength != 0) {
-            if (streaming) {
+        if (streaming) {
+            if (this.contentLength > 0 && this.contentLength <= internalBufferLength) {
+                int length;
+                byte[] buffer = new byte[OUTPUT_BUFFER_SIZE];
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                long remaining = contentLength;
+                while (remaining > 0 && InputOutputs.isAvailable(inputBuffer)) {
+                    length = inputBuffer.read(buffer, 0, (int) Math.min(OUTPUT_BUFFER_SIZE, remaining));
+                    if (length == -1) {
+                        break;
+                    }
+                    outStream.write(buffer, 0, length);
+                    outStream.flush();
+
+                    out.write(buffer, 0, length);
+                    remaining -= length;
+                }
+                out.flush();
+                bufferedBytes = out.toByteArray();
+            } else if (contentLength != 0) {
                 tempFilepath = tempDirectory.resolve(InputOutputs.generateCacheFilename());
                 byte[] buffer = new byte[OUTPUT_BUFFER_SIZE];
                 try (CacheFileChannel cacheFileChannel = new CacheFileChannel(buffer)) {
@@ -194,9 +191,13 @@ public class RepeatableHttpEntity extends AbstractHttpEntity implements Closeabl
                         }
                     }
                 }
-                streaming = false;
+            }
+            streaming = false;
+        } else {
+            if (bufferedBytes != null) {
+                outStream.write(bufferedBytes);
+                outStream.flush();
             } else {
-
                 //read from file
                 try (InputStream inputStream = Files.newInputStream(tempFilepath)) {
                     inputStream.transferTo(outStream);
@@ -208,12 +209,11 @@ public class RepeatableHttpEntity extends AbstractHttpEntity implements Closeabl
 
     @Override
     public boolean isStreaming() {
-        return bufferedBytes == null && streaming;
+        return streaming;
     }
 
     @Override
     public void close() throws IOException {
-
         // Delete the temp file if exists
         if (tempFilepath != null) {
             Files.deleteIfExists(tempFilepath);

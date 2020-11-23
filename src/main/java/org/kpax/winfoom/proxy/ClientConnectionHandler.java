@@ -17,6 +17,7 @@ import org.apache.http.RequestLine;
 import org.kpax.winfoom.annotation.NotNull;
 import org.kpax.winfoom.annotation.ThreadSafe;
 import org.kpax.winfoom.config.ProxyConfig;
+import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.pac.PacScriptEvaluator;
 import org.kpax.winfoom.proxy.processor.ConnectionProcessorSelector;
 import org.slf4j.Logger;
@@ -39,6 +40,10 @@ public class ClientConnectionHandler {
     private ProxyConfig proxyConfig;
 
     @Autowired
+    private SystemConfig systemConfig;
+
+
+    @Autowired
     private PacScriptEvaluator pacScriptEvaluator;
 
     @Autowired
@@ -51,7 +56,7 @@ public class ClientConnectionHandler {
      * @throws Exception
      */
     public void handleConnection(@NotNull final Socket socket) throws Exception {
-        try (final ClientConnection clientConnection = new ClientConnection(socket, proxyConfig,
+        try (final ClientConnection clientConnection = new ClientConnection(socket, proxyConfig, systemConfig,
                 connectionProcessorSelector, pacScriptEvaluator)) {
             RequestLine requestLine = clientConnection.getRequestLine();
             logger.debug("Handle request: {}", requestLine);

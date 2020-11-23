@@ -12,6 +12,7 @@
 
 package org.kpax.winfoom.proxy;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.*;
 import org.apache.http.config.MessageConstraints;
 import org.apache.http.impl.io.DefaultHttpRequestParser;
@@ -22,6 +23,7 @@ import org.apache.http.util.EntityUtils;
 import org.kpax.winfoom.annotation.NotNull;
 import org.kpax.winfoom.annotation.NotThreadSafe;
 import org.kpax.winfoom.config.ProxyConfig;
+import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.exception.ProxyConnectException;
 import org.kpax.winfoom.pac.PacScriptEvaluator;
 import org.kpax.winfoom.proxy.processor.ClientConnectionProcessor;
@@ -40,10 +42,7 @@ import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.util.HashSet;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Set;
+import java.util.*;
 
 /**
  * It encapsulates a client's connection.
@@ -69,6 +68,10 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
     private final Socket socket;
 
     private final ConnectionProcessorSelector connectionProcessorSelector;
+
+    private final ProxyConfig proxyConfig;
+
+    private final SystemConfig systemConfig;
 
     /**
      * The socket's input stream.
@@ -96,9 +99,14 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
     private final URI requestUri;
 
     /**
+     * Whether the request method is CONNECT or not.
+     */
+    private final boolean connect;
+
+    /**
      * The proxy iterator for PAC.
      */
-    private ListIterator<ProxyInfo> proxyInfoIterator;
+    private Iterator<ProxyInfo> proxyInfoIterator;
 
     /**
      * The proxy for manual processing.
@@ -112,19 +120,23 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
      *
      * @param socket
      * @param proxyConfig
+     * @param systemConfig
      * @param connectionProcessorSelector
      * @throws IOException
      * @throws HttpException
      */
     ClientConnection(final Socket socket,
                      final ProxyConfig proxyConfig,
+                     final SystemConfig systemConfig,
                      final ConnectionProcessorSelector connectionProcessorSelector,
                      final PacScriptEvaluator pacScriptEvaluator)
             throws Exception {
         this.socket = socket;
+        this.proxyConfig = proxyConfig;
+        this.systemConfig = systemConfig;
+        this.connectionProcessorSelector = connectionProcessorSelector;
         this.inputStream = socket.getInputStream();
         this.outputStream = socket.getOutputStream();
-        this.connectionProcessorSelector = connectionProcessorSelector;
 
         // Parse the request
         try {
@@ -158,7 +170,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
             try {
                 List<ProxyInfo> activeProxies = pacScriptEvaluator.findProxyForURL(requestUri);
                 logger.debug("activeProxies: {}", activeProxies);
-                this.proxyInfoIterator = activeProxies.listIterator();
+                this.proxyInfoIterator = activeProxies.iterator();
             } catch (Exception e) {
                 writeErrorResponse(
                         HttpStatus.SC_INTERNAL_SERVER_ERROR,
@@ -178,6 +190,8 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
             logger.debug("Manual case, proxy host: {}", proxyHost);
             this.manualProxy = new ProxyInfo(proxyConfig.getProxyType(), proxyHost);
         }
+
+        this.connect = HttpUtils.HTTP_CONNECT.equalsIgnoreCase(request.getRequestLine().getMethod());
     }
 
     /**
@@ -298,7 +312,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
     }
 
     public boolean isConnect() {
-        return HttpUtils.HTTP_CONNECT.equalsIgnoreCase(request.getRequestLine().getMethod());
+        return connect;
     }
 
     /**
@@ -325,16 +339,21 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
         return autoCloseables.add(autoCloseable);
     }
 
-    public boolean isFirstProcessing() {
-        return manualProxy != null ||
-                proxyInfoIterator.previousIndex() < 1;
-    }
-
     /**
      * Process the client connection with each available proxy.
      * <p><b>This method does always commit the response.</b></p>
      */
     void process() {
+        if (!connect) {
+            try {
+                prepareRequest();
+            } catch (Exception e) {
+                writeErrorResponse(
+                        HttpStatus.SC_INTERNAL_SERVER_ERROR,
+                        "Unexpected error: " + e.getMessage());
+                throw e;
+            }
+        }
         if (manualProxy != null) {
             processProxy(manualProxy);
         } else {
@@ -344,6 +363,62 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
                 }
             }
         }
+    }
+
+    private void prepareRequest() {
+        logger.debug("Prepare the request for execution");
+        // Prepare the request for execution:
+        // remove some headers, fix VIA header and set a proper entity
+        if (request instanceof HttpEntityEnclosingRequest) {
+            logger.debug("Set enclosing entity");
+            RepeatableHttpEntity entity = new RepeatableHttpEntity(request,
+                    sessionInputBuffer,
+                    proxyConfig.getTempDirectory(),
+                    systemConfig.getInternalBufferLength());
+            registerAutoCloseable(entity);
+
+            Header transferEncoding = request.getFirstHeader(HTTP.TRANSFER_ENCODING);
+            if (transferEncoding != null
+                    && StringUtils.containsIgnoreCase(transferEncoding.getValue(), HTTP.CHUNK_CODING)) {
+                logger.debug("Mark entity as chunked");
+                entity.setChunked(true);
+
+                // Apache HttpClient adds a Transfer-Encoding header's chunk directive
+                // so remove or strip the existent one from chunk directive
+                request.removeHeader(transferEncoding);
+                String nonChunkedTransferEncoding = HttpUtils.stripChunked(transferEncoding.getValue());
+                if (StringUtils.isNotEmpty(nonChunkedTransferEncoding)) {
+                    request.addHeader(
+                            HttpUtils.createHttpHeader(HttpHeaders.TRANSFER_ENCODING,
+                                    nonChunkedTransferEncoding));
+                    logger.debug("Add chunk-striped request header");
+                } else {
+                    logger.debug("Remove transfer encoding chunked request header");
+                }
+
+            }
+            ((HttpEntityEnclosingRequest) request).setEntity(entity);
+        } else {
+            logger.debug("No enclosing entity");
+        }
+
+        // Remove banned headers
+        List<String> bannedHeaders = request instanceof HttpEntityEnclosingRequest ?
+                HttpUtils.ENTITY_BANNED_HEADERS : HttpUtils.DEFAULT_BANNED_HEADERS;
+        for (Header header : request.getAllHeaders()) {
+            if (bannedHeaders.contains(header.getName())) {
+                request.removeHeader(header);
+                logger.debug("Request header {} removed", header);
+            } else {
+                logger.debug("Allow request header {}", header);
+            }
+        }
+
+        // Add a Via header and remove the existent one(s)
+        Header viaHeader = request.getFirstHeader(HttpHeaders.VIA);
+        request.removeHeaders(HttpHeaders.VIA);
+        request.setHeader(HttpUtils.createViaHeader(request.getRequestLine().getProtocolVersion(),
+                viaHeader));
     }
 
     /**
@@ -356,7 +431,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
      */
     private boolean processProxy(ProxyInfo proxy) {
         ClientConnectionProcessor connectionProcessor = connectionProcessorSelector.selectConnectionProcessor(
-                isConnect(), proxy);
+                connect, proxy);
         logger.debug("Process proxy {} using connectionProcessor: {}", proxy, connectionProcessor);
         try {
             connectionProcessor.process(this, proxy);

@@ -66,63 +66,6 @@ class NonConnectClientConnectionProcessor extends ClientConnectionProcessor {
     @Override
     void handleRequest(final ClientConnection clientConnection, final ProxyInfo proxyInfo)
             throws IOException {
-        final HttpRequest request = clientConnection.getRequest();
-        if (clientConnection.isFirstProcessing()) {
-            logger.debug("Prepare the clientConnection for request");
-            // Prepare the request for execution:
-            // remove some headers, fix VIA header and set a proper entity
-            if (request instanceof HttpEntityEnclosingRequest) {
-                logger.debug("Set enclosing entity");
-                RepeatableHttpEntity entity = new RepeatableHttpEntity(request,
-                        clientConnection.getSessionInputBuffer(),
-                        proxyConfig.getTempDirectory(),
-                        systemConfig.getInternalBufferLength());
-                clientConnection.registerAutoCloseable(entity);
-
-                Header transferEncoding = request.getFirstHeader(HTTP.TRANSFER_ENCODING);
-                if (transferEncoding != null
-                        && StringUtils.containsIgnoreCase(transferEncoding.getValue(), HTTP.CHUNK_CODING)) {
-                    logger.debug("Mark entity as chunked");
-                    entity.setChunked(true);
-
-                    // Apache HttpClient adds a Transfer-Encoding header's chunk directive
-                    // so remove or strip the existent one from chunk directive
-                    request.removeHeader(transferEncoding);
-                    String nonChunkedTransferEncoding = HttpUtils.stripChunked(transferEncoding.getValue());
-                    if (StringUtils.isNotEmpty(nonChunkedTransferEncoding)) {
-                        request.addHeader(
-                                HttpUtils.createHttpHeader(HttpHeaders.TRANSFER_ENCODING,
-                                        nonChunkedTransferEncoding));
-                        logger.debug("Add chunk-striped request header");
-                    } else {
-                        logger.debug("Remove transfer encoding chunked request header");
-                    }
-
-                }
-                ((HttpEntityEnclosingRequest) request).setEntity(entity);
-            } else {
-                logger.debug("No enclosing entity");
-            }
-
-            // Remove banned headers
-            List<String> bannedHeaders = request instanceof HttpEntityEnclosingRequest ?
-                    HttpUtils.ENTITY_BANNED_HEADERS : HttpUtils.DEFAULT_BANNED_HEADERS;
-            for (Header header : request.getAllHeaders()) {
-                if (bannedHeaders.contains(header.getName())) {
-                    request.removeHeader(header);
-                    logger.debug("Request header {} removed", header);
-                } else {
-                    logger.debug("Allow request header {}", header);
-                }
-            }
-
-            // Add a Via header and remove the existent one(s)
-            Header viaHeader = request.getFirstHeader(HttpHeaders.VIA);
-            request.removeHeaders(HttpHeaders.VIA);
-            request.setHeader(HttpUtils.createViaHeader(clientConnection.getRequestLine().getProtocolVersion(),
-                    viaHeader));
-        }
-
         try (CloseableHttpClient httpClient = clientBuilderFactory.createClientBuilder(proxyInfo).build()) {
             URI uri = clientConnection.getRequestUri();
             HttpHost target = new HttpHost(uri.getHost(),
@@ -136,7 +79,7 @@ class NonConnectClientConnectionProcessor extends ClientConnectionProcessor {
             }
 
             // Execute the request
-            try (CloseableHttpResponse response = httpClient.execute(target, request, context)) {
+            try (CloseableHttpResponse response = httpClient.execute(target, clientConnection.getRequest(), context)) {
                 try {
                     StatusLine statusLine = response.getStatusLine();
                     logger.debug("Write status line: {}", statusLine);
