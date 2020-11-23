@@ -134,23 +134,24 @@ public final class HttpUtils {
      * while for other requests it looks like: <i>http://host:port/path?params</i>
      * hence we parse it differently.
      *
-     * @param requestLine the request line.
+     * @param isConnect whether the request method is CONNECT
+     * @param uri       the request uri
      * @return the extracted {@link URI} instance.
      * @throws URISyntaxException
      */
-    public static URI parseRequestUri(final RequestLine requestLine) throws URISyntaxException {
+    public static URI parseRequestUri(final boolean isConnect, final String uri) throws URISyntaxException {
         try {
-            if (HTTP_CONNECT.equalsIgnoreCase(requestLine.getMethod())) {
-                return new URI(HttpHost.create(requestLine.getUri()).toURI());
+            if (isConnect) {
+                return new URI(HttpHost.create(uri).toURI());
             } else {
-                return toUri(requestLine.getUri());
+                return toUri(uri);
             }
         } catch (Exception e) {
             logger.debug("Error on parsing request URI", e);
             if (e instanceof URISyntaxException) {
                 throw e;
             }
-            throw new URISyntaxException(requestLine.getUri(), e.getMessage());
+            throw new URISyntaxException(uri, e.getMessage());
         }
     }
 
@@ -442,17 +443,6 @@ public final class HttpUtils {
                 (uri.getPort() == -1 ? "" : ":" + uri.getPort()) +
                 "/";  // Chrome seems to always append the slash so we do it too
     }
-
-    /**
-     * Check if the request method is CONNECT.
-     *
-     * @param requestLine the request's line
-     * @return {@code true} iff the request method is connect
-     */
-    public static boolean isConnect(@NotNull final RequestLine requestLine) {
-        return HttpUtils.HTTP_CONNECT.equalsIgnoreCase(requestLine.getMethod());
-    }
-
 
     /**
      * Generate the current date in RFC 1123 format to be used in HTTP header.

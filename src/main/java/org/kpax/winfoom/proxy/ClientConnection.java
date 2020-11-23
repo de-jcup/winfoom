@@ -42,10 +42,7 @@ import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * It encapsulates a client's connection.
@@ -151,8 +148,9 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
                     StandardCharsets.UTF_8.newDecoder());
             this.sessionInputBuffer.bind(this.inputStream);
             this.request = new DefaultHttpRequestParser(this.sessionInputBuffer).parse();
+            this.connect = HttpUtils.HTTP_CONNECT.equals(request.getRequestLine().getMethod().toUpperCase(Locale.ROOT));
             try {
-                this.requestUri = HttpUtils.parseRequestUri(this.request.getRequestLine());
+                this.requestUri = HttpUtils.parseRequestUri(this.connect, this.request.getRequestLine().getUri());
             } catch (URISyntaxException e) {
                 throw new HttpException("Invalid request uri", e);
             }
@@ -194,7 +192,6 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
             this.manualProxy = new ProxyInfo(proxyConfig.getProxyType(), proxyHost);
         }
 
-        this.connect = HttpUtils.HTTP_CONNECT.equalsIgnoreCase(request.getRequestLine().getMethod());
     }
 
     /**
