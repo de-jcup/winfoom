@@ -89,7 +89,6 @@ class LocalProxyServer implements Resetable {
                             }
                         });
                     } catch (SocketException e) {
-
                         // The ServerSocket has been closed, exit the while loop
                         if (HttpUtils.isSocketClosed(e)) {
                             break;

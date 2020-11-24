@@ -46,7 +46,7 @@ public class SwingUtils {
      * @param component the {@link Component} to be enabled/disabled.
      * @param enabled   {@code true} or {@code false}.
      */
-    public static void setEnabled(final Component component, final boolean enabled, Class... excluded) {
+    public static void setEnabled(@NotNull final Component component, final boolean enabled, Class... excluded) {
         java.util.List<Class> excludedClasses;
         if (excluded != null) {
             excludedClasses = Arrays.asList(excluded);
@@ -68,7 +68,7 @@ public class SwingUtils {
      *
      * @param spinner the {@link JSpinner} instance.
      */
-    public static void commitsOnValidEdit(final JSpinner spinner) {
+    public static void commitsOnValidEdit(@NotNull final JSpinner spinner) {
         JComponent comp = spinner.getEditor();
         JFormattedTextField field = (JFormattedTextField) comp.getComponent(0);
         ((DefaultFormatter) field.getFormatter()).setCommitsOnValidEdit(true);

@@ -12,9 +12,13 @@
 
 package org.kpax.winfoom.pac;
 
+import org.cache2k.Cache;
+import org.cache2k.Cache2kBuilder;
+import org.kpax.winfoom.config.SystemConfig;
+import org.kpax.winfoom.util.functional.SingletonSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.cache.annotation.Cacheable;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
@@ -28,6 +32,18 @@ public class GlobPatternMatcher {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    @Autowired
+    private SystemConfig systemConfig;
+
+    private SingletonSupplier<Cache<String, Pattern>> globPatternCacheSupplier =
+            new SingletonSupplier<Cache<String, Pattern>>(() ->
+                    Cache2kBuilder.of(String.class, Pattern.class)
+                            .name("precompiledGlobPattern")
+                            .eternal(true)
+                            .entryCapacity(systemConfig.getCacheGlobPatternCapacity())
+                            .build()
+            );
+
     /**
      * Translate a GLOB pattern into a {@link Pattern} instance.
      * <p>
@@ -37,13 +53,17 @@ public class GlobPatternMatcher {
      * @return the {@link Pattern} instance.
      * @see #convertGlobToRegEx(String)
      */
-    @Cacheable("precompiledGlobPattern")
     public Pattern toPattern(String glob) {
         Assert.notNull(glob, "glob cannot be null");
-        logger.debug("Create Pattern for {}", glob);
-        String regexPattern = convertGlobToRegEx(glob.trim());
-        logger.debug("glob regexPattern={}", regexPattern);
-        return Pattern.compile(regexPattern);
+        Pattern pattern = globPatternCacheSupplier.get().get(glob);
+        if (pattern == null) {
+            logger.debug("Create pattern for {}", glob);
+            String regexPattern = convertGlobToRegEx(glob.trim());
+            logger.debug("glob regexPattern={}", regexPattern);
+            pattern = Pattern.compile(regexPattern);
+            globPatternCacheSupplier.get().put(glob, pattern);
+        }
+        return pattern;
     }
 
     /**
