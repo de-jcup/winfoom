@@ -42,11 +42,9 @@
 
 package org.kpax.winfoom.util.jna;
 
-import com.sun.jna.LastErrorException;
-import com.sun.jna.Native;
-import com.sun.jna.platform.win32.WinDef;
-import com.sun.jna.win32.StdCallLibrary;
-import com.sun.jna.win32.W32APIOptions;
+import com.sun.jna.*;
+import com.sun.jna.platform.win32.*;
+import com.sun.jna.win32.*;
 
 /**
  * WinHttp.dll Interface.

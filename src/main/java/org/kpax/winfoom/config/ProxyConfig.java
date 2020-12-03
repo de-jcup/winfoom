@@ -12,44 +12,40 @@
 
 package org.kpax.winfoom.config;
 
+import com.fasterxml.jackson.annotation.*;
 import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.configuration2.PropertiesConfiguration;
-import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
-import org.apache.commons.configuration2.builder.fluent.Configurations;
-import org.apache.commons.configuration2.ex.ConfigurationException;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpHost;
-import org.kpax.winfoom.proxy.ProxyType;
-import org.kpax.winfoom.util.HttpUtils;
-import org.kpax.winfoom.util.jna.IEProxyConfig;
-import org.kpax.winfoom.util.jna.WinHttpHelpers;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.stereotype.Component;
+import org.apache.commons.configuration2.*;
+import org.apache.commons.configuration2.builder.*;
+import org.apache.commons.configuration2.builder.fluent.*;
+import org.apache.commons.configuration2.ex.*;
+import org.apache.commons.lang3.*;
+import org.apache.http.*;
+import org.kpax.winfoom.api.json.*;
+import org.kpax.winfoom.exception.*;
+import org.kpax.winfoom.proxy.*;
+import org.kpax.winfoom.util.*;
+import org.kpax.winfoom.util.jna.*;
+import org.slf4j.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.context.annotation.*;
+import org.springframework.stereotype.*;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import javax.annotation.*;
+import java.io.*;
+import java.lang.reflect.*;
+import java.net.*;
+import java.nio.charset.*;
+import java.nio.file.*;
 import java.util.*;
-
 
 /**
  * The proxy facade configuration.
  *
  * @author Eugen Covaci
  */
+@JsonPropertyOrder({"proxyType", "proxyHost", "proxyPort", "proxyUsername", "proxyPassword", "proxyStorePassword",
+        "proxyPacFileLocation", "blacklistTimeout",
+        "localPort", "proxyTestUrl", "autostart", "autodetect"})
 @Component
 @PropertySource(value = "file:${user.home}/" + SystemConfig.APP_HOME_DIR_NAME + "/" + ProxyConfig.FILENAME,
         ignoreResourceNotFound = true)
@@ -61,6 +57,15 @@ public class ProxyConfig {
 
     @Value("${app.version}")
     private String appVersion;
+
+    @Value("${api.port:9999}")
+    private Integer apiPort;
+
+    /**
+     * default admin:winfoom
+     */
+    @Value("${api.userPassword:YWRtaW46d2luZm9vbQ==}")
+    private String apiUserPassword;
 
     @Value("${local.port:3129}")
     private Integer localPort;
@@ -89,14 +94,23 @@ public class ProxyConfig {
     @Value("${proxy.type:DIRECT}")
     private Type proxyType;
 
-    @Value("${proxy.username:#{null}}")
-    private String proxyUsername;
+    @Value("${proxy.socks5.username:#{null}}")
+    private String proxySocks5Username;
+
+    @Value("${proxy.socks5.password:#{null}}")
+    private String proxySocks5Password;
+
+    /**
+     * DOMAIN\\username or username
+     */
+    @Value("${proxy.http.username:#{null}}")
+    private String proxyHttpUsername;
+
+    @Value("${proxy.http.password:#{null}}")
+    private String proxyHttpPassword;
 
     @Value("${proxy.storePassword:false}")
     private boolean proxyStorePassword;
-
-    @Value("${proxy.password:#{null}}")
-    private String proxyPassword;
 
     @Value("${proxy.pac.fileLocation:#{null}}")
     private String proxyPacFileLocation;
@@ -140,10 +154,36 @@ public class ProxyConfig {
         }
     }
 
+
     public boolean isAutoDetectNeeded() {
         return autodetect ||
                 ((proxyType.isHttp() || proxyType.isSocks()) && StringUtils.isEmpty(getProxyHost())) ||
                 (proxyType.isPac() && StringUtils.isEmpty(proxyPacFileLocation));
+    }
+
+
+    public void validate() throws InvalidProxySettingsException {
+        if (proxyType.isHttp() || proxyType.isSocks()) {
+            if (StringUtils.isEmpty(getProxyHost())) {
+                throw new InvalidProxySettingsException("Missing proxy host");
+            }
+            if (!HttpUtils.isValidPort(getProxyPort())) {
+                throw new InvalidProxySettingsException("Invalid proxy port");
+            }
+            if (proxyType.isHttp()) {
+                if (StringUtils.isEmpty(getProxyHttpUsername())) {
+                    throw new InvalidProxySettingsException("Missing proxy username");
+                }
+                if (StringUtils.isEmpty(getProxyHttpPassword())) {
+                    throw new InvalidProxySettingsException("Missing proxy password");
+                }
+
+            }
+        } else if (proxyType.isPac()) {
+            if (StringUtils.isEmpty(proxyPacFileLocation)) {
+                throw new InvalidProxySettingsException("Missing PAC file location");
+            }
+        }
     }
 
     public boolean autoDetect() throws IOException {
@@ -201,6 +241,16 @@ public class ProxyConfig {
         return appVersion;
     }
 
+    public void setCtlUserPassword(String apiUserPassword) {
+        if (apiUserPassword != null) {
+            this.apiUserPassword = Base64.getEncoder().
+                    encodeToString(apiUserPassword.getBytes(StandardCharsets.ISO_8859_1));
+        } else {
+            this.apiUserPassword = null;
+        }
+    }
+
+    @JsonView(value = {Views.Direct.class})
     public Integer getLocalPort() {
         return localPort;
     }
@@ -209,6 +259,7 @@ public class ProxyConfig {
         this.localPort = localPort;
     }
 
+    @JsonView(value = {Views.Http.class, Views.Socks4.class})
     public String getProxyHost() {
         switch (proxyType) {
             case HTTP:
@@ -235,6 +286,7 @@ public class ProxyConfig {
         }
     }
 
+    @JsonView(value = {Views.Http.class, Views.Socks4.class})
     public Integer getProxyPort() {
         switch (proxyType) {
             case HTTP:
@@ -261,6 +313,7 @@ public class ProxyConfig {
         }
     }
 
+    @JsonView(value = {Views.Direct.class})
     public String getProxyTestUrl() {
         return proxyTestUrl;
     }
@@ -269,10 +322,12 @@ public class ProxyConfig {
         this.proxyTestUrl = proxyTestUrl;
     }
 
+
     public Path getTempDirectory() {
         return tempDirectory;
     }
 
+    @JsonView(value = {Views.Direct.class})
     public ProxyType getProxyType() {
         return proxyType;
     }
@@ -281,30 +336,52 @@ public class ProxyConfig {
         this.proxyType = proxyType;
     }
 
+    @JsonView(value = {Views.Socks5.class, Views.HttpNonWindows.class})
     public String getProxyUsername() {
-        return proxyUsername;
+        switch (proxyType) {
+            case HTTP:
+                return proxyHttpUsername;
+            case SOCKS5:
+                return proxySocks5Username;
+        }
+        return null;
     }
 
     public void setProxyUsername(String proxyUsername) {
-        this.proxyUsername = proxyUsername;
+        switch (proxyType) {
+            case HTTP:
+                proxyHttpUsername = proxyUsername;
+                break;
+            case SOCKS5:
+                proxySocks5Username = proxyUsername;
+                break;
+        }
     }
 
+    @Asterisk
+    @JsonView(value = {Views.Socks5.class, Views.HttpNonWindows.class})
     public String getProxyPassword() {
-        if (StringUtils.isNotEmpty(proxyPassword)) {
-            return new String(Base64.getDecoder().decode(proxyPassword));
-        } else {
-            return null;
+        switch (proxyType) {
+            case HTTP:
+                return proxyHttpPassword;
+            case SOCKS5:
+                return proxySocks5Password;
         }
+        return null;
     }
 
     public void setProxyPassword(String proxyPassword) {
-        if (StringUtils.isNotEmpty(proxyPassword)) {
-            this.proxyPassword = Base64.getEncoder().encodeToString(proxyPassword.getBytes());
-        } else {
-            this.proxyPassword = null;
+        switch (proxyType) {
+            case HTTP:
+                proxyHttpPassword = proxyPassword;
+                break;
+            case SOCKS5:
+                proxySocks5Password = proxyPassword;
+                break;
         }
     }
 
+    @JsonView(value = {Views.Socks5.class})
     public boolean isProxyStorePassword() {
         return proxyStorePassword;
     }
@@ -313,6 +390,23 @@ public class ProxyConfig {
         this.proxyStorePassword = proxyStorePassword;
     }
 
+    public String getProxySocks5Username() {
+        return proxySocks5Username;
+    }
+
+    public String getProxySocks5Password() {
+        return proxySocks5Password;
+    }
+
+    public String getProxyHttpUsername() {
+        return proxyHttpUsername;
+    }
+
+    public String getProxyHttpPassword() {
+        return proxyHttpPassword;
+    }
+
+    @JsonView(value = {Views.Pac.class})
     public String getProxyPacFileLocation() {
         return proxyPacFileLocation;
     }
@@ -321,6 +415,7 @@ public class ProxyConfig {
         this.proxyPacFileLocation = proxyPacFileLocation;
     }
 
+    @JsonView(value = {Views.Pac.class})
     public Integer getBlacklistTimeout() {
         return blacklistTimeout;
     }
@@ -328,6 +423,7 @@ public class ProxyConfig {
     public void setBlacklistTimeout(Integer blacklistTimeout) {
         this.blacklistTimeout = blacklistTimeout;
     }
+
 
     public URL getProxyPacFileLocationAsURL() throws MalformedURLException {
         if (StringUtils.isNotEmpty(proxyPacFileLocation)) {
@@ -340,6 +436,7 @@ public class ProxyConfig {
         return null;
     }
 
+
     public boolean isAutoConfig() {
         return this.proxyType.isPac();
     }
@@ -348,10 +445,12 @@ public class ProxyConfig {
         this.autostart = autostart;
     }
 
+    @JsonView(value = {Views.Direct.class})
     public boolean isAutostart() {
         return autostart;
     }
 
+    @JsonView(value = {Views.Direct.class})
     public boolean isAutodetect() {
         return autodetect;
     }
@@ -379,6 +478,8 @@ public class ProxyConfig {
                 .propertiesBuilder(userProperties);
         Configuration config = propertiesBuilder.getConfiguration();
         setProperty(config, "app.version", appVersion);
+        setProperty(config, "api.port", apiPort);
+        setProperty(config, "api.userPassword", apiUserPassword);
         setProperty(config, "proxy.type", proxyType);
         setProperty(config, "proxy.http.host", proxyHttpHost);
         setProperty(config, "proxy.http.port", proxyHttpPort);
@@ -388,14 +489,21 @@ public class ProxyConfig {
         setProperty(config, "proxy.socks5.port", proxySocks5Port);
         setProperty(config, "local.port", localPort);
         setProperty(config, "proxy.test.url", proxyTestUrl);
-        setProperty(config, "proxy.username", proxyUsername);
+        setProperty(config, "proxy.http.username", proxyHttpUsername);
+        setProperty(config, "proxy.socks5.username", proxySocks5Username);
         setProperty(config, "proxy.storePassword", proxyStorePassword);
 
-        if (proxyStorePassword) {
-            setProperty(config, "proxy.password", proxyPassword);
+        if (StringUtils.isNotEmpty(proxyHttpPassword)) {
+            setProperty(config, "proxy.http.password", "encoded(" + Base64.getEncoder().encodeToString(proxyHttpPassword.getBytes()) + ")");
+        } else {
+            config.clearProperty("proxy.http.password");
+        }
+
+        if (proxyStorePassword && StringUtils.isNotEmpty(proxySocks5Password)) {
+            setProperty(config, "proxy.socks5.password", "encoded(" + Base64.getEncoder().encodeToString(proxySocks5Password.getBytes()) + ")");
         } else {
             // Clear the stored password
-            config.clearProperty("proxy.password");
+            config.clearProperty("proxy.socks5.password");
         }
 
         setProperty(config, "proxy.pac.fileLocation", proxyPacFileLocation);
@@ -444,19 +552,20 @@ public class ProxyConfig {
     @Override
     public String toString() {
         return "ProxyConfig{" +
-                "appVersion='" + appVersion + '\'' +
+                "appVersion=" + appVersion +
+                ", apiPort=" + apiPort +
                 ", localPort=" + localPort +
-                ", proxyHttpHost='" + proxyHttpHost + '\'' +
-                ", proxySocks5Host='" + proxySocks5Host + '\'' +
-                ", proxySocks4Host='" + proxySocks4Host + '\'' +
+                ", proxyHttpHost=" + proxyHttpHost +
+                ", proxySocks5Host=" + proxySocks5Host +
+                ", proxySocks4Host=" + proxySocks4Host +
                 ", proxyHttpPort=" + proxyHttpPort +
                 ", proxySocks5Port=" + proxySocks5Port +
                 ", proxySocks4Port=" + proxySocks4Port +
-                ", proxyTestUrl='" + proxyTestUrl + '\'' +
+                ", proxyTestUrl=" + proxyTestUrl +
                 ", proxyType=" + proxyType +
-                ", proxyUsername='" + proxyUsername + '\'' +
+                ", proxyUsername=" + getProxyUsername() +
                 ", proxyStorePassword=" + proxyStorePassword +
-                ", proxyPacFileLocation='" + proxyPacFileLocation + '\'' +
+                ", proxyPacFileLocation=" + proxyPacFileLocation +
                 ", blacklistTimeout=" + blacklistTimeout +
                 ", autostart=" + autostart +
                 ", autodetect=" + autodetect +
@@ -491,5 +600,13 @@ public class ProxyConfig {
             return this == DIRECT;
         }
 
+    }
+
+    public Integer getApiPort() {
+        return apiPort;
+    }
+
+    public String getApiUserPassword() {
+        return apiUserPassword;
     }
 }

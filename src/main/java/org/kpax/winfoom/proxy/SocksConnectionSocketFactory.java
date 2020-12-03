@@ -12,17 +12,17 @@
 
 package org.kpax.winfoom.proxy;
 
-import org.apache.http.HttpHost;
-import org.apache.http.conn.ConnectTimeoutException;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.protocol.HttpContext;
-import org.kpax.winfoom.annotation.ThreadSafe;
-import org.kpax.winfoom.config.SystemConfig;
-import org.kpax.winfoom.util.HttpUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.apache.http.*;
+import org.apache.http.conn.*;
+import org.apache.http.conn.socket.*;
+import org.apache.http.protocol.*;
+import org.kpax.winfoom.annotation.*;
+import org.kpax.winfoom.config.*;
+import org.kpax.winfoom.util.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.stereotype.*;
 
-import java.io.IOException;
+import java.io.*;
 import java.net.*;
 
 /**

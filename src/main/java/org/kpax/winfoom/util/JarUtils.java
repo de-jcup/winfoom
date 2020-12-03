@@ -12,9 +12,8 @@
 
 package org.kpax.winfoom.util;
 
-import java.io.IOException;
-import java.util.jar.Attributes;
-import java.util.jar.Manifest;
+import java.io.*;
+import java.util.jar.*;
 
 @Deprecated
 public class JarUtils {

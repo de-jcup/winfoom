@@ -31,9 +31,9 @@
 
 package org.kpax.winfoom.pac.net;
 
-import com.sun.jna.Native;
-import org.kpax.winfoom.exception.NativeException;
-import org.springframework.util.Assert;
+import com.sun.jna.*;
+import org.kpax.winfoom.exception.*;
+import org.springframework.util.*;
 
 /**
  * Hostname utilities for Microsoft Windows OS.

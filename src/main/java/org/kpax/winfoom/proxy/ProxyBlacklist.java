@@ -12,22 +12,18 @@
 
 package org.kpax.winfoom.proxy;
 
-import org.kpax.winfoom.annotation.NotNull;
-import org.kpax.winfoom.annotation.ThreadSafe;
-import org.kpax.winfoom.config.ProxyConfig;
-import org.kpax.winfoom.util.functional.Resetable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.kpax.winfoom.annotation.*;
+import org.kpax.winfoom.config.*;
+import org.kpax.winfoom.util.functional.*;
+import org.slf4j.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.stereotype.*;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
+import java.time.*;
+import java.time.temporal.*;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.stream.*;
 
 /**
  * It implements the proxy blacklisting mechanism.

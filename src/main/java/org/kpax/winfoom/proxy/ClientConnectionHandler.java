@@ -13,19 +13,16 @@
 package org.kpax.winfoom.proxy;
 
 
-import org.apache.http.RequestLine;
-import org.kpax.winfoom.annotation.NotNull;
-import org.kpax.winfoom.annotation.ThreadSafe;
-import org.kpax.winfoom.config.ProxyConfig;
-import org.kpax.winfoom.config.SystemConfig;
-import org.kpax.winfoom.pac.PacScriptEvaluator;
-import org.kpax.winfoom.proxy.processor.ConnectionProcessorSelector;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.apache.http.*;
+import org.kpax.winfoom.annotation.*;
+import org.kpax.winfoom.config.*;
+import org.kpax.winfoom.pac.*;
+import org.kpax.winfoom.proxy.processor.*;
+import org.slf4j.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.stereotype.*;
 
-import java.net.Socket;
+import java.net.*;
 
 /**
  * Responsible for handling client's connection.

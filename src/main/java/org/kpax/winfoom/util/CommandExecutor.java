@@ -12,15 +12,12 @@
 
 package org.kpax.winfoom.util;
 
-import org.apache.commons.io.IOUtils;
-import org.kpax.winfoom.exception.CommandExecutionException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.io.*;
+import org.kpax.winfoom.exception.*;
+import org.slf4j.*;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.List;
-import java.util.Optional;
+import java.io.*;
+import java.util.*;
 
 /**
  * Utility class for executing command line instructions.

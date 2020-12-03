@@ -41,13 +41,10 @@
  */
 package org.kpax.winfoom.util.jna;
 
-import com.sun.jna.Pointer;
-import com.sun.jna.Structure;
-import com.sun.jna.platform.win32.WTypes;
-import com.sun.jna.platform.win32.WinDef;
+import com.sun.jna.*;
+import com.sun.jna.platform.win32.*;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
  * The WINHTTP_PROXY_INFO structure contains the session or default proxy

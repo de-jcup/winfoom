@@ -14,18 +14,16 @@
 
 package org.kpax.winfoom.util;
 
-import org.kpax.winfoom.annotation.NotNull;
-import org.springframework.util.Assert;
+import org.kpax.winfoom.annotation.*;
+import org.springframework.util.*;
 
-import javax.imageio.ImageIO;
+import javax.imageio.*;
 import javax.swing.*;
-import javax.swing.text.DefaultFormatter;
+import javax.swing.text.*;
 import java.awt.*;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URL;
-import java.util.Arrays;
-import java.util.Collections;
+import java.io.*;
+import java.net.*;
+import java.util.*;
 
 /**
  * Various Swing related methods.

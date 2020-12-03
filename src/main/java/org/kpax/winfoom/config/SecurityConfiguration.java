@@ -12,11 +12,11 @@
 
 package org.kpax.winfoom.config;
 
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.impl.auth.win.WindowsCredentialsProvider;
-import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.apache.http.client.*;
+import org.apache.http.impl.auth.win.*;
+import org.apache.http.impl.client.*;
+import org.kpax.winfoom.api.auth.*;
+import org.springframework.context.annotation.*;
 
 /**
  * @author Eugen Covaci {@literal eugen.covaci.q@gmail.com}
@@ -26,14 +26,22 @@ import org.springframework.context.annotation.Configuration;
 class SecurityConfiguration {
 
     /**
-     * Create the default system wide {@link CredentialsProvider}.
+     * Create the default system wide {@link CredentialsProvider} for Windows OS.
      * <p>Note: Only works with HTTP proxies.
      *
      * @return the system wide {@link CredentialsProvider}
      */
+    @Profile("windows")
     @Bean
-    public CredentialsProvider credentialsProvider() {
+    public CredentialsProvider windowsCredentialsProvider() {
         return new WindowsCredentialsProvider(new SystemDefaultCredentialsProvider());
     }
+
+    @Profile("!windows")
+    @Bean
+    public CredentialsProvider nonWindowsCredentialsProvider(ProxyConfig proxyConfig) {
+        return new ResetableCredentialsProvider(proxyConfig);
+    }
+
 
 }

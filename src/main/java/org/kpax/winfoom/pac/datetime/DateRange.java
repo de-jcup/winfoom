@@ -27,7 +27,7 @@
 
 package org.kpax.winfoom.pac.datetime;
 
-import java.util.Calendar;
+import java.util.*;
 
 /**
  * Evaluates a date against a date range.

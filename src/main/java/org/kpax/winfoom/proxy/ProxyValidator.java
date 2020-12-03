@@ -12,23 +12,19 @@
 
 package org.kpax.winfoom.proxy;
 
-import org.apache.http.HttpHost;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.kpax.winfoom.annotation.ThreadSafe;
-import org.kpax.winfoom.config.ProxyConfig;
-import org.kpax.winfoom.exception.InvalidProxySettingsException;
-import org.kpax.winfoom.util.HttpUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.apache.http.*;
+import org.apache.http.client.config.*;
+import org.apache.http.client.methods.*;
+import org.apache.http.impl.client.*;
+import org.kpax.winfoom.annotation.*;
+import org.kpax.winfoom.config.*;
+import org.kpax.winfoom.exception.*;
+import org.kpax.winfoom.util.*;
+import org.slf4j.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.stereotype.*;
 
-import java.io.IOException;
+import java.io.*;
 
 /**
  * Responsible with proxy config validation.
@@ -45,6 +41,7 @@ public class ProxyValidator {
     /**
      * Test the proxy settings by issuing a request through the proxy facade.
      *
+     * @throws IOException
      * @throws InvalidProxySettingsException
      */
     public void testProxy() throws IOException, InvalidProxySettingsException {

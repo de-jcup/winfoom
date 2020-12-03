@@ -30,26 +30,19 @@
  */
 package org.kpax.winfoom.pac;
 
-import inet.ipaddr.IPAddressString;
-import org.apache.commons.lang3.StringUtils;
-import org.kpax.winfoom.config.SystemConfig;
-import org.kpax.winfoom.pac.datetime.PacDateTimeUtils;
-import org.kpax.winfoom.pac.net.IpAddressMatcher;
-import org.kpax.winfoom.pac.net.IpAddresses;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import inet.ipaddr.*;
+import org.apache.commons.lang3.*;
+import org.kpax.winfoom.config.*;
+import org.kpax.winfoom.pac.datetime.*;
+import org.kpax.winfoom.pac.net.*;
+import org.slf4j.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.stereotype.*;
 
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.TreeMap;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
+import java.net.*;
+import java.util.*;
+import java.util.function.*;
+import java.util.stream.*;
 
 
 /**

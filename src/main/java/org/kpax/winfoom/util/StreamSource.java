@@ -12,14 +12,11 @@
 
 package org.kpax.winfoom.util;
 
-import org.kpax.winfoom.annotation.NotNull;
-import org.kpax.winfoom.annotation.ThreadSafe;
-import org.springframework.util.Assert;
+import org.kpax.winfoom.annotation.*;
+import org.springframework.util.*;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.Socket;
+import java.io.*;
+import java.net.*;
 
 @ThreadSafe
 public interface StreamSource {

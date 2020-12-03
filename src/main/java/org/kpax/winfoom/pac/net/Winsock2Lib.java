@@ -26,8 +26,7 @@
 
 package org.kpax.winfoom.pac.net;
 
-import com.sun.jna.Library;
-import com.sun.jna.Native;
+import com.sun.jna.*;
 
 /**
  * Winsock2 library on Windows.

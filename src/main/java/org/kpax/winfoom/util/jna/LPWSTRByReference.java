@@ -53,13 +53,10 @@
 
 package org.kpax.winfoom.util.jna;
 
-import com.sun.jna.Pointer;
-import com.sun.jna.PointerType;
-import com.sun.jna.platform.win32.Kernel32;
-import com.sun.jna.platform.win32.WTypes;
-import org.kpax.winfoom.util.InputOutputs;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.sun.jna.*;
+import com.sun.jna.platform.win32.*;
+import org.kpax.winfoom.util.*;
+import org.slf4j.*;
 
 /**
  * A pointer to a LPWSTR.

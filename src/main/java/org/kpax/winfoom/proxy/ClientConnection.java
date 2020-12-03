@@ -12,36 +12,23 @@
 
 package org.kpax.winfoom.proxy;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.*;
 import org.apache.http.*;
-import org.apache.http.config.MessageConstraints;
-import org.apache.http.impl.io.DefaultHttpRequestParser;
-import org.apache.http.impl.io.HttpTransportMetricsImpl;
-import org.apache.http.impl.io.SessionInputBufferImpl;
-import org.apache.http.protocol.HTTP;
-import org.apache.http.util.EntityUtils;
-import org.kpax.winfoom.annotation.NotNull;
-import org.kpax.winfoom.annotation.NotThreadSafe;
-import org.kpax.winfoom.config.ProxyConfig;
-import org.kpax.winfoom.config.SystemConfig;
-import org.kpax.winfoom.exception.ProxyConnectException;
-import org.kpax.winfoom.pac.PacScriptEvaluator;
-import org.kpax.winfoom.proxy.processor.ClientConnectionProcessor;
-import org.kpax.winfoom.proxy.processor.ConnectionProcessorSelector;
-import org.kpax.winfoom.util.CrlfConverter;
-import org.kpax.winfoom.util.HttpUtils;
-import org.kpax.winfoom.util.InputOutputs;
-import org.kpax.winfoom.util.StreamSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.http.config.*;
+import org.apache.http.impl.io.*;
+import org.apache.http.protocol.*;
+import org.apache.http.util.*;
+import org.kpax.winfoom.annotation.*;
+import org.kpax.winfoom.config.*;
+import org.kpax.winfoom.exception.*;
+import org.kpax.winfoom.pac.*;
+import org.kpax.winfoom.proxy.processor.*;
+import org.kpax.winfoom.util.*;
+import org.slf4j.*;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.Socket;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
+import java.io.*;
+import java.net.*;
+import java.nio.charset.*;
 import java.util.*;
 
 /**

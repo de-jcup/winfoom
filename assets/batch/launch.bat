@@ -1,32 +1,51 @@
 :: Launcher for Winfoom - Basic Proxy Facade
-
 @echo off
 
 setlocal EnableDelayedExpansion
 
+if "%1"=="--help" goto usage
+
 set ARGS=-server -XX:+UseG1GC -XX:MaxHeapFreeRatio=30 -XX:MinHeapFreeRatio=10 -Dnashorn.args=--no-deprecation-warning
 
-FOR %%a IN (%*) DO (
-    SET "_arg_=%%~a"
-    IF NOT "%%a"=="--debug" IF NOT "%%a"=="--systemjre" IF NOT "!_arg_:~0,2!"=="-D" (
-		echo Unknow parameter: %%a
+if defined FOOM_ARGS ARGS=%FOOM_ARGS% %ARGS%
+
+for %%a in (%*) do (
+    if not "%%a"=="--debug" if not "%%a"=="--systemjre" if not "%%a"=="--gui" (
+		@echo Invalid command, try 'launch --help' for more information
 		exit /B 1;
 	)
-
-	IF "%%a"=="--debug" (
-		SET ARGS=%ARGS% -Dlogging.level.root=DEBUG -Dlogging.level.java.awt=INFO -Dlogging.level.sun.awt=INFO -Dlogging.level.javax.swing=INFO -Dlogging.level.jdk=INFO
+	if "%%a"=="--debug" (
+		set ARGS=%ARGS% -Dlogging.level.root=DEBUG -Dlogging.level.java.awt=INFO -Dlogging.level.sun.awt=INFO -Dlogging.level.javax.swing=INFO -Dlogging.level.jdk=INFO
 	)
-
-	IF "%%a"=="--systemjre" (
-		SET JAVA_EXE=javaw
+	if "%%a"=="--gui" (
+		set ARGS=%ARGS% -Dspring.profiles.active=gui
+		set GUI_MODE=true
 	)
-
-	IF "!_arg_:~0,2!"=="-D" (
-        SET "ARGS=!ARGS! !_arg_!"
-    )
-
+	if "%%a"=="--systemjre" (
+		set JAVA_EXE=java
+	)
 )
 
-IF NOT DEFINED JAVA_EXE set JAVA_EXE=jdk/bin/javaw
+del /F out.log
 
-start %JAVA_EXE% %ARGS% -cp . -jar winfoom.jar
+if exist out.log (
+    @echo Is there another application's instance running?
+	exit /B 2
+)
+
+if not defined JAVA_EXE set JAVA_EXE=.\jdk\bin\java
+
+if defined GUI_MODE (
+start /B %JAVA_EXE% %ARGS% -cp . -jar winfoom.jar > out.log 2>&1
+) else (
+start /B %JAVA_EXE% %ARGS% -cp . -jar winfoom.jar > out.log 2>&1 && powershell -command "Get-Content -Path out.log -Wait"
+)
+
+exit /B %ERRORLEVEL%
+
+:usage
+@echo Usage: launch [arguments]
+@echo where [arguments] must be any of the following:
+@echo    --debug             start in debug mode
+@echo    --systemjre         use the system jre
+@echo    --gui               start with the graphical user interface

@@ -12,7 +12,7 @@
 
 package org.kpax.winfoom.util.jna;
 
-import com.sun.jna.Memory;
+import com.sun.jna.*;
 
 /**
  * Make the {@link Memory} closeable.

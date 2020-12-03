@@ -12,23 +12,17 @@
 
 package org.kpax.winfoom.proxy.processor;
 
-import org.apache.http.HttpException;
-import org.kpax.winfoom.annotation.NotNull;
-import org.kpax.winfoom.config.ProxyConfig;
-import org.kpax.winfoom.exception.ProxyConnectException;
-import org.kpax.winfoom.proxy.ClientConnection;
-import org.kpax.winfoom.proxy.ProxyBlacklist;
-import org.kpax.winfoom.proxy.ProxyInfo;
-import org.kpax.winfoom.util.StreamSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.http.*;
+import org.kpax.winfoom.annotation.*;
+import org.kpax.winfoom.config.*;
+import org.kpax.winfoom.exception.*;
+import org.kpax.winfoom.proxy.*;
+import org.kpax.winfoom.util.*;
+import org.slf4j.*;
+import org.springframework.beans.factory.annotation.*;
 
-import java.io.IOException;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
+import java.io.*;
+import java.util.concurrent.*;
 
 /**
  * Process a {@link ClientConnection} with a certain {@link ProxyInfo}.

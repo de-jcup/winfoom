@@ -12,34 +12,26 @@
 
 package org.kpax.winfoom.view;
 
-import org.apache.commons.lang3.StringUtils;
-import org.kpax.winfoom.config.ProxyConfig;
-import org.kpax.winfoom.exception.InvalidProxySettingsException;
-import org.kpax.winfoom.proxy.ProxyBlacklist;
-import org.kpax.winfoom.proxy.ProxyController;
-import org.kpax.winfoom.proxy.ProxyValidator;
-import org.kpax.winfoom.util.HttpUtils;
-import org.kpax.winfoom.util.SwingUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.annotation.Profile;
+import org.apache.commons.lang3.*;
+import org.kpax.winfoom.config.*;
+import org.kpax.winfoom.exception.*;
+import org.kpax.winfoom.proxy.*;
+import org.kpax.winfoom.util.*;
+import org.slf4j.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.context.*;
+import org.springframework.context.annotation.*;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
+import javax.annotation.*;
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
+import javax.swing.border.*;
+import javax.swing.event.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.util.Objects;
+import java.awt.event.*;
+import java.util.*;
 
-@Profile("!test")
+@Profile("gui")
 @Component
 public class AppFrame extends JFrame {
     private static final long serialVersionUID = 4009799697210970761L;
@@ -154,19 +146,6 @@ public class AppFrame extends JFrame {
         }
 
         applyProxyType();
-        setLocationRelativeTo(null);
-
-        logger.info("Launch the GUI");
-        EventQueue.invokeLater(() -> {
-            try {
-                activate();
-            } catch (Exception e) {
-                logger.error("GUI error", e);
-                SwingUtils.showErrorMessage("Failed to load the graphical interface." +
-                        "<br>Please check the application's log file.");
-                System.exit(1);
-            }
-        });
     }
 
     private void applyProxyType() {
@@ -178,7 +157,7 @@ public class AppFrame extends JFrame {
         getBtnStart().requestFocus();
     }
 
-    private void activate() {
+    public void activate() {
         if (proxyConfig.isAutostart()) {
             getBtnStart().doClick();
             dispatchEvent(new WindowEvent(
@@ -335,7 +314,7 @@ public class AppFrame extends JFrame {
 
 
     private JPasswordField getPasswordField() {
-        JPasswordField passwordField = new JPasswordField(proxyConfig.getProxyPassword());
+        JPasswordField passwordField = new JPasswordField(proxyConfig.getProxySocks5Password());
         passwordField.setToolTipText("The optional password if the SOCKS5 proxy requires authentication.");
         passwordField.getDocument().addDocumentListener((TextChangeListener) (e) -> proxyConfig.setProxyPassword(new String(passwordField.getPassword())));
         return passwordField;
@@ -742,8 +721,8 @@ public class AppFrame extends JFrame {
 
     private void startServer() {
         if (proxyConfig.getProxyType().isSocks5()) {
-            if (StringUtils.isNotEmpty(proxyConfig.getProxyUsername())
-                    && StringUtils.isEmpty(proxyConfig.getProxyPassword())) {
+            if (StringUtils.isNotEmpty(proxyConfig.getProxySocks5Username())
+                    && StringUtils.isEmpty(proxyConfig.getProxySocks5Password())) {
                 int option = JOptionPane.showConfirmDialog(this, "The username is not empty, but you did not provide " +
                                 "any password." +
                                 "\nDo you still want to proceed?", "Warning", JOptionPane.OK_CANCEL_OPTION,

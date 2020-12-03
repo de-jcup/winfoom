@@ -13,23 +13,15 @@
 package org.kpax.winfoom.pac.net;
 
 
-import inet.ipaddr.IPAddressString;
-import org.kpax.winfoom.exception.NativeException;
-import org.kpax.winfoom.util.functional.SingleExceptionSingletonSupplier;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import inet.ipaddr.*;
+import org.kpax.winfoom.exception.*;
+import org.kpax.winfoom.util.functional.*;
+import org.slf4j.*;
 
-import java.net.Inet4Address;
-import java.net.Inet6Address;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.net.*;
+import java.util.*;
+import java.util.function.*;
+import java.util.stream.*;
 
 /**
  * IP address utilities: resolving hostname, comparing IP addresses.

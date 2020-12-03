@@ -12,22 +12,16 @@
 
 package org.kpax.winfoom.proxy.processor;
 
-import org.apache.http.HttpStatus;
-import org.apache.http.conn.ConnectTimeoutException;
-import org.apache.http.conn.HttpHostConnectException;
-import org.kpax.winfoom.annotation.ThreadSafe;
-import org.kpax.winfoom.exception.ProxyConnectException;
-import org.kpax.winfoom.proxy.ClientConnection;
-import org.kpax.winfoom.proxy.ProxyInfo;
-import org.kpax.winfoom.util.HttpUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
+import org.apache.http.*;
+import org.apache.http.conn.*;
+import org.kpax.winfoom.annotation.*;
+import org.kpax.winfoom.exception.*;
+import org.kpax.winfoom.proxy.*;
+import org.kpax.winfoom.util.*;
+import org.slf4j.*;
+import org.springframework.stereotype.*;
 
-import java.net.ConnectException;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
-import java.net.UnknownHostException;
+import java.net.*;
 
 /**
  * Process any type of non-CONNECT request for SOCKS/DIRECT proxy.

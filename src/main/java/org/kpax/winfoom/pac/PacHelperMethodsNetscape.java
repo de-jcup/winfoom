@@ -13,7 +13,7 @@
  */
 package org.kpax.winfoom.pac;
 
-import org.kpax.winfoom.pac.datetime.PacDateTimeUtils;
+import org.kpax.winfoom.pac.datetime.*;
 
 /**
  * Netscape's original PAC script helper functions. In their original

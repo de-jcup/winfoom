@@ -1,0 +1,79 @@
+#!/bin/bash
+#  Client for Winfoom - Basic Proxy Facade
+
+if [ -z "$1" ]; then
+  echo "Invalid command, try 'foomcli --help' for more information"
+  exit 1
+fi
+
+usage() {
+  echo "Usage: foomctl [command] [arguments]"
+  echo "where [command] must be one of the following:"
+  echo "start                         start the local proxy facade"
+  echo "stop                          stop the local proxy facade"
+  echo "status                        get the current status of the local proxy facade"
+  echo "shutdown                      shutdown the application"
+  echo "validate                      test the local proxy facade configuration"
+  echo "autodetect                    attempt to apply Internet Explorer settings"
+  echo "config                        print the current configuration"
+  echo "config -f [json_filepath]     apply the proxy configuration, where the [json_filepath] is"
+  echo "                              the path to the JSON file containing the configuration to be applied"
+  echo "config -d [json_content]      apply the proxy configuration, where the [json_content] is"
+  echo "                              the JSON object containing the configuration to be applied"
+  echo "config -t [proxy_type]        change the proxy type, where [json_filepath] can be"
+  echo "                              one of: direct, http, pac, socks4, socks5"
+}
+
+if [ "$1" == "--help" ]; then
+  usage
+  exit 0
+fi
+
+if [[ "$1" != "start" && "$1" != "stop" && "$1" != "status" && "$1" != "validate" && "$1" != "shutdown" && "$1" != "test" && "$1" != "config" && "$1" != "autodetect" ]]; then
+  echo "Invalid command, try 'foomctl --help' for more information"
+  exit 1
+fi
+
+if [ "$1" == "config" ]; then
+  if [[ "$2" != "-f" && "$2" != "-t" && "$2" != "-d" && ! -z "$2" ]]; then
+    echo "Invalid command, try 'foomctl --help' for more information"
+    exit 1
+  fi
+  if [[ ("$2" == "-f" || "$2" == "-d") && -z "$3" ]]; then
+    echo "Invalid command, try 'foomctl --help' for more information"
+    exit 1
+  fi
+fi
+
+if [ -z ${CTL_USER+x} ]; then
+  echo "Enter username:"
+  read -r CTL_USERNAME
+  echo "Enter password:"
+  read -r -s CTL_PASSWORD
+  CTL_USER="$CTL_USERNAME:$CTL_PASSWORD"
+fi
+
+if [ -z ${FOOM_LOCATION+x} ]; then FOOM_LOCATION=localhost:9999; fi
+
+if [ "$1" == "config" ]; then
+  if [ "$2" == "-f" ]; then
+    curl -w '\n' -X POST -H "Content-Type: application/json" -d @"$3" --user "$CTL_USER" http://$FOOM_LOCATION/"$1"
+  elif [ "$2" == "-t" ]; then
+    curl -w '\n' -X POST -H "Content-Type: application/json" -d "{\"proxyType\": \"${3^^}\"}" --user "$CTL_USER" http://$FOOM_LOCATION/"$1"
+  elif [ "$2" == "-d" ]; then
+    curl -w '\n' -X POST -H "Content-Type: application/json" -d "$3" --user "$CTL_USER" http://$FOOM_LOCATION/"$1"
+  else
+    curl -w '\n' --user "$CTL_USER" http://$FOOM_LOCATION/"$1"
+  fi
+else
+  if [ "$1" == "validate" ]; then echo "It may take some time, please be pacient ..."; fi
+  curl -w '\n' --user "$CTL_USER" http://$FOOM_LOCATION/"$1"
+fi
+
+exitCode=$?
+if [ $exitCode -eq 7 ]; then
+  echo "Is the application running?"
+elif [ $exitCode -ne 0 ]; then
+  echo "Error code $exitCode"
+fi
+exit $exitCode

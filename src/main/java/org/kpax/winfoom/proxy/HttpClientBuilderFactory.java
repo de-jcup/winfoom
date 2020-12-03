@@ -12,17 +12,15 @@
 
 package org.kpax.winfoom.proxy;
 
-import org.apache.http.HttpHost;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.client.WinHttpClients;
-import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
-import org.kpax.winfoom.annotation.ThreadSafe;
-import org.kpax.winfoom.config.SystemConfig;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.apache.http.*;
+import org.apache.http.client.*;
+import org.apache.http.client.config.*;
+import org.apache.http.impl.client.*;
+import org.apache.http.impl.conn.*;
+import org.kpax.winfoom.annotation.*;
+import org.kpax.winfoom.config.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.stereotype.*;
 
 /**
  * A factory for {@link HttpClientBuilder} for different proxy types.

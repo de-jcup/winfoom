@@ -13,25 +13,22 @@
 package org.kpax.winfoom;
 
 import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.configuration2.builder.fluent.Configurations;
-import org.apache.commons.configuration2.ex.ConfigurationException;
-import org.kpax.winfoom.config.ProxyConfig;
-import org.kpax.winfoom.config.SystemConfig;
-import org.kpax.winfoom.util.InputOutputs;
-import org.kpax.winfoom.util.SwingUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import org.apache.commons.configuration2.builder.fluent.*;
+import org.apache.commons.configuration2.ex.*;
+import org.kpax.winfoom.config.*;
+import org.kpax.winfoom.util.*;
+import org.slf4j.*;
+import org.springframework.beans.factory.config.*;
+import org.springframework.boot.*;
+import org.springframework.boot.autoconfigure.*;
+import org.springframework.context.annotation.*;
+import org.springframework.scheduling.annotation.*;
 
 import javax.swing.*;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.Date;
+import java.beans.*;
+import java.io.*;
+import java.nio.file.*;
+import java.util.*;
 
 /**
  * The entry point for Winfoom application.
@@ -41,6 +38,15 @@ import java.util.Date;
 public class FoomApplication {
 
     private static final Logger logger = LoggerFactory.getLogger(FoomApplication.class);
+
+    @Bean
+    static CustomEditorConfigurer propertyEditorRegistrar() {
+        CustomEditorConfigurer customEditorConfigurer = new CustomEditorConfigurer();
+        Map<Class<?>, Class<? extends PropertyEditor>> customEditors = new HashMap<>();
+        customEditors.put(String.class, Base64DecoderPropertyEditor.class);
+        customEditorConfigurer.setCustomEditors(customEditors);
+        return customEditorConfigurer;
+    }
 
     public static void main(String[] args) {
         logger.info("Application started at: {}", new Date());
@@ -63,10 +69,10 @@ public class FoomApplication {
             checkAppVersion();
         } catch (Exception e) {
             logger.error("Failed to verify app version", e);
-            SwingUtils.showErrorMessage(String.format("Failed to verify application version.<br>" +
+            UserMessages.error(String.format("Failed to verify application version.<br>" +
                             "Remove the %s directory then try again.",
                     Paths.get(System.getProperty("user.home"), SystemConfig.APP_HOME_DIR_NAME)));
-            System.exit(1);
+            System.exit(ExitCodes.EC_ERR_CHECK_SETTINGS);
         }
 
         logger.info("Bootstrap Spring's application context");
@@ -74,10 +80,10 @@ public class FoomApplication {
             SpringApplication.run(FoomApplication.class, args);
         } catch (Exception e) {
             logger.error("Error on bootstrapping Spring's application context", e);
-            SwingUtils.showErrorMessage("Failed to launch the application." +
+            UserMessages.error("Failed to launch the application." +
                     "<br>Please check the application's log file.");
+            System.exit(ExitCodes.EC_ERR_SPRING_CONTEXT_FAILED);
         }
-
     }
 
     /**
@@ -101,7 +107,6 @@ public class FoomApplication {
                 if (existingVersion != null) {
                     String actualVersion = FoomApplication.class.getPackage().getImplementationVersion();
                     logger.info("actualVersion [{}]", actualVersion);
-
                     if (actualVersion != null && !actualVersion.equals(existingVersion)) {
                         boolean isCompatibleProxyConfig = !Files.exists(proxyConfigPath)
                                 || ProxyConfig.isCompatible(configuration);
@@ -112,7 +117,7 @@ public class FoomApplication {
                             logger.info("Backup the existent proxy.properties file since is invalid" +
                                     " (from a previous incompatible version)");
                             InputOutputs.backupFile(proxyConfigPath,
-                                    true,
+                                    SystemContext.isGuiMode(),
                                     StandardCopyOption.REPLACE_EXISTING);
                         }
                     }
@@ -120,17 +125,17 @@ public class FoomApplication {
                     logger.info("Version not found within proxy.properties, " +
                             "backup both config files since they are invalid (from a previous incompatible version)");
                     InputOutputs.backupFile(proxyConfigPath,
-                            true,
+                            SystemContext.isGuiMode(),
                             StandardCopyOption.REPLACE_EXISTING);
                     InputOutputs.backupFile(appHomePath.resolve(SystemConfig.FILENAME),
-                            true,
+                            SystemContext.isGuiMode(),
                             StandardCopyOption.REPLACE_EXISTING);
                 }
             } else {
                 logger.info("No proxy.properties found, backup the system.properties file " +
                         "since is invalid (from a previous incompatible version)");
                 InputOutputs.backupFile(appHomePath.resolve(SystemConfig.FILENAME),
-                        true,
+                        SystemContext.isGuiMode(),
                         StandardCopyOption.REPLACE_EXISTING);
             }
         }

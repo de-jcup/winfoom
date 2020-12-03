@@ -12,26 +12,22 @@
 
 package org.kpax.winfoom.proxy;
 
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.HttpClientConnectionManager;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.kpax.winfoom.annotation.ThreadSafe;
-import org.kpax.winfoom.config.SystemConfig;
-import org.kpax.winfoom.util.functional.Resetable;
-import org.kpax.winfoom.util.functional.SingletonSupplier;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.annotation.Order;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
+import org.apache.http.config.*;
+import org.apache.http.conn.*;
+import org.apache.http.conn.socket.*;
+import org.apache.http.impl.conn.*;
+import org.kpax.winfoom.annotation.*;
+import org.kpax.winfoom.config.*;
+import org.kpax.winfoom.util.functional.*;
+import org.slf4j.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.core.annotation.*;
+import org.springframework.scheduling.annotation.*;
+import org.springframework.stereotype.*;
+import org.springframework.util.*;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * It manages the HTTP connection pooling mechanism.

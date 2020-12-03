@@ -41,12 +41,10 @@
  */
 package org.kpax.winfoom.util.jna;
 
-import com.sun.jna.Pointer;
-import com.sun.jna.Structure;
-import com.sun.jna.platform.win32.WTypes;
+import com.sun.jna.*;
+import com.sun.jna.platform.win32.*;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
  * The WINHTTP_CURRENT_USER_IE_PROXY_CONFIG structure contains the Internet

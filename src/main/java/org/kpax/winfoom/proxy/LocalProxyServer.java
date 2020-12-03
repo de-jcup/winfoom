@@ -12,22 +12,18 @@
 
 package org.kpax.winfoom.proxy;
 
-import org.kpax.winfoom.annotation.ThreadSafe;
-import org.kpax.winfoom.config.ProxyConfig;
-import org.kpax.winfoom.config.SystemConfig;
-import org.kpax.winfoom.util.HttpUtils;
-import org.kpax.winfoom.util.InputOutputs;
-import org.kpax.winfoom.util.functional.Resetable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.annotation.Order;
-import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
+import org.kpax.winfoom.annotation.*;
+import org.kpax.winfoom.config.*;
+import org.kpax.winfoom.util.*;
+import org.kpax.winfoom.util.functional.*;
+import org.slf4j.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.core.annotation.*;
+import org.springframework.stereotype.*;
+import org.springframework.util.*;
 
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketException;
+import java.io.*;
+import java.net.*;
 
 /**
  * The local proxy server.
@@ -67,7 +63,7 @@ class LocalProxyServer implements Resetable {
      *
      * @throws Exception
      */
-    synchronized void start() throws Exception {
+    synchronized void start() throws IOException {
         Assert.isTrue(serverSocket == null || serverSocket.isClosed(),
                 "There is an active ServerSocket instance that needs to be closed before creating another one");
         logger.info("Start local proxy server with userConfig {}", proxyConfig);
@@ -105,7 +101,7 @@ class LocalProxyServer implements Resetable {
                 }
             });
             logger.info("Server started, listening on port: " + proxyConfig.getLocalPort());
-        } catch (Exception e) {
+        } catch (IOException | RuntimeException e) {
             // Cleanup on exception
             close();
             throw e;

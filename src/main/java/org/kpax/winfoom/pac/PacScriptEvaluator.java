@@ -30,36 +30,25 @@
  */
 package org.kpax.winfoom.pac;
 
-import org.apache.commons.io.IOUtils;
-import org.kpax.winfoom.annotation.ThreadSafe;
-import org.kpax.winfoom.config.ProxyConfig;
+import org.apache.commons.io.*;
+import org.kpax.winfoom.annotation.*;
+import org.kpax.winfoom.config.*;
 import org.kpax.winfoom.exception.MissingResourceException;
-import org.kpax.winfoom.exception.PacFileException;
-import org.kpax.winfoom.exception.PacScriptException;
-import org.kpax.winfoom.proxy.ProxyBlacklist;
-import org.kpax.winfoom.proxy.ProxyInfo;
-import org.kpax.winfoom.util.HttpUtils;
-import org.kpax.winfoom.util.functional.DoubleExceptionSingletonSupplier;
-import org.kpax.winfoom.util.functional.Resetable;
-import org.kpax.winfoom.util.functional.SingletonSupplier;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.annotation.Order;
-import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
+import org.kpax.winfoom.exception.*;
+import org.kpax.winfoom.proxy.*;
+import org.kpax.winfoom.util.*;
+import org.kpax.winfoom.util.functional.*;
+import org.slf4j.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.core.annotation.*;
+import org.springframework.stereotype.*;
+import org.springframework.util.*;
 
-import javax.script.Invocable;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Objects;
+import javax.script.*;
+import java.io.*;
+import java.net.*;
+import java.nio.charset.*;
+import java.util.*;
 
 @ThreadSafe
 @Order(3)

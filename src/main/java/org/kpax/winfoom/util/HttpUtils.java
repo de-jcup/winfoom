@@ -15,28 +15,24 @@ package org.kpax.winfoom.util;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.*;
-import org.apache.http.entity.ContentType;
-import org.apache.http.impl.EnglishReasonPhraseCatalog;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.message.BasicStatusLine;
-import org.apache.http.protocol.HTTP;
-import org.kpax.winfoom.annotation.NotNull;
-import org.kpax.winfoom.proxy.ProxyInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.Assert;
+import org.apache.http.auth.*;
+import org.apache.http.entity.*;
+import org.apache.http.impl.*;
+import org.apache.http.message.*;
+import org.apache.http.protocol.*;
+import org.kpax.winfoom.annotation.*;
+import org.kpax.winfoom.proxy.*;
+import org.slf4j.*;
+import org.springframework.util.*;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+import java.io.*;
+import java.lang.reflect.*;
 import java.net.*;
-import java.nio.charset.StandardCharsets;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.nio.charset.*;
+import java.text.*;
 import java.util.*;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
+import java.util.function.*;
+import java.util.stream.*;
 
 /**
  * Various utility methods, HTTP related.
@@ -463,6 +459,25 @@ public final class HttpUtils {
      */
     public static boolean containsSchema(@NotNull String uri) {
         return uri.contains("://");
+    }
+
+    public static boolean verifyBasicAuth(@NotNull final HttpRequest request, @NotNull final String encodedUserPassword)
+            throws AuthenticationException {
+        Header authHeader = request.getFirstHeader(HttpHeaders.AUTHORIZATION);
+        if (authHeader != null) {
+            String[] tokens = authHeader.getValue().split("\\s");
+            if (tokens.length == 2) {
+                if ("Basic".equals(tokens[0])) {
+                    return encodedUserPassword.equals(tokens[1]);
+                } else {
+                    throw new AuthenticationException("Only 'Basic' authorization is supported");
+                }
+            } else {
+                throw new AuthenticationException("Invalid Authorization header");
+            }
+        } else {
+            throw new AuthenticationException("No Authorization header found");
+        }
     }
 
 }

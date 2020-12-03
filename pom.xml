@@ -23,7 +23,7 @@
     </parent>
     <groupId>org.kpax</groupId>
     <artifactId>winfoom</artifactId>
-    <version>2.7.4</version>
+    <version>3.0.1-SNAPSHOT</version>
 
     <name>winfoom</name>
     <url>https://github.com/ecovaci/winfoom</url>
@@ -95,6 +95,11 @@
             <groupId>com.github.seancfoley</groupId>
             <artifactId>ipaddress</artifactId>
             <version>${ipaddress.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
         </dependency>
 
         <dependency>

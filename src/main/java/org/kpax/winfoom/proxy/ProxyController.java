@@ -12,23 +12,22 @@
 
 package org.kpax.winfoom.proxy;
 
-import org.kpax.winfoom.annotation.ThreadSafe;
-import org.kpax.winfoom.config.ProxyConfig;
-import org.kpax.winfoom.pac.net.IpAddresses;
-import org.kpax.winfoom.util.InputOutputs;
-import org.kpax.winfoom.util.functional.Resetable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.support.AbstractApplicationContext;
-import org.springframework.core.annotation.AnnotationAwareOrderComparator;
-import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
+import org.kpax.winfoom.annotation.*;
+import org.kpax.winfoom.config.*;
+import org.kpax.winfoom.pac.net.*;
+import org.kpax.winfoom.util.*;
+import org.kpax.winfoom.util.functional.*;
+import org.slf4j.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.context.support.*;
+import org.springframework.core.annotation.*;
+import org.springframework.stereotype.*;
+import org.springframework.util.*;
 
-import java.net.Authenticator;
-import java.net.PasswordAuthentication;
-import java.util.Objects;
-import java.util.stream.Stream;
+import java.io.*;
+import java.net.*;
+import java.util.*;
+import java.util.stream.*;
 
 /**
  * Provide methods to begin, end proxy session.
@@ -60,13 +59,13 @@ public class ProxyController {
      *
      * @throws Exception
      */
-    public synchronized void start() throws Exception {
+    public synchronized void start() throws IOException {
         Assert.state(!started, "Already started");
         if (proxyConfig.getProxyType().isSocks5()) {
             Authenticator.setDefault(new Authenticator() {
                 public PasswordAuthentication getPasswordAuthentication() {
-                    String proxyPassword = proxyConfig.getProxyPassword();
-                    return (new PasswordAuthentication(proxyConfig.getProxyUsername(),
+                    String proxyPassword = proxyConfig.getProxySocks5Password();
+                    return (new PasswordAuthentication(proxyConfig.getProxySocks5Username(),
                             proxyPassword != null ? proxyPassword.toCharArray() : new char[0]));
                 }
             });
