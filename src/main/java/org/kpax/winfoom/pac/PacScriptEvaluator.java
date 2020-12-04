@@ -224,6 +224,7 @@ public class PacScriptEvaluator implements Resetable {
     public void close() {
         logger.debug("Reset the scriptEngineSupplier");
         scriptEngineSupplier.reset();
+        pacProxyInfoListCacheSupplier.reset();
     }
 
     private class PacScriptEngine {

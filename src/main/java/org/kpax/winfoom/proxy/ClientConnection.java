@@ -190,7 +190,6 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
                      final PacScriptEvaluator pacScriptEvaluator)
             throws Exception {
         this(socket, proxyConfig, systemConfig, connectionProcessorSelector);
-
         URI requestUri = getRequestUri();
         logger.debug("Extracted URI from request {}", requestUri);
         try {
