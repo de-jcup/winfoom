@@ -90,7 +90,7 @@ public class PacScriptEvaluator implements Resetable {
                     Cache2kBuilder.of(String.class, List.class)
                             .name("pacProxyInfoList")
                             .eternal(true)
-                            .entryCapacity(systemConfig.getCacheGlobPatternCapacity())// FIXME new
+                            .entryCapacity(systemConfig.getCachePacProxyInfoListCapacity())
                             .build()
             );
 
@@ -191,6 +191,7 @@ public class PacScriptEvaluator implements Resetable {
             List<ProxyInfo> proxyInfos = (List<ProxyInfo>) pacProxyInfoListCacheSupplier.get().get(proxyLine);
             if (proxyInfos == null) {
                 proxyInfos = HttpUtils.parsePacProxyLine(proxyLine);
+                pacProxyInfoListCacheSupplier.get().put(proxyLine, proxyInfos);
             }
             proxyBlacklist.removeBlacklistedProxies(proxyInfos);
             return proxyInfos;
