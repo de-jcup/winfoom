@@ -22,7 +22,7 @@ for %%a in (%*) do (
 		set GUI_MODE=true
 	)
 	if "%%a"=="--systemjre" (
-		set JAVA_EXE=java
+		set JAVA_EXE=javaw
 	)
 )
 
@@ -33,13 +33,15 @@ if exist out.log (
 	exit /B 2
 )
 
-if not defined JAVA_EXE set JAVA_EXE=.\jdk\bin\java
+if not defined JAVA_EXE set JAVA_EXE=.\jdk\bin\javaw
 
 if defined GUI_MODE (
 start /B %JAVA_EXE% %ARGS% -cp . -jar winfoom.jar > out.log 2>&1
 ) else (
-start /B %JAVA_EXE% %ARGS% -cp . -jar winfoom.jar > out.log 2>&1 && powershell -command "Get-Content -Path out.log -Wait"
+start /B %JAVA_EXE% %ARGS% -cp . -jar winfoom.jar > out.log 2>&1 && powershell -command Get-Content -Path out.log -Wait
 )
+
+
 
 exit /B %ERRORLEVEL%
 

@@ -49,6 +49,11 @@ public class FoomApplication {
     }
 
     public static void main(String[] args) {
+        if (SystemContext.isGuiMode() && !SystemContext.IS_OS_WINDOWS) {
+            System.err.println("Graphical mode is not supported on " + SystemContext.OS_NAME);
+            System.exit(ExitCodes.EC_ERR_GUI_NOT_SUPPORTED);
+        }
+
         logger.info("Application started at: {}", new Date());
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             logger.info("Application shutdown at: {}", new Date());
@@ -58,10 +63,12 @@ public class FoomApplication {
         // within the PAC script for safety reasons
         System.setProperty("nashorn.args", "--no-java");
 
-        try {
-            UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
-        } catch (Exception e) {
-            logger.warn("Failed to set Windows L&F, use the default look and feel", e);
+        if (SystemContext.isGuiMode()) {
+            try {
+                UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+            } catch (Exception e) {
+                logger.warn("Failed to set Windows L&F, use the default look and feel", e);
+            }
         }
 
         // Check version
