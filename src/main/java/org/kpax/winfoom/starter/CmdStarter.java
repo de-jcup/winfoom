@@ -24,33 +24,27 @@ public class CmdStarter implements ApplicationListener<ApplicationReadyEvent> {
 
     @Override
     public void onApplicationEvent(ApplicationReadyEvent event) {
-        System.out.println("Application is now started");
         if (proxyConfig.isAutodetect()) {
             try {
                 boolean result = proxyConfig.autoDetect();
                 if (!result) {
-                    System.out.println("Failed to retrieve Internet Explorer network settings:");
+                    logger.warn("Failed to retrieve Internet Explorer network settings:");
                 }
             } catch (Exception e) {
-                logger.error("Error on auto-detecting system settings", e);
-                System.err.println("Error on retrieving Internet Explorer network settings: " + e.getMessage());
+                logger.error("Error on retrieving Internet Explorer network settings:", e);
             }
         }
         if (proxyConfig.isAutostart()) {
             try {
                 proxyConfig.validate();
                 proxyController.start();
-                System.out.println("The local proxy server has been started");
+                logger.info("The local proxy server has been started");
             } catch (InvalidProxySettingsException e) {
-                logger.warn("Invalid proxy configuration", e);
-                System.err.println("The local proxy server cannot be started, the configuration is invalid: " + e.getMessage());
+                logger.warn("Cannot start local proxy server, invalid proxy configuration", e);
             } catch (Exception e) {
-                logger.error("Error on starting local proxy server", e);
-                System.err.println("The local proxy server failed to start: " + e.getMessage());
+                logger.error("The local proxy server failed to start", e);
             }
-        } else {
-            System.out.println("The local proxy is currently stopped");
         }
-        System.out.println("Press CTRL+C to return");
+        logger.info("Application is ready");
     }
 }

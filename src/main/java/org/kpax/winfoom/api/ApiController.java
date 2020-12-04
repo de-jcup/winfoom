@@ -43,7 +43,7 @@ public class ApiController implements AutoCloseable {
 
     @PostConstruct
     private void init() throws IOException {
-        Credentials credentials = new ApiCredentials(proxyConfig.getApiUserPassword());
+        Credentials credentials = new ApiCredentials(proxyConfig.getApiToken());
         apiServer = ServerBootstrap.bootstrap().setListenerPort(proxyConfig.getApiPort()).
                 registerHandler("/start",
                         new GenericHttpRequestHandler(credentials) {
@@ -150,7 +150,7 @@ public class ApiController implements AutoCloseable {
                                     response.setEntity(new StringEntity(new ObjectMapper().
                                             configure(MapperFeature.DEFAULT_VIEW_INCLUSION, false).
                                             writerWithDefaultPrettyPrinter().
-                                            withView(Views.getView((ProxyConfig.Type) proxyConfig.getProxyType())).
+                                            withView(Views.getViewForType((ProxyConfig.Type) proxyConfig.getProxyType())).
                                             writeValueAsString(proxyConfig)));
                                 } catch (Exception e) {
                                     logger.error("Error on serializing proxy configuration", e);

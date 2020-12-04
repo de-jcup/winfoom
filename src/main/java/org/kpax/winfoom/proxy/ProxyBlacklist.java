@@ -84,15 +84,15 @@ public class ProxyBlacklist implements Resetable {
      * @return the same list if the blacklisting mechanism is disabled
      * or o new list containing the active proxies of the given list
      */
-    public List<ProxyInfo> removeBlacklistedProxies(@NotNull final List<ProxyInfo> proxies) {
-        if (proxyConfig.getBlacklistTimeout() < 1) {
-            return proxies;
+    public void removeBlacklistedProxies(@NotNull final List<ProxyInfo> proxies) {
+        if (proxyConfig.getBlacklistTimeout() > 0) {
+            for (Iterator<ProxyInfo> itr = proxies.iterator(); itr.hasNext(); ) {
+                if (isBlacklisted(itr.next())) {
+                    itr.remove();
+                }
+            }
         }
-        Instant now = Instant.now();
-        return proxies.stream().
-                filter(proxyInfo -> blacklistMap.computeIfPresent(
-                        proxyInfo, (key, value) -> value.isBefore(now) ? null : value) == null).
-                collect(Collectors.toList());
+
     }
 
     /**

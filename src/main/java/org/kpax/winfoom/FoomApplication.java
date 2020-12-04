@@ -50,7 +50,7 @@ public class FoomApplication {
 
     public static void main(String[] args) {
         if (SystemContext.isGuiMode() && !SystemContext.IS_OS_WINDOWS) {
-            System.err.println("Graphical mode is not supported on " + SystemContext.OS_NAME);
+            logger.error("Graphical mode is not supported on " + SystemContext.OS_NAME + ", exit the application");
             System.exit(ExitCodes.EC_ERR_GUI_NOT_SUPPORTED);
         }
 
@@ -76,9 +76,11 @@ public class FoomApplication {
             checkAppVersion();
         } catch (Exception e) {
             logger.error("Failed to verify app version", e);
-            UserMessages.error(String.format("Failed to verify application version.<br>" +
-                            "Remove the %s directory then try again.",
-                    Paths.get(System.getProperty("user.home"), SystemConfig.APP_HOME_DIR_NAME)));
+            if (SystemContext.isGuiMode()) {
+                SwingUtils.showErrorMessage(String.format("Failed to verify application version.<br>" +
+                                "Remove the %s directory then try again.",
+                        Paths.get(System.getProperty("user.home"), SystemConfig.APP_HOME_DIR_NAME)));
+            }
             System.exit(ExitCodes.EC_ERR_CHECK_SETTINGS);
         }
 
@@ -87,8 +89,10 @@ public class FoomApplication {
             SpringApplication.run(FoomApplication.class, args);
         } catch (Exception e) {
             logger.error("Error on bootstrapping Spring's application context", e);
-            UserMessages.error("Failed to launch the application." +
-                    "<br>Please check the application's log file.");
+            if (SystemContext.isGuiMode()) {
+                SwingUtils.showErrorMessage("Failed to launch the application." +
+                        "<br>Please check the application's log file.");
+            }
             System.exit(ExitCodes.EC_ERR_SPRING_CONTEXT_FAILED);
         }
     }

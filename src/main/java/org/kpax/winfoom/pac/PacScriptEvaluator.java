@@ -31,6 +31,7 @@
 package org.kpax.winfoom.pac;
 
 import org.apache.commons.io.*;
+import org.cache2k.*;
 import org.kpax.winfoom.annotation.*;
 import org.kpax.winfoom.config.*;
 import org.kpax.winfoom.exception.MissingResourceException;
@@ -76,10 +77,22 @@ public class PacScriptEvaluator implements Resetable {
     private ProxyConfig proxyConfig;
 
     @Autowired
+    private SystemConfig systemConfig;
+
+    @Autowired
     private DefaultPacHelperMethods pacHelperMethods;
 
     @Autowired
     private ProxyBlacklist proxyBlacklist;
+
+    private SingletonSupplier<Cache<String, List>> pacProxyInfoListCacheSupplier =
+            new SingletonSupplier<Cache<String, List>>(() ->
+                    Cache2kBuilder.of(String.class, List.class)
+                            .name("pacProxyInfoList")
+                            .eternal(true)
+                            .entryCapacity(systemConfig.getCacheGlobPatternCapacity())// FIXME new
+                            .build()
+            );
 
     private final DoubleExceptionSingletonSupplier<PacScriptEngine, PacFileException, IOException> scriptEngineSupplier =
             new DoubleExceptionSingletonSupplier<PacScriptEngine, PacFileException, IOException>(this::createScriptEngine);
@@ -115,7 +128,6 @@ public class PacScriptEvaluator implements Resetable {
         try {
             ScriptEngine engine = new ScriptEngineManager().getEngineByName("Nashorn");
             Assert.notNull(engine, "Nashorn engine not found");
-
             String[] allowedGlobals =
                     ("Object,Function,Array,String,Date,Number,BigInt,"
                             + "Boolean,RegExp,Math,JSON,NaN,Infinity,undefined,"
@@ -130,7 +142,6 @@ public class PacScriptEvaluator implements Resetable {
                             + "WeakSet,Symbol,Reflect,Proxy,Promise,SharedArrayBuffer,"
                             + "Atomics,console,performance,"
                             + "arguments").split(",");
-
             Object cleaner = engine.eval("(function(allowed) {\n"
                     + "   var names = Object.getOwnPropertyNames(this);\n"
                     + "   MAIN: for (var i = 0; i < names.length; i++) {\n"
@@ -147,15 +158,12 @@ public class PacScriptEvaluator implements Resetable {
             } catch (NoSuchMethodException ex) {
                 throw new ScriptException(ex);
             }
-
             engine.eval(pacSource);
-
             try {
                 ((Invocable) engine).invokeMethod(engine.eval(helperJSScriptSupplier.get()), "call", null, pacHelperMethods);
             } catch (NoSuchMethodException ex) {
                 throw new ScriptException(ex);
             }
-
             return new PacScriptEngine(engine);
         } catch (ScriptException e) {
             throw new PacFileException(e);
@@ -180,7 +188,12 @@ public class PacScriptEvaluator implements Resetable {
             Object obj = scriptEngine.findProxyForURL(HttpUtils.toStrippedURLStr(uri), uri.getHost());
             String proxyLine = Objects.toString(obj, null);
             logger.debug("proxyLine [{}]", proxyLine);
-            return HttpUtils.parsePacProxyLine(proxyLine, proxyBlacklist::isActive);
+            List<ProxyInfo> proxyInfos = (List<ProxyInfo>) pacProxyInfoListCacheSupplier.get().get(proxyLine);
+            if (proxyInfos == null) {
+                proxyInfos = HttpUtils.parsePacProxyLine(proxyLine);
+            }
+            proxyBlacklist.removeBlacklistedProxies(proxyInfos);
+            return proxyInfos;
         } catch (Exception ex) {
             if (ex.getCause() instanceof ClassNotFoundException) {
                 // Is someone trying to break out of the sandbox ?

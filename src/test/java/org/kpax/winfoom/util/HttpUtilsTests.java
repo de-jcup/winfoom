@@ -123,7 +123,7 @@ class HttpUtilsTests {
     @Test
     void parsePacProxyLine_directOnly_DIRECT() {
         String proxyLine = "DIRECT";
-        List<ProxyInfo> proxyInfos = HttpUtils.parsePacProxyLine(proxyLine, e -> true);
+        List<ProxyInfo> proxyInfos = HttpUtils.parsePacProxyLine(proxyLine);
         assertEquals(1, proxyInfos.size());
         assertEquals(ProxyInfo.PacType.DIRECT, proxyInfos.get(0).getType());
         assertNull(proxyInfos.get(0).getProxyHost());
@@ -133,7 +133,7 @@ class HttpUtilsTests {
     void parsePacProxyLine_proxyThenDirect_NoError() {
         String proxyLine = "PROXY localhost:1080;DIRECT";
 
-        List<ProxyInfo> proxyInfos = HttpUtils.parsePacProxyLine(proxyLine, e -> true);
+        List<ProxyInfo> proxyInfos = HttpUtils.parsePacProxyLine(proxyLine);
         assertEquals(2, proxyInfos.size());
         assertEquals(ProxyInfo.PacType.PROXY, proxyInfos.get(0).getType());
         assertEquals("localhost:1080", proxyInfos.get(0).getProxyHost().toHostString());
@@ -146,7 +146,7 @@ class HttpUtilsTests {
     void parsePacProxyLine_multiple_SpaceAgnostic() {
         String proxyLine = " PROXY  localhost:1080 ; HTTP bla:80; DIRECT ";
 
-        List<ProxyInfo> proxyInfos = HttpUtils.parsePacProxyLine(proxyLine, e -> true);
+        List<ProxyInfo> proxyInfos = HttpUtils.parsePacProxyLine(proxyLine);
         assertEquals(3, proxyInfos.size());
 
         assertEquals(ProxyInfo.PacType.PROXY, proxyInfos.get(0).getType());

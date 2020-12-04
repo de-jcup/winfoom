@@ -115,9 +115,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
     ClientConnection(final Socket socket,
                      final ProxyConfig proxyConfig,
                      final SystemConfig systemConfig,
-                     final ConnectionProcessorSelector connectionProcessorSelector,
-                     final PacScriptEvaluator pacScriptEvaluator)
-            throws Exception {
+                     final ConnectionProcessorSelector connectionProcessorSelector) throws IOException, HttpException {
         this.socket = socket;
         this.proxyConfig = proxyConfig;
         this.systemConfig = systemConfig;
@@ -152,33 +150,65 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
             throw e;
         }
 
-        if (proxyConfig.isAutoConfig()) {
-            URI requestUri = getRequestUri();
-            logger.debug("Extracted URI from request {}", requestUri);
-            try {
-                List<ProxyInfo> activeProxies = pacScriptEvaluator.findProxyForURL(requestUri);
-                logger.debug("activeProxies: {}", activeProxies);
-                this.proxyInfoIterator = activeProxies.iterator();
-            } catch (Exception e) {
-                writeErrorResponse(
-                        HttpStatus.SC_INTERNAL_SERVER_ERROR,
-                        "Proxy Auto Config file error: " + e.getMessage());
-                throw e;
-            }
-            if (!this.proxyInfoIterator.hasNext()) {
-                writeErrorResponse(
-                        HttpStatus.SC_BAD_GATEWAY,
-                        "Proxy Auto Config error: no available proxy server!");
-                throw new IllegalStateException("All proxy servers are blacklisted!");
-            }
-        } else {
-            // Manual proxy case
-            HttpHost proxyHost = proxyConfig.getProxyType().isDirect() ? null :
-                    new HttpHost(proxyConfig.getProxyHost(), proxyConfig.getProxyPort());
-            logger.debug("Manual case, proxy host: {}", proxyHost);
-            this.manualProxy = new ProxyInfo(proxyConfig.getProxyType(), proxyHost);
-        }
+    }
 
+    /**
+     * Constructor for manual proxy case.
+     *
+     * @param socket
+     * @param proxyConfig
+     * @param systemConfig
+     * @param connectionProcessorSelector
+     * @param manualProxy
+     * @throws IOException
+     * @throws HttpException
+     */
+    ClientConnection(final Socket socket,
+                     final ProxyConfig proxyConfig,
+                     final SystemConfig systemConfig,
+                     final ConnectionProcessorSelector connectionProcessorSelector,
+                     final ProxyInfo manualProxy) throws IOException, HttpException {
+        this(socket, proxyConfig, systemConfig, connectionProcessorSelector);
+        this.manualProxy = manualProxy;
+    }
+
+    /**
+     * Constructor for PAC case.<br>
+     *
+     * @param socket
+     * @param proxyConfig
+     * @param systemConfig
+     * @param connectionProcessorSelector
+     * @param pacScriptEvaluator
+     * @throws IOException
+     * @throws HttpException
+     */
+    ClientConnection(final Socket socket,
+                     final ProxyConfig proxyConfig,
+                     final SystemConfig systemConfig,
+                     final ConnectionProcessorSelector connectionProcessorSelector,
+                     final PacScriptEvaluator pacScriptEvaluator)
+            throws Exception {
+        this(socket, proxyConfig, systemConfig, connectionProcessorSelector);
+
+        URI requestUri = getRequestUri();
+        logger.debug("Extracted URI from request {}", requestUri);
+        try {
+            List<ProxyInfo> activeProxies = pacScriptEvaluator.findProxyForURL(requestUri);
+            logger.debug("activeProxies: {}", activeProxies);
+            this.proxyInfoIterator = activeProxies.iterator();
+        } catch (Exception e) {
+            writeErrorResponse(
+                    HttpStatus.SC_INTERNAL_SERVER_ERROR,
+                    "Proxy Auto Config file error: " + e.getMessage());
+            throw e;
+        }
+        if (!this.proxyInfoIterator.hasNext()) {
+            writeErrorResponse(
+                    HttpStatus.SC_BAD_GATEWAY,
+                    "Proxy Auto Config error: no available proxy server!");
+            throw new IllegalStateException("All proxy servers are blacklisted!");
+        }
     }
 
     /**

@@ -12,41 +12,29 @@
 
 package org.kpax.winfoom.proxy;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.*;
 import org.apache.http.*;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.protocol.HTTP;
-import org.apache.http.util.EntityUtils;
+import org.apache.http.client.methods.*;
+import org.apache.http.entity.*;
+import org.apache.http.impl.client.*;
+import org.apache.http.protocol.*;
+import org.apache.http.util.*;
 import org.junit.jupiter.api.*;
-import org.kpax.winfoom.TestConstants;
-import org.kpax.winfoom.config.ProxyConfig;
-import org.kpax.winfoom.config.SystemConfig;
-import org.kpax.winfoom.util.HttpUtils;
-import org.kpax.winfoom.util.InputOutputs;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.util.ReflectionTestUtils;
+import org.kpax.winfoom.*;
+import org.kpax.winfoom.config.*;
+import org.kpax.winfoom.util.*;
+import org.mockito.*;
+import org.slf4j.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.test.util.*;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.*;
+import java.net.*;
+import java.nio.file.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.kpax.winfoom.TestConstants.PROXY_PORT;
-import static org.mockito.Mockito.when;
+import static org.kpax.winfoom.TestConstants.*;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Eugen Covaci {@literal eugen.covaci.q@gmail.com}
@@ -101,7 +89,7 @@ class RepeatableHttpEntityTests {
 
                         // Handle this connection.
                         try {
-                            ClientConnection clientConnection = new ClientConnection(socket, proxyConfig, systemConfig, null, null);
+                            ClientConnection clientConnection = new ClientConnection(socket, proxyConfig, systemConfig, null);
                             RepeatableHttpEntity requestEntity;
                             HttpRequest request = clientConnection.getRequest();
                             try {

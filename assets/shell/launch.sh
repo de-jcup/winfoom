@@ -33,14 +33,20 @@ for arg in "$@"; do
     JAVA_EXE=java
     continue
   fi
-  if [ "$arg" == "--gui" ]; then
-    ARGS="$ARGS -Dspring.profiles.active=gui"
-    continue
-  fi
 done
 
 if [ -z ${JAVA_EXE+x} ]; then
   JAVA_EXE="./jdk/bin/java"
 fi
 
-($JAVA_EXE $ARGS -cp . -jar winfoom.jar > out.log 2>&1 &) && (tail -f out.log)
+if [ -e out.log ]; then
+  if rm -rf out.log; then
+    echo "Cannot remove 'out.log' file. Is there another application instance running?"
+    exit 2
+  fi
+fi
+
+$JAVA_EXE $ARGS -cp . -jar winfoom.jar >out.log 2>&1 &
+
+echo "You can check the application log with: \$tail -f ~/.winfoom/logs/winfoom.log"
+echo "If application failed to start, you may get the reason with: \$cat out.log"

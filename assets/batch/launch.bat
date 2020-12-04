@@ -19,7 +19,6 @@ for %%a in (%*) do (
 	)
 	if "%%a"=="--gui" (
 		set ARGS=%ARGS% -Dspring.profiles.active=gui
-		set GUI_MODE=true
 	)
 	if "%%a"=="--systemjre" (
 		set JAVA_EXE=javaw
@@ -35,13 +34,11 @@ if exist out.log (
 
 if not defined JAVA_EXE set JAVA_EXE=.\jdk\bin\javaw
 
-if defined GUI_MODE (
 start /B %JAVA_EXE% %ARGS% -cp . -jar winfoom.jar > out.log 2>&1
-) else (
-start /B %JAVA_EXE% %ARGS% -cp . -jar winfoom.jar > out.log 2>&1 && powershell -command Get-Content -Path out.log -Wait
-)
 
-
+@echo You can check the application log with:
+@echo powershell -command Get-Content -Path "$HOME/.winfoom/logs/winfoom.log" -Wait
+@echo If application is not launched in GUI mode, use foomcli script for management
 
 exit /B %ERRORLEVEL%
 
@@ -50,4 +47,4 @@ exit /B %ERRORLEVEL%
 @echo where [arguments] must be any of the following:
 @echo    --debug             start in debug mode
 @echo    --systemjre         use the system jre
-@echo    --gui               start with the graphical user interface
+@echo    --gui               start with graphical user interface

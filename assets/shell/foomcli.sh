@@ -14,7 +14,6 @@ usage() {
   echo "status                        get the current status of the local proxy facade"
   echo "shutdown                      shutdown the application"
   echo "validate                      test the local proxy facade configuration"
-  echo "autodetect                    attempt to apply Internet Explorer settings"
   echo "config                        print the current configuration"
   echo "config -f [json_filepath]     apply the proxy configuration, where the [json_filepath] is"
   echo "                              the path to the JSON file containing the configuration to be applied"
@@ -29,7 +28,7 @@ if [ "$1" == "--help" ]; then
   exit 0
 fi
 
-if [[ "$1" != "start" && "$1" != "stop" && "$1" != "status" && "$1" != "validate" && "$1" != "shutdown" && "$1" != "test" && "$1" != "config" && "$1" != "autodetect" ]]; then
+if [[ "$1" != "start" && "$1" != "stop" && "$1" != "status" && "$1" != "validate" && "$1" != "shutdown" && "$1" != "test" && "$1" != "config" ]]; then
   echo "Invalid command, try 'foomctl --help' for more information"
   exit 1
 fi
@@ -45,13 +44,7 @@ if [ "$1" == "config" ]; then
   fi
 fi
 
-if [ -z ${CTL_USER+x} ]; then
-  echo "Enter username:"
-  read -r CTL_USERNAME
-  echo "Enter password:"
-  read -r -s CTL_PASSWORD
-  CTL_USER="$CTL_USERNAME:$CTL_PASSWORD"
-fi
+CTL_USER="admin:winfoom"
 
 if [ -z ${FOOM_LOCATION+x} ]; then FOOM_LOCATION=localhost:9999; fi
 

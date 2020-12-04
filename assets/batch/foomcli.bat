@@ -11,8 +11,6 @@ if [%1]==[] (
 
 if "%1"=="--help" goto usage
 
-if "%1"=="forceauth" goto deleteauth
-
 if not "%1"=="start" if not "%1"=="stop" if not "%1"=="status" if not "%1"=="validate" if not "%1"=="shutdown" if not "%1"=="test" if not "%1"=="config" if not "%1"=="autodetect" if not "%1"=="reset" (
    @echo Invalid command, try 'foomctl --help' for more information
    exit /B 1
@@ -38,27 +36,8 @@ if "%1"=="config" if "%2"=="-d" if [%3]==[]  (
    exit /B 1
 )
 
-if not exist "%userprofile%\.winfoom\client" (
-   md "%userprofile%\.winfoom\client"
-)
+set "CTL_USER=admin:winfoom"
 
-if not exist "%userprofile%\.winfoom\client\auth.bin" (
-	goto createauth
-) else (
-    goto readauth
-)
-
-:readauth
-powershell -Command "$pword = Get-Content \"$HOME/.winfoom/client/auth.bin\" | ConvertTo-SecureString ; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($pword)) | out-file .tmp.txt -encoding ascii"
-set /p CTL_PASSWORD=<.tmp.txt & del .tmp.txt
-set "CTL_USER=admin:%CTL_PASSWORD%"
-goto exec
-
-:createauth
-powershell -Command "read-host \"Enter password\" -AsSecureString | ConvertFrom-SecureString | Out-File  \"$HOME/.winfoom/client/auth.bin\""
-goto readauth
-
-:exec
 if not defined FOOM_LOCATION set "FOOM_LOCATION=localhost:9999"
 
 if "%1"=="config" (
@@ -93,17 +72,8 @@ if %ERRORLEVEL%==7 (
 )
 exit /B %ERRORLEVEL%
 
-:deleteauth
-if exist "%userprofile%/.winfoom/client/auth.bin" (
-    @echo Remove "%userprofile%\.winfoom\client\auth.bin" file
-	del "%userprofile%\.winfoom\client\auth.bin"
-) else (
-   @echo No credentials found, nothing to do
-)
-exit /B 0
-
 :usage
-@echo Usage: foomctl [command] [arguments]
+@echo Usage: foomcli [command] [arguments]
 @echo where [command] must be one of the following:
 @echo    start                              start the local proxy facade
 @echo    stop                               stop the local proxy facade
@@ -111,7 +81,6 @@ exit /B 0
 @echo    shutdown                           shutdown the application
 @echo    validate                           test the local proxy facade configuration
 @echo    autodetect                         attempt to apply Internet Explorer settings 
-@echo    forceauth                          removed the cached credentials and force re-authentication   
 @echo    config                             print the current configuration
 @echo    config -f [json_filepath]          apply the proxy configuration, where the [json_filepath] is
 @echo                                       the path to the JSON file containing the configuration to be applied

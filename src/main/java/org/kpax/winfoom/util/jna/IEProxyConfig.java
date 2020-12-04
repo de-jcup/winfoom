@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c)  2016 Markus Bernhardt
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -38,28 +38,15 @@
  * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * <p>
- * ***************************************************************************
- * Proxy settings container used for the native methods. Will contain the
- * Internet Explorer proxy settings as reported by windows WinHTTP API.
- *
- * @author Markus Bernhardt, Copyright 2016
- * @author Bernd Rosstauscher, Copyright 2009
- * <p>
- * ***************************************************************************
- * Proxy settings container used for the native methods. Will contain the
- * Internet Explorer proxy settings as reported by windows WinHTTP API.
- * @author Markus Bernhardt, Copyright 2016
- * @author Bernd Rosstauscher, Copyright 2009
- ****************************************************************************/
+ */
+
 /**
- * ***************************************************************************
  * Proxy settings container used for the native methods. Will contain the
  * Internet Explorer proxy settings as reported by windows WinHTTP API.
  *
  * @author Markus Bernhardt, Copyright 2016
  * @author Bernd Rosstauscher, Copyright 2009
- ****************************************************************************/
+ */
 package org.kpax.winfoom.util.jna;
 
 public class IEProxyConfig {

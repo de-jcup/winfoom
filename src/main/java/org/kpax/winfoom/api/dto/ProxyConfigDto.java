@@ -10,7 +10,6 @@ public class ProxyConfigDto {
 
     private ProxyConfig.Type proxyType;
 
-    private String ctlUserPassword;
     private String proxyUsername;
     private String proxyPassword;
     private Boolean proxyStorePassword;
@@ -139,14 +138,6 @@ public class ProxyConfigDto {
 
     public void setAutostart(Boolean autostart) {
         this.autostart = autostart;
-    }
-
-    public String getCtlUserPassword() {
-        return ctlUserPassword;
-    }
-
-    public void setCtlUserPassword(String ctlUserPassword) {
-        this.ctlUserPassword = ctlUserPassword;
     }
 
     public void validate() throws InvalidProxySettingsException {

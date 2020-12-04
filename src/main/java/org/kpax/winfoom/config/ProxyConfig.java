@@ -62,10 +62,10 @@ public class ProxyConfig {
     private Integer apiPort;
 
     /**
-     * default admin:winfoom
+     * default admin:winfoom, base64 encoded
      */
     @Value("${api.userPassword:YWRtaW46d2luZm9vbQ==}")
-    private String apiUserPassword;
+    private String apiToken;
 
     @Value("${local.port:3129}")
     private Integer localPort;
@@ -241,16 +241,7 @@ public class ProxyConfig {
         return appVersion;
     }
 
-    public void setCtlUserPassword(String apiUserPassword) {
-        if (apiUserPassword != null) {
-            this.apiUserPassword = Base64.getEncoder().
-                    encodeToString(apiUserPassword.getBytes(StandardCharsets.ISO_8859_1));
-        } else {
-            this.apiUserPassword = null;
-        }
-    }
-
-    @JsonView(value = {Views.Direct.class})
+    @JsonView(value = {Views.Common.class})
     public Integer getLocalPort() {
         return localPort;
     }
@@ -313,7 +304,7 @@ public class ProxyConfig {
         }
     }
 
-    @JsonView(value = {Views.Direct.class})
+    @JsonView(value = {Views.Common.class})
     public String getProxyTestUrl() {
         return proxyTestUrl;
     }
@@ -327,7 +318,7 @@ public class ProxyConfig {
         return tempDirectory;
     }
 
-    @JsonView(value = {Views.Direct.class})
+    @JsonView(value = {Views.Common.class})
     public ProxyType getProxyType() {
         return proxyType;
     }
@@ -445,12 +436,12 @@ public class ProxyConfig {
         this.autostart = autostart;
     }
 
-    @JsonView(value = {Views.Direct.class})
+    @JsonView(value = {Views.Common.class})
     public boolean isAutostart() {
         return autostart;
     }
 
-    @JsonView(value = {Views.Direct.class})
+    @JsonView(value = {Views.Windows.class})
     public boolean isAutodetect() {
         return autodetect;
     }
@@ -479,7 +470,6 @@ public class ProxyConfig {
         Configuration config = propertiesBuilder.getConfiguration();
         setProperty(config, "app.version", appVersion);
         setProperty(config, "api.port", apiPort);
-        setProperty(config, "api.userPassword", apiUserPassword);
         setProperty(config, "proxy.type", proxyType);
         setProperty(config, "proxy.http.host", proxyHttpHost);
         setProperty(config, "proxy.http.port", proxyHttpPort);
@@ -606,7 +596,7 @@ public class ProxyConfig {
         return apiPort;
     }
 
-    public String getApiUserPassword() {
-        return apiUserPassword;
+    public String getApiToken() {
+        return apiToken;
     }
 }

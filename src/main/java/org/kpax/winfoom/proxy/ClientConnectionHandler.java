@@ -39,6 +39,8 @@ public class ClientConnectionHandler {
     @Autowired
     private SystemConfig systemConfig;
 
+    @Autowired
+    private ManualProxyInfoHolder manualProxyInfoHolder;
 
     @Autowired
     private PacScriptEvaluator pacScriptEvaluator;
@@ -53,8 +55,11 @@ public class ClientConnectionHandler {
      * @throws Exception
      */
     public void handleConnection(@NotNull final Socket socket) throws Exception {
-        try (final ClientConnection clientConnection = new ClientConnection(socket, proxyConfig, systemConfig,
-                connectionProcessorSelector, pacScriptEvaluator)) {
+        try (final ClientConnection clientConnection = proxyConfig.isAutoConfig() ?
+                new ClientConnection(socket, proxyConfig, systemConfig,
+                        connectionProcessorSelector, pacScriptEvaluator) :
+                new ClientConnection(socket, proxyConfig, systemConfig,
+                        connectionProcessorSelector, manualProxyInfoHolder.getProxyInfo())) {
             RequestLine requestLine = clientConnection.getRequestLine();
             logger.debug("Handle request: {}", requestLine);
             clientConnection.process();
