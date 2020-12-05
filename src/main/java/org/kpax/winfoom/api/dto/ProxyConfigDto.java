@@ -36,8 +36,8 @@ public class ProxyConfigDto {
 
     private Integer localPort;
 
-    private Integer commandPort;
-    private String commandUserPassword;
+    private Integer apiPort;
+
     private Boolean autodetect;
     private Boolean autostart;
 
@@ -65,12 +65,12 @@ public class ProxyConfigDto {
         this.proxyPassword = proxyPassword;
     }
 
-    public Integer getCommandPort() {
-        return commandPort;
+    public Integer getApiPort() {
+        return apiPort;
     }
 
-    public void setCommandPort(Integer commandPort) {
-        this.commandPort = commandPort;
+    public void setApiPort(Integer apiPort) {
+        this.apiPort = apiPort;
     }
 
     public Boolean getProxyStorePassword() {
@@ -87,14 +87,6 @@ public class ProxyConfigDto {
 
     public void setProxyTestUrl(String proxyTestUrl) {
         this.proxyTestUrl = proxyTestUrl;
-    }
-
-    public String getCommandUserPassword() {
-        return commandUserPassword;
-    }
-
-    public void setCommandUserPassword(String commandUserPassword) {
-        this.commandUserPassword = commandUserPassword;
     }
 
     public String getProxyPacFileLocation() {
@@ -171,9 +163,9 @@ public class ProxyConfigDto {
             }
         }
 
-        if (commandPort != null) {
-            if (!HttpUtils.isValidPort(commandPort)) {
-                throw new InvalidProxySettingsException("Invalid commandPort, allowed range: 1 - 65535");
+        if (apiPort != null) {
+            if (!HttpUtils.isValidPort(apiPort)) {
+                throw new InvalidProxySettingsException("Invalid apiPort, allowed range: 1 - 65535");
             }
         }
     }
@@ -184,10 +176,9 @@ public class ProxyConfigDto {
                 "proxyType=" + proxyType +
                 ", proxyUsername=" + proxyUsername +
                 ", proxyPassword=" + proxyPassword +
-                ", commandPort=" + commandPort +
+                ", commandPort=" + apiPort +
                 ", proxyStorePassword=" + proxyStorePassword +
                 ", proxyTestUrl=" + proxyTestUrl +
-                ", commandUserPassword=" + commandUserPassword +
                 ", proxyPacFileLocation=" + proxyPacFileLocation +
                 ", blacklistTimeout=" + blacklistTimeout +
                 ", proxyHost=" + proxyHost +
