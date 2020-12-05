@@ -30,7 +30,9 @@
  */
 package org.kpax.winfoom.pac;
 
+import com.oracle.truffle.js.scriptengine.*;
 import org.apache.commons.io.*;
+import org.graalvm.polyglot.*;
 import org.kpax.winfoom.annotation.*;
 import org.kpax.winfoom.config.*;
 import org.kpax.winfoom.exception.MissingResourceException;
@@ -116,7 +118,13 @@ public class PacScriptEvaluator implements Resetable {
     private PacScriptEngine createScriptEngine() throws PacFileException, IOException {
         String pacSource = loadScript();
         try {
-            ScriptEngine engine = new ScriptEngineManager().getEngineByName("Nashorn");
+            ScriptEngine engine = GraalJSScriptEngine.create(null,
+                    Context.newBuilder("js")
+                            .allowHostAccess(HostAccess.ALL)
+                            .allowHostClassLookup(s -> true)
+                            .option("js.ecmascript-version", "2021"));
+            engine.put("javaObj", new Object());
+            engine.eval("(javaObj instanceof Java.type('java.lang.Object'));");
             Assert.notNull(engine, "Nashorn engine not found");
             String[] allowedGlobals =
                     ("Object,Function,Array,String,Date,Number,BigInt,"
@@ -226,7 +234,7 @@ public class PacScriptEvaluator implements Resetable {
             }
         }
 
-        Object findProxyForURL(String url, String host) throws ScriptException, NoSuchMethodException {
+        synchronized Object findProxyForURL(String url, String host) throws ScriptException, NoSuchMethodException {
             return invocable.invokeFunction(jsMainFunction, url, host);
         }
     }

@@ -59,10 +59,6 @@ public class FoomApplication {
             logger.info("Application shutdown at: {}", new Date());
         }));
 
-        // Disable Java code execution
-        // within the PAC script for safety reasons
-        System.setProperty("nashorn.args", "--no-java");
-
         if (SystemContext.isGuiMode()) {
             try {
                 UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");

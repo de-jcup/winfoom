@@ -26,7 +26,7 @@ if [ "$1" == "--help" ]; then
   exit 0
 fi
 
-ARGS="-server -XX:+UseG1GC -XX:MaxHeapFreeRatio=30 -XX:MinHeapFreeRatio=10 -Dnashorn.args=--no-deprecation-warning"
+ARGS="-server -XX:+UseG1GC -XX:MaxHeapFreeRatio=30 -XX:MinHeapFreeRatio=10
 
 if [ ! -z ${FOOM_ARGS+x} ]; then
   ARGS="$ARGS $FOOM_ARGS"

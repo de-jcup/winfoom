@@ -77,7 +77,7 @@ public class SwingUtils {
                                    final String message,
                                    final int type) {
         JOptionPane.showMessageDialog(parentComponent,
-                String.format("<html><body><p style='max-width: 300px;overflow-wrap: normal;'>%s</p></body></html>",
+                String.format("<html><body><p style='word-wrap: break-word;width: 300px;'>%s</p></body></html>",
                         message),
                 title,
                 type);
