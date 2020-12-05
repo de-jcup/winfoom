@@ -24,6 +24,10 @@ import org.slf4j.*;
 import java.io.*;
 import java.util.*;
 
+/**
+ * The base class for all API request handlers.
+ * <p>It provides basic authentication and authorization.
+ */
 public class GenericHttpRequestHandler implements HttpRequestHandler {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 

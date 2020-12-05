@@ -40,7 +40,7 @@ class SecurityConfiguration {
     @Profile("!windows")
     @Bean
     public CredentialsProvider nonWindowsCredentialsProvider(ProxyConfig proxyConfig) {
-        return new ResetableCredentialsProvider(proxyConfig);
+        return new NonWindowsCredentialsProvider(proxyConfig);
     }
 
 

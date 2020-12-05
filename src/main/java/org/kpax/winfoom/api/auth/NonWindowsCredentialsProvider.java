@@ -18,11 +18,11 @@ import org.apache.http.client.*;
 import org.kpax.winfoom.config.*;
 import org.kpax.winfoom.util.functional.*;
 
-public class ResetableCredentialsProvider implements CredentialsProvider, Resetable {
+public class NonWindowsCredentialsProvider implements CredentialsProvider, Resetable {
 
     private ProxyConfig proxyConfig;
 
-    public ResetableCredentialsProvider(ProxyConfig proxyConfig) {
+    public NonWindowsCredentialsProvider(ProxyConfig proxyConfig) {
         this.proxyConfig = proxyConfig;
     }
 
@@ -35,7 +35,7 @@ public class ResetableCredentialsProvider implements CredentialsProvider, Reseta
 
     @Override
     public void setCredentials(AuthScope authscope, Credentials credentials) {
-
+        throw new UnsupportedOperationException("Cannot supply credentials this way");
     }
 
     @Override
@@ -50,6 +50,6 @@ public class ResetableCredentialsProvider implements CredentialsProvider, Reseta
 
     @Override
     public void close() throws Exception {
-        ntCredentialsSupplier.reset();
+        clear();
     }
 }

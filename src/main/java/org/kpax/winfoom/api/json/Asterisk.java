@@ -18,6 +18,9 @@ import com.fasterxml.jackson.databind.annotation.*;
 
 import java.lang.annotation.*;
 
+/**
+ * Use it to mask the real field value
+ */
 @Target({ElementType.FIELD, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @JacksonAnnotationsInside

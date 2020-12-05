@@ -18,6 +18,9 @@ import org.apache.commons.lang3.*;
 import java.beans.*;
 import java.util.*;
 
+/**
+ * Decode the properties of {@code encoded(value)} format.
+ */
 public class Base64DecoderPropertyEditor extends PropertyEditorSupport {
 
     @Override

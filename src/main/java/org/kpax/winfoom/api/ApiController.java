@@ -37,6 +37,9 @@ import javax.annotation.*;
 import java.io.*;
 import java.lang.reflect.*;
 
+/**
+ * Open a server and map various request handlers.
+ */
 @Profile({"!gui & !test"})
 @Component
 public class ApiController implements AutoCloseable {
@@ -57,6 +60,7 @@ public class ApiController implements AutoCloseable {
     @PostConstruct
     private void init() throws IOException {
         Credentials credentials = new ApiCredentials(proxyConfig.getApiToken());
+        logger.info("Register API request handlers");
         apiServer = ServerBootstrap.bootstrap().setListenerPort(proxyConfig.getApiPort()).
                 registerHandler("/start",
                         new GenericHttpRequestHandler(credentials) {
