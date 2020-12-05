@@ -1,4 +1,16 @@
 :: Client for Winfoom - Basic Proxy Facade
+::
+:: Copyright (c) 2020. Eugen Covaci
+:: Licensed under the Apache License, Version 2.0 (the "License");
+::  you may not use this file except in compliance with the License.
+:: You may obtain a copy of the License at
+::  http://www.apache.org/licenses/LICENSE-2.0
+:: Unless required by applicable law or agreed to in writing, software
+::  distributed under the License is distributed on an "AS IS" BASIS,
+:: WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+::  See the License for the specific language governing permissions and limitations under the License.
+::
+::
 
 @echo off
 
@@ -75,20 +87,20 @@ exit /B %ERRORLEVEL%
 :usage
 @echo Usage: foomcli [command] [arguments]
 @echo It manages winfoom application"
-@echo Note:  It requires 'curl' tool"
+@echo Note:  It requires 'curl' to be available!"
 @echo.
 @echo [command] must be one of the following:
-@echo    start                              start the local proxy facade
-@echo    stop                               stop the local proxy facade
-@echo    status                             get the current status of the local proxy facade
-@echo    shutdown                           shutdown the application
-@echo    validate                           test the local proxy facade configuration
-@echo    autodetect                         attempt to apply Internet Explorer settings 
-@echo    config                             print the current configuration
-@echo    config -f [json_filepath]          apply the proxy configuration, where the [json_filepath] is
+@echo    start                              - start the local proxy facade
+@echo    stop                               - stop the local proxy facade
+@echo    status                             - get the current status of the local proxy facade
+@echo    shutdown                           - shutdown the application
+@echo    validate                           - test the local proxy facade configuration
+@echo    autodetect                         - attempt to apply Internet Explorer settings
+@echo    config                             - print the current configuration
+@echo    config -f [json_filepath]          - apply the proxy configuration, where the [json_filepath] is
 @echo                                       the path to the JSON file containing the configuration to be applied
-@echo    config -d [json_content]           apply the proxy configuration, where the [json_content] is
+@echo    config -d [json_content]           - apply the proxy configuration, where the [json_content] is
 @echo                                       the JSON object containing the configuration to be applied
-@echo    config -t [proxy_type]             change the proxy type, where [proxy_type] can be 
+@echo    config -t [proxy_type]             - change the proxy type, where [proxy_type] can be
 @echo                                       one of: direct, http, pac, socks4, socks5
 

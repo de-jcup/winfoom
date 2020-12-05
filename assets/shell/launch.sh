@@ -32,23 +32,11 @@ if [ ! -z ${FOOM_ARGS+x} ]; then
   ARGS="$ARGS $FOOM_ARGS"
 fi
 
-for arg in "$@"; do
-  if [[ "$arg" != "--debug" && "$arg" != "--systemjre" ]]; then
-    echo "Invalid command, try 'launch --help' for more information"
-    exit 1
-  fi
-  if [ "$arg" == "--debug" ]; then
-    ARGS="$ARGS -Dlogging.level.root=DEBUG -Dlogging.level.java.awt=INFO -Dlogging.level.sun.awt=INFO -Dlogging.level.javax.swing=INFO -Dlogging.level.jdk=INFO"
-    continue
-  fi
-  if [ "$arg" == "--systemjre" ]; then
-    JAVA_EXE=java
-    continue
-  fi
-done
-
-if [ -z ${JAVA_EXE+x} ]; then
-  JAVA_EXE="./jdk/bin/java"
+if [ "$1" == "--debug" ]; then
+  ARGS="$ARGS -Dlogging.level.root=DEBUG -Dlogging.level.java.awt=INFO -Dlogging.level.sun.awt=INFO -Dlogging.level.javax.swing=INFO -Dlogging.level.jdk=INFO"
+else
+  echo "Invalid command, try 'launch --help' for more information"
+  exit 1
 fi
 
 if [ -e out.log ]; then
@@ -56,6 +44,14 @@ if [ -e out.log ]; then
     echo "Cannot remove 'out.log' file. Is there another application instance running?"
     exit 2
   fi
+fi
+
+if [ -e ./jdk/bin/java ]; then
+  JAVA_EXE=./jdk/bin/java
+fi
+
+if [ -z ${JAVA_EXE+x} ]; then
+  JAVA_EXE=java
 fi
 
 $JAVA_EXE $ARGS -cp . -jar winfoom.jar >out.log 2>&1 &
