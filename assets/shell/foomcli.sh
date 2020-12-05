@@ -1,5 +1,6 @@
 #!/bin/bash
-#  Client for Winfoom - Basic Proxy Facade
+#  Client for Winfoom - Basic Proxy Facade API
+#  It requires 'curl' tool
 
 if [ -z "$1" ]; then
   echo "Invalid command, try 'foomcli --help' for more information"
@@ -8,7 +9,10 @@ fi
 
 usage() {
   echo "Usage: foomctl [command] [arguments]"
-  echo "where [command] must be one of the following:"
+  echo "It manages winfoom application"
+  echo "Note:  It requires 'curl' tool"
+  echo
+  echo "[command] must be one of the following:"
   echo "start                         start the local proxy facade"
   echo "stop                          stop the local proxy facade"
   echo "status                        get the current status of the local proxy facade"
@@ -19,7 +23,7 @@ usage() {
   echo "                              the path to the JSON file containing the configuration to be applied"
   echo "config -d [json_content]      apply the proxy configuration, where the [json_content] is"
   echo "                              the JSON object containing the configuration to be applied"
-  echo "config -t [proxy_type]        change the proxy type, where [json_filepath] can be"
+  echo "config -t [proxy_type]        change the proxy type, where [proxy_type] can be"
   echo "                              one of: direct, http, pac, socks4, socks5"
 }
 
@@ -29,17 +33,17 @@ if [ "$1" == "--help" ]; then
 fi
 
 if [[ "$1" != "start" && "$1" != "stop" && "$1" != "status" && "$1" != "validate" && "$1" != "shutdown" && "$1" != "test" && "$1" != "config" ]]; then
-  echo "Invalid command, try 'foomctl --help' for more information"
+  echo "Invalid command, try 'foomcli --help' for more information"
   exit 1
 fi
 
 if [ "$1" == "config" ]; then
   if [[ "$2" != "-f" && "$2" != "-t" && "$2" != "-d" && ! -z "$2" ]]; then
-    echo "Invalid command, try 'foomctl --help' for more information"
+    echo "Invalid command, try 'foomcli --help' for more information"
     exit 1
   fi
   if [[ ("$2" == "-f" || "$2" == "-d") && -z "$3" ]]; then
-    echo "Invalid command, try 'foomctl --help' for more information"
+    echo "Invalid command, try 'foomcli --help' for more information"
     exit 1
   fi
 fi

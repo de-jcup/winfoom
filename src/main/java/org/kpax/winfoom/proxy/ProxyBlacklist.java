@@ -78,24 +78,6 @@ public class ProxyBlacklist implements Resetable {
     }
 
     /**
-     * Remove the blacklisted proxies from the given list of {@link ProxyInfo} instances.
-     *
-     * @param proxies the given list of {@link ProxyInfo} instances.
-     * @return the same list if the blacklisting mechanism is disabled
-     * or o new list containing the active proxies of the given list
-     */
-    public void removeBlacklistedProxies(@NotNull final List<ProxyInfo> proxies) {
-        if (proxyConfig.getBlacklistTimeout() > 0) {
-            for (Iterator<ProxyInfo> itr = proxies.iterator(); itr.hasNext(); ) {
-                if (isBlacklisted(itr.next())) {
-                    itr.remove();
-                }
-            }
-        }
-
-    }
-
-    /**
      * Verify whether a proxy is blacklisted.<br>
      * If the proxy is in the blacklist map but expired, will be removed.
      *

@@ -12,27 +12,27 @@ if [%1]==[] (
 if "%1"=="--help" goto usage
 
 if not "%1"=="start" if not "%1"=="stop" if not "%1"=="status" if not "%1"=="validate" if not "%1"=="shutdown" if not "%1"=="test" if not "%1"=="config" if not "%1"=="autodetect" if not "%1"=="reset" (
-   @echo Invalid command, try 'foomctl --help' for more information
+   @echo Invalid command, try 'foomcli --help' for more information
    exit /B 1
 )
 
 if "%1"=="config" if not [%2]==[] if not "%2"=="-f"  if not "%2"=="-t" (
-   @echo Invalid command, try 'foomctl --help' for more information
+   @echo Invalid command, try 'foomcli --help' for more information
    exit /B 1
 )
 
 if "%1"=="config" if "%2"=="-f" if [%3]==[]  (
-   @echo Invalid command, try 'foomctl --help' for more information
+   @echo Invalid command, try 'foomcli --help' for more information
    exit /B 1
 )
 
 if "%1"=="config" if "%2"=="-t" if [%3]==[]  (
-   @echo Invalid command, try 'foomctl --help' for more information
+   @echo Invalid command, try 'foomcli --help' for more information
    exit /B 1
 )
 
 if "%1"=="config" if "%2"=="-d" if [%3]==[]  (
-   @echo Invalid command, try 'foomctl --help' for more information
+   @echo Invalid command, try 'foomcli --help' for more information
    exit /B 1
 )
 
@@ -74,7 +74,10 @@ exit /B %ERRORLEVEL%
 
 :usage
 @echo Usage: foomcli [command] [arguments]
-@echo where [command] must be one of the following:
+@echo It manages winfoom application"
+@echo Note:  It requires 'curl' tool"
+@echo.
+@echo [command] must be one of the following:
 @echo    start                              start the local proxy facade
 @echo    stop                               stop the local proxy facade
 @echo    status                             get the current status of the local proxy facade

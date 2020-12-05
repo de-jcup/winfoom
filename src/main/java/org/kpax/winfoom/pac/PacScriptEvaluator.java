@@ -31,7 +31,6 @@
 package org.kpax.winfoom.pac;
 
 import org.apache.commons.io.*;
-import org.cache2k.*;
 import org.kpax.winfoom.annotation.*;
 import org.kpax.winfoom.config.*;
 import org.kpax.winfoom.exception.MissingResourceException;
@@ -84,15 +83,6 @@ public class PacScriptEvaluator implements Resetable {
 
     @Autowired
     private ProxyBlacklist proxyBlacklist;
-
-    private SingletonSupplier<Cache<String, List>> pacProxyInfoListCacheSupplier =
-            new SingletonSupplier<Cache<String, List>>(() ->
-                    Cache2kBuilder.of(String.class, List.class)
-                            .name("pacProxyInfoList")
-                            .eternal(true)
-                            .entryCapacity(systemConfig.getCachePacProxyInfoListCapacity())
-                            .build()
-            );
 
     private final DoubleExceptionSingletonSupplier<PacScriptEngine, PacFileException, IOException> scriptEngineSupplier =
             new DoubleExceptionSingletonSupplier<PacScriptEngine, PacFileException, IOException>(this::createScriptEngine);
@@ -187,14 +177,8 @@ public class PacScriptEvaluator implements Resetable {
         try {
             Object obj = scriptEngine.findProxyForURL(HttpUtils.toStrippedURLStr(uri), uri.getHost());
             String proxyLine = Objects.toString(obj, null);
-            logger.debug("proxyLine [{}]", proxyLine);
-            List<ProxyInfo> proxyInfos = (List<ProxyInfo>) pacProxyInfoListCacheSupplier.get().get(proxyLine);
-            if (proxyInfos == null) {
-                proxyInfos = HttpUtils.parsePacProxyLine(proxyLine);
-                pacProxyInfoListCacheSupplier.get().put(proxyLine, proxyInfos);
-            }
-            proxyBlacklist.removeBlacklistedProxies(proxyInfos);
-            return proxyInfos;
+            logger.debug("Parse proxyLine [{}] for uri [{}]", proxyLine, uri);
+            return HttpUtils.parsePacProxyLine(proxyLine, proxyBlacklist::isActive);
         } catch (Exception ex) {
             if (ex.getCause() instanceof ClassNotFoundException) {
                 // Is someone trying to break out of the sandbox ?
@@ -224,7 +208,6 @@ public class PacScriptEvaluator implements Resetable {
     public void close() {
         logger.debug("Reset the scriptEngineSupplier");
         scriptEngineSupplier.reset();
-        pacProxyInfoListCacheSupplier.reset();
     }
 
     private class PacScriptEngine {

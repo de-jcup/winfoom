@@ -24,7 +24,7 @@ import javax.annotation.*;
 import java.io.*;
 import java.lang.reflect.*;
 
-@Profile("!gui")
+@Profile({"!gui & !test"})
 @Component
 public class ApiController implements AutoCloseable {
 

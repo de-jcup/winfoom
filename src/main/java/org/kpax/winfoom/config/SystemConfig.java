@@ -112,12 +112,6 @@ public class SystemConfig {
     @Value("${cache.globPattern.capacity:100}")
     private Integer cacheGlobPatternCapacity;
 
-    /**
-     * The cache2k default capacity.
-     */
-    @Value("${cache.pacProxyInfoList.capacity:50}")
-    private Integer cachePacProxyInfoListCapacity;
-
     @PostConstruct
     private void init() {
         logger.info("System settings: {}", this);
@@ -159,10 +153,6 @@ public class SystemConfig {
         return preferIPv6Addresses;
     }
 
-    public Integer getCachePacProxyInfoListCapacity() {
-        return cachePacProxyInfoListCapacity;
-    }
-
     public Integer getCacheGlobPatternCapacity() {
         return cacheGlobPatternCapacity;
     }
@@ -192,7 +182,6 @@ public class SystemConfig {
                 ", connectionRequestTimeout=" + connectionRequestTimeout +
                 ", preferIPv6Addresses=" + preferIPv6Addresses +
                 ", cacheGlobPatternCapacity=" + cacheGlobPatternCapacity +
-                ", cachePacProxyInfoListCapacity=" + cachePacProxyInfoListCapacity +
                 '}';
     }
 }

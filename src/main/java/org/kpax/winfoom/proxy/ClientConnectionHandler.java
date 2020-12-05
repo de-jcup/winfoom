@@ -18,6 +18,8 @@ import org.kpax.winfoom.annotation.*;
 import org.kpax.winfoom.config.*;
 import org.kpax.winfoom.pac.*;
 import org.kpax.winfoom.proxy.processor.*;
+import org.kpax.winfoom.util.*;
+import org.kpax.winfoom.util.functional.*;
 import org.slf4j.*;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.stereotype.*;
@@ -29,7 +31,7 @@ import java.net.*;
  */
 @ThreadSafe
 @Component
-public class ClientConnectionHandler {
+public class ClientConnectionHandler implements Resetable {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -40,13 +42,19 @@ public class ClientConnectionHandler {
     private SystemConfig systemConfig;
 
     @Autowired
-    private ManualProxyInfoHolder manualProxyInfoHolder;
-
-    @Autowired
     private PacScriptEvaluator pacScriptEvaluator;
 
     @Autowired
     private ConnectionProcessorSelector connectionProcessorSelector;
+
+    /**
+     * Supplier for ProxyInfo, manual case.
+     */
+    private SingletonSupplier<ProxyInfo> proxyInfoSupplier = new SingletonSupplier<>(() -> {
+        HttpHost proxyHost = proxyConfig.getProxyType().isDirect() ? null :
+                new HttpHost(proxyConfig.getProxyHost(), proxyConfig.getProxyPort());
+        return new ProxyInfo(proxyConfig.getProxyType(), proxyHost);
+    });
 
     /**
      * Create a {@link ClientConnection} instance then process it.
@@ -55,16 +63,26 @@ public class ClientConnectionHandler {
      * @throws Exception
      */
     public void handleConnection(@NotNull final Socket socket) throws Exception {
-        try (final ClientConnection clientConnection = proxyConfig.isAutoConfig() ?
-                new ClientConnection(socket, proxyConfig, systemConfig,
-                        connectionProcessorSelector, pacScriptEvaluator) :
-                new ClientConnection(socket, proxyConfig, systemConfig,
-                        connectionProcessorSelector, manualProxyInfoHolder.getProxyInfo())) {
+        final ClientConnection clientConnection;
+        if (proxyConfig.isAutoConfig()) {
+            clientConnection = new ClientConnection(socket, proxyConfig, systemConfig,
+                    connectionProcessorSelector, pacScriptEvaluator);
+        } else {
+            clientConnection = new ClientConnection(socket, proxyConfig, systemConfig,
+                    connectionProcessorSelector, proxyInfoSupplier.get());
+        }
+        try {
             RequestLine requestLine = clientConnection.getRequestLine();
             logger.debug("Handle request: {}", requestLine);
             clientConnection.process();
             logger.debug("Done handling request: {}", requestLine);
+        } finally {
+            InputOutputs.close(clientConnection);
         }
     }
 
+    @Override
+    public void close() throws Exception {
+        proxyInfoSupplier.reset();
+    }
 }

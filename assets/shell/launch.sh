@@ -6,7 +6,6 @@ usage() {
   echo "where [arguments] must be any of the following:"
   echo "  --debug             start in debug mode"
   echo "  --systemjre         use the system jre"
-  echo "  --gui               start with the graphical user interface"
 }
 
 if [ "$1" == "--help" ]; then
@@ -21,7 +20,7 @@ if [ ! -z ${FOOM_ARGS+x} ]; then
 fi
 
 for arg in "$@"; do
-  if [[ "$arg" != "--debug" && "$arg" != "--systemjre" && "$arg" != "--gui" ]]; then
+  if [[ "$arg" != "--debug" && "$arg" != "--systemjre" ]]; then
     echo "Invalid command, try 'launch --help' for more information"
     exit 1
   fi
