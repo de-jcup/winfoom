@@ -26,18 +26,14 @@ public class ProxyConfigDto {
     private String proxyUsername;
     private String proxyPassword;
     private Boolean proxyStorePassword;
-    private String proxyTestUrl;
-
     private String proxyPacFileLocation;
     private Integer blacklistTimeout;
-
     private String proxyHost;
     private Integer proxyPort;
-
     private Integer localPort;
+    private String proxyTestUrl;
 
     private Integer apiPort;
-
     private Boolean autodetect;
     private Boolean autostart;
 

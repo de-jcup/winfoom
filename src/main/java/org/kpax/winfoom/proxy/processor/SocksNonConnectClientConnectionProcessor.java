@@ -35,7 +35,7 @@ class SocksNonConnectClientConnectionProcessor extends NonConnectClientConnectio
     void handleError(ClientConnection clientConnection,
                      ProxyInfo proxyInfo, Exception e) throws ProxyConnectException {
         if (e instanceof UnknownHostException) {
-            clientConnection.writeErrorResponse(HttpStatus.SC_GATEWAY_TIMEOUT, e.getMessage());
+            clientConnection.writeErrorResponse(HttpStatus.SC_NOT_FOUND, e.getMessage());
         } else if (e instanceof ConnectTimeoutException) {
             if (e.getCause() instanceof SocketTimeoutException) {
                 clientConnection.writeErrorResponse(HttpStatus.SC_GATEWAY_TIMEOUT, e.getMessage());

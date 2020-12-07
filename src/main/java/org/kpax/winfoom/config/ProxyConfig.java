@@ -436,12 +436,12 @@ public class ProxyConfig {
         this.autostart = autostart;
     }
 
-    @JsonView(value = {Views.Common.class})
+    @JsonView(value = {Views.Settings.class})
     public boolean isAutostart() {
         return autostart;
     }
 
-    @JsonView(value = {Views.Windows.class})
+    @JsonView(value = {Views.WindowsSettings.class})
     public boolean isAutodetect() {
         return autodetect;
     }
@@ -453,6 +453,15 @@ public class ProxyConfig {
     @Autowired
     private void setTempDirectory(@Value("${user.home}") String userHome) {
         tempDirectory = Paths.get(userHome, SystemConfig.APP_HOME_DIR_NAME, "temp");
+    }
+
+    @JsonView(value = {Views.Settings.class})
+    public Integer getApiPort() {
+        return apiPort;
+    }
+
+    public String getApiToken() {
+        return apiToken;
     }
 
     /**
@@ -592,11 +601,4 @@ public class ProxyConfig {
 
     }
 
-    public Integer getApiPort() {
-        return apiPort;
-    }
-
-    public String getApiToken() {
-        return apiToken;
-    }
 }

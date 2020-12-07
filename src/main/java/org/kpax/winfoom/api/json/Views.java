@@ -26,6 +26,15 @@ public class Views {
     public interface NonWindows {
     }
 
+    public interface Settings {
+    }
+
+    public interface WindowsSettings extends Settings, Windows {
+    }
+
+    public interface NonWindowsSettings extends Settings, NonWindows {
+    }
+
     public interface Common {
     }
 
@@ -108,6 +117,14 @@ public class Views {
                 }
             default:
                 throw new IllegalArgumentException("No view for type: " + type);
+        }
+    }
+
+    public static Class<?> getSettingsView() {
+        if (SystemContext.IS_OS_WINDOWS) {
+            return WindowsSettings.class;
+        } else {
+            return NonWindowsSettings.class;
         }
     }
 

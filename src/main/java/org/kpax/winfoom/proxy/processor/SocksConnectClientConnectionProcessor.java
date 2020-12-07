@@ -89,7 +89,7 @@ class SocksConnectClientConnectionProcessor extends ClientConnectionProcessor {
     void handleError(ClientConnection clientConnection,
                      ProxyInfo proxyInfo, Exception e) throws ProxyConnectException {
         if (e instanceof UnknownHostException) {
-            clientConnection.writeErrorResponse(HttpStatus.SC_GATEWAY_TIMEOUT, e.getMessage());
+            clientConnection.writeErrorResponse(HttpStatus.SC_NOT_FOUND, e.getMessage());
         } else if (e instanceof SocketTimeoutException) {
             clientConnection.writeErrorResponse(HttpStatus.SC_GATEWAY_TIMEOUT, e.getMessage());
         } else if (e instanceof SocketException) {

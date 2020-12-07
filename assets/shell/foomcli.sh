@@ -38,6 +38,11 @@ usage() {
   echo "                              the JSON object containing the configuration to be applied"
   echo "config -t [proxy_type]        - change the proxy type, where [proxy_type] can be"
   echo "                              one of: direct, http, pac, socks4, socks5"
+  echo "settings                      - print the current settings"
+  echo "settings -f [json_filepath]   - apply the proxy settings, where the [json_filepath] is"
+  echo "                              the path to the JSON file containing the settings to be applied"
+  echo "settings -d [json_content]    - apply the proxy settings, where the [json_content] is"
+  echo "                              the JSON object containing the settings to be applied"
 }
 
 if [ "$1" == "--help" ]; then
@@ -45,18 +50,29 @@ if [ "$1" == "--help" ]; then
   exit 0
 fi
 
-if [[ "$1" != "start" && "$1" != "stop" && "$1" != "status" && "$1" != "validate" && "$1" != "shutdown" && "$1" != "test" && "$1" != "config" ]]; then
+if [[ "$1" != "start" && "$1" != "stop" && "$1" != "status" && "$1" != "validate" && "$1" != "shutdown" && "$1" != "test" && "$1" != "config"  && "$1" != "settings" ]]; then
   echo "Invalid command, try 'foomcli --help' for more information"
   exit 1
 fi
 
 if [ "$1" == "config" ]; then
   if [[ "$2" != "-f" && "$2" != "-t" && "$2" != "-d" && ! -z "$2" ]]; then
-    echo "Invalid command, try 'foomcli --help' for more information"
+    echo "Invalid option '$2', try 'foomcli --help' for more information"
+    exit 1
+  fi
+  if [[ ("$2" == "-f" || "$2" == "-d" || "$2" == "-t") && -z "$3" ]]; then
+    echo "Missing option's value, try 'foomcli --help' for more information"
+    exit 1
+  fi
+fi
+
+if [ "$1" == "settings" ]; then
+  if [[ "$2" != "-f" && "$2" != "-d" && ! -z "$2" ]]; then
+    echo "Invalid option '$2', try 'foomcli --help' for more information"
     exit 1
   fi
   if [[ ("$2" == "-f" || "$2" == "-d") && -z "$3" ]]; then
-    echo "Invalid command, try 'foomcli --help' for more information"
+    echo "Missing option's value, try 'foomcli --help' for more information"
     exit 1
   fi
 fi
@@ -70,6 +86,14 @@ if [ "$1" == "config" ]; then
     curl -w '\n' -X POST -H "Content-Type: application/json" -d @"$3" --user "$CTL_USER" http://$FOOM_LOCATION/"$1"
   elif [ "$2" == "-t" ]; then
     curl -w '\n' -X POST -H "Content-Type: application/json" -d "{\"proxyType\": \"${3^^}\"}" --user "$CTL_USER" http://$FOOM_LOCATION/"$1"
+  elif [ "$2" == "-d" ]; then
+    curl -w '\n' -X POST -H "Content-Type: application/json" -d "$3" --user "$CTL_USER" http://$FOOM_LOCATION/"$1"
+  else
+    curl -w '\n' --user "$CTL_USER" http://$FOOM_LOCATION/"$1"
+  fi
+elif [ "$1" == "settings" ]; then
+  if [ "$2" == "-f" ]; then
+    curl -w '\n' -X POST -H "Content-Type: application/json" -d @"$3" --user "$CTL_USER" http://$FOOM_LOCATION/"$1"
   elif [ "$2" == "-d" ]; then
     curl -w '\n' -X POST -H "Content-Type: application/json" -d "$3" --user "$CTL_USER" http://$FOOM_LOCATION/"$1"
   else

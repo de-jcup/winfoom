@@ -156,7 +156,6 @@ public class ApiController implements AutoCloseable {
                                 }
                             }
                         }).
-
                 registerHandler("/config",
                         new GenericHttpRequestHandler(credentials) {
                             @Override
@@ -208,6 +207,58 @@ public class ApiController implements AutoCloseable {
                                 }
                             }
                         }).
+                registerHandler("/settings",
+                        new GenericHttpRequestHandler(credentials) {
+                            @Override
+                            public void doGet(HttpRequest request, HttpResponse response, HttpContext context)
+                                    throws IOException {
+                                logger.debug("'settings' command received");
+                                try {
+                                    response.setEntity(new StringEntity(new ObjectMapper().
+                                            configure(MapperFeature.DEFAULT_VIEW_INCLUSION, false).
+                                            writerWithDefaultPrettyPrinter().
+                                            withView(Views.getSettingsView()).
+                                            writeValueAsString(proxyConfig)));
+                                } catch (Exception e) {
+                                    logger.error("Error on serializing proxy settings", e);
+                                    response.setEntity(new StringEntity("Failed to get proxy settings: " + e.getMessage()));
+                                }
+                            }
+
+                            @Override
+                            public void doPost(HttpRequest request, HttpResponse response, HttpContext context)
+                                    throws IOException {
+                                logger.debug("'settings post' command received");
+                                boolean running = proxyController.isRunning();
+                                if (running) {
+                                    response.setEntity(new StringEntity("The local proxy server is up, you need to stop it before applying configuration"));
+                                } else {
+                                    if (request instanceof BasicHttpEntityEnclosingRequest) {
+                                        BasicHttpEntityEnclosingRequest entityEnclosingRequest = (BasicHttpEntityEnclosingRequest) request;
+                                        try {
+                                            ProxyConfigDto proxyConfigDto = new ObjectMapper().
+                                                    readValue(entityEnclosingRequest.getEntity().getContent(),
+                                                            ProxyConfigDto.class);
+                                            proxyConfigDto.validate();
+                                            BeanUtils.copyNonNullProperties(proxyConfigDto, proxyConfig);
+                                            response.setEntity(new StringEntity("Proxy settings applied"));
+                                        } catch (IOException e) {
+                                            logger.error("Error on parsing JSON", e);
+                                            response.setEntity(new StringEntity("Failed to parse JSON: " + e.getMessage()));
+                                        } catch (InvalidProxySettingsException e) {
+                                            logger.error("Invalid JSON", e);
+                                            response.setEntity(new StringEntity("Invalid JSON: " + e.getMessage()));
+                                        } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+                                            logger.error("Error on applying proxy settings", e);
+                                            response.setEntity(new StringEntity("Failed to apply proxy settings: " + e.getMessage()));
+                                        }
+                                    } else {
+                                        response.setEntity(new StringEntity("Failed to apply proxy settings: no JSON found"));
+                                    }
+                                }
+                            }
+                        }).
+
                 registerHandler("/shutdown",
                         new GenericHttpRequestHandler(credentials) {
                             @Override

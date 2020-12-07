@@ -14,7 +14,7 @@
 
 @echo off
 
-setlocal ENABLEEXTENSIONS
+setlocal EnableExtensions
 
 if [%1]==[] (
    @echo Invalid command, try 'foomcli --help' for more information
@@ -23,28 +23,43 @@ if [%1]==[] (
 
 if "%1"=="--help" goto usage
 
-if not "%1"=="start" if not "%1"=="stop" if not "%1"=="status" if not "%1"=="validate" if not "%1"=="shutdown" if not "%1"=="test" if not "%1"=="config" if not "%1"=="autodetect" if not "%1"=="reset" (
-   @echo Invalid command, try 'foomcli --help' for more information
+if not "%1"=="start" if not "%1"=="stop" if not "%1"=="status" if not "%1"=="validate" if not "%1"=="shutdown" if not "%1"=="test" if not "%1"=="config" if not "%1"=="autodetect" if not "%1"=="settings" (
+   @echo Unknown command "%1", try 'foomcli --help' for more information
    exit /B 1
 )
 
-if "%1"=="config" if not [%2]==[] if not "%2"=="-f"  if not "%2"=="-t" (
-   @echo Invalid command, try 'foomcli --help' for more information
+if "%1"=="config" if not [%2]==[] if not "%2"=="-f" if not "%2"=="-t" if not "%2"=="-d"  (
+   @echo Invalid command: unknown option "%2", try 'foomcli --help' for more information
    exit /B 1
 )
 
 if "%1"=="config" if "%2"=="-f" if [%3]==[]  (
-   @echo Invalid command, try 'foomcli --help' for more information
+   @echo Invalid command: the filepath is missing, try 'foomcli --help' for more information
    exit /B 1
 )
 
 if "%1"=="config" if "%2"=="-t" if [%3]==[]  (
-   @echo Invalid command, try 'foomcli --help' for more information
+   @echo Invalid command: the proxy type is missing, try 'foomcli --help' for more information
    exit /B 1
 )
 
 if "%1"=="config" if "%2"=="-d" if [%3]==[]  (
-   @echo Invalid command, try 'foomcli --help' for more information
+   @echo Invalid command: the JSON content is missing, try 'foomcli --help' for more information
+   exit /B 1
+)
+
+if "%1"=="settings" if not [%2]==[] if not "%2"=="-f"  if not "%2"=="-d" (
+   @echo Invalid command: unknown option "%2", try 'foomcli --help' for more information
+   exit /B 1
+)
+
+if "%1"=="settings" if "%2"=="-f" if [%3]==[]  (
+   @echo Invalid command: the filepath is missing, try 'foomcli --help' for more information
+   exit /B 1
+)
+
+if "%1"=="settings" if "%2"=="-d" if [%3]==[]  (
+   @echo Invalid command: the JSON content is missing, try 'foomcli --help' for more information
    exit /B 1
 )
 
@@ -54,7 +69,7 @@ if not defined FOOM_LOCATION set "FOOM_LOCATION=localhost:9999"
 
 if "%1"=="config" (
 	if "%2"=="-f" (
-	curl -X POST -H "Content-Type: application/json" -d @%3 --user %CTL_USER% http://%FOOM_LOCATION%/%1
+		curl -X POST -H "Content-Type: application/json" -d @%3 --user %CTL_USER% http://%FOOM_LOCATION%/%1
 	) else (
 	    if "%2"=="-t" (
              goto setproxytype
@@ -65,10 +80,24 @@ if "%1"=="config" (
 			    curl --user %CTL_USER% http://%FOOM_LOCATION%/%1
 			)
 		)
-    )	
+    )
 ) else (
-    if "%1"=="validate" @echo It may take some time, please be pacient ...
-	curl --user %CTL_USER% http://%FOOM_LOCATION%/%1
+    if "%1"=="settings" (
+        if not [%2]==[] (
+            if "%2"=="-f" (
+                curl -X POST -H "Content-Type: application/json" -d @%3 --user %CTL_USER% http://%FOOM_LOCATION%/%1
+            ) else (
+                if "%2"=="-d" (
+                    curl -X POST -H "Content-Type: application/json" -d %3 --user %CTL_USER% http://%FOOM_LOCATION%/%1
+                )
+            )
+        ) else (
+            curl --user %CTL_USER% http://%FOOM_LOCATION%/%1
+        )
+    ) else (
+        if "%1"=="validate" @echo It may take some time, please be pacient ...
+        curl --user %CTL_USER% http://%FOOM_LOCATION%/%1
+	)
 )
 
 goto exit
@@ -103,4 +132,9 @@ exit /B %ERRORLEVEL%
 @echo                                       the JSON object containing the configuration to be applied
 @echo    config -t [proxy_type]             - change the proxy type, where [proxy_type] can be
 @echo                                       one of: direct, http, pac, socks4, socks5
+@echo    settings                           - print the current settings
+@echo    settings -f [json_filepath]        - apply the proxy settings, where the [json_filepath] is
+@echo                                       the path to the JSON file containing the settings to be applied
+@echo    settings -d [json_content]         - apply the proxy settings, where the [json_content] is
+@echo                                       the JSON object containing the settings to be applied
 

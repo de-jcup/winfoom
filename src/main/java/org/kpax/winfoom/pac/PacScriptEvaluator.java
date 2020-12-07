@@ -208,9 +208,7 @@ public class PacScriptEvaluator implements Resetable {
      * @throws IOException        when the PAC file cannot be loaded.
      */
     public List<ProxyInfo> findProxyForURL(URI uri) throws Exception {
-        long start = System.nanoTime();
         PacScriptEngine scriptEngine = enginePoolSingletonSupplier.get().borrowObject();
-        System.out.println("Duration: " + (System.nanoTime() - start));
         try {
             Object callResult;
             try {
