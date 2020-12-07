@@ -32,6 +32,8 @@ package org.kpax.winfoom.pac;
 
 import com.oracle.truffle.js.scriptengine.*;
 import org.apache.commons.io.*;
+import org.apache.commons.pool2.*;
+import org.apache.commons.pool2.impl.*;
 import org.graalvm.polyglot.*;
 import org.kpax.winfoom.annotation.*;
 import org.kpax.winfoom.config.*;
@@ -98,6 +100,30 @@ public class PacScriptEvaluator implements Resetable {
         }
     });
 
+    private final SingletonSupplier<GenericObjectPool<PacScriptEngine>> enginePoolSingletonSupplier =
+            new SingletonSupplier<>(() -> {
+                GenericObjectPoolConfig config = new GenericObjectPoolConfig();
+                config.setMaxTotal(systemConfig.getPacScriptEnginePoolMaxTotal());
+                config.setMinIdle(systemConfig.getPacScriptEnginePoolMinIdle());
+                config.setTestOnBorrow(false);
+                config.setTestOnCreate(false);
+                config.setTestOnReturn(false);
+                config.setBlockWhenExhausted(true);
+
+                return new GenericObjectPool<PacScriptEngine>(
+                        new BasePooledObjectFactory<PacScriptEngine>() {
+                            @Override
+                            public PacScriptEngine create() throws PacFileException, IOException {
+                                return createScriptEngine();
+                            }
+
+                            @Override
+                            public PooledObject<PacScriptEngine> wrap(PacScriptEngine obj) {
+                                return new DefaultPooledObject<PacScriptEngine>(obj);
+                            }
+                        }, config);
+            });
+
     /**
      * Load and parse the PAC script file.
      *
@@ -123,9 +149,7 @@ public class PacScriptEvaluator implements Resetable {
                             .allowHostAccess(HostAccess.ALL)
                             .allowHostClassLookup(s -> true)
                             .option("js.ecmascript-version", "2021"));
-            engine.put("javaObj", new Object());
-            engine.eval("(javaObj instanceof Java.type('java.lang.Object'));");
-            Assert.notNull(engine, "Nashorn engine not found");
+            Assert.notNull(engine, "GraalJS script engine not found");
             String[] allowedGlobals =
                     ("Object,Function,Array,String,Date,Number,BigInt,"
                             + "Boolean,RegExp,Math,JSON,NaN,Infinity,undefined,"
@@ -156,7 +180,10 @@ public class PacScriptEvaluator implements Resetable {
             } catch (NoSuchMethodException ex) {
                 throw new ScriptException(ex);
             }
+
+            // Execute the PAC javascript file
             engine.eval(pacSource);
+
             try {
                 ((Invocable) engine).invokeMethod(engine.eval(helperJSScriptSupplier.get()), "call", null, pacHelperMethods);
             } catch (NoSuchMethodException ex) {
@@ -180,11 +207,19 @@ public class PacScriptEvaluator implements Resetable {
      * @throws PacFileException   when the PAC file is invalid.
      * @throws IOException        when the PAC file cannot be loaded.
      */
-    public List<ProxyInfo> findProxyForURL(URI uri) throws PacScriptException, PacFileException, IOException {
-        PacScriptEngine scriptEngine = scriptEngineSupplier.get();
+    public List<ProxyInfo> findProxyForURL(URI uri) throws Exception {
+        long start = System.nanoTime();
+        PacScriptEngine scriptEngine = enginePoolSingletonSupplier.get().borrowObject();
+        System.out.println("Duration: " + (System.nanoTime() - start));
         try {
-            Object obj = scriptEngine.findProxyForURL(HttpUtils.toStrippedURLStr(uri), uri.getHost());
-            String proxyLine = Objects.toString(obj, null);
+            Object callResult;
+            try {
+                callResult = scriptEngine.findProxyForURL(HttpUtils.toStrippedURLStr(uri), uri.getHost());
+            } finally {
+                // Make sure we return the PacScriptEngine instance back to the pool
+                enginePoolSingletonSupplier.get().returnObject(scriptEngine);
+            }
+            String proxyLine = Objects.toString(callResult, null);
             logger.debug("Parse proxyLine [{}] for uri [{}]", proxyLine, uri);
             return HttpUtils.parsePacProxyLine(proxyLine, proxyBlacklist::isActive);
         } catch (Exception ex) {
@@ -215,7 +250,7 @@ public class PacScriptEvaluator implements Resetable {
     @Override
     public void close() {
         logger.debug("Reset the scriptEngineSupplier");
-        scriptEngineSupplier.reset();
+        enginePoolSingletonSupplier.reset();
     }
 
     private class PacScriptEngine {
@@ -234,7 +269,7 @@ public class PacScriptEvaluator implements Resetable {
             }
         }
 
-        synchronized Object findProxyForURL(String url, String host) throws ScriptException, NoSuchMethodException {
+        Object findProxyForURL(String url, String host) throws ScriptException, NoSuchMethodException {
             return invocable.invokeFunction(jsMainFunction, url, host);
         }
     }

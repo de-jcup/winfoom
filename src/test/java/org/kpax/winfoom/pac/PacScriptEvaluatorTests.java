@@ -62,7 +62,7 @@ public class PacScriptEvaluatorTests {
 
     @Test
     void findProxyForURL_AllHelperMethods_NoError()
-            throws URISyntaxException, PacScriptException, PacFileException, IOException {
+            throws Exception {
         System.out.println(proxyConfig.getProxyPacFileLocation());
         List<ProxyInfo> proxies = pacScriptEvaluator.findProxyForURL(new URI("http://host:80/path?param1=val"));
         assertEquals(1, proxies.size());

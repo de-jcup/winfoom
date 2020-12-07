@@ -36,7 +36,9 @@
         <commons-io.version>2.5</commons-io.version>
         <commons-beanutils.version>1.9.4</commons-beanutils.version>
         <ipaddress.version>5.3.1</ipaddress.version>
-        <cache2k-version>1.2.4.Final</cache2k-version>
+        <cache2k.version>1.2.4.Final</cache2k.version>
+        <commons-pool2.version>2.9.0</commons-pool2.version>
+        <graalvm-js.version>20.3.0</graalvm-js.version>
         <mock-server.version>5.9.0</mock-server.version>
         <littleproxy.version>1.1.2</littleproxy.version>
         <mockserver-netty.version>5.10.0</mockserver-netty.version>
@@ -81,13 +83,13 @@
         <dependency>
             <groupId>org.cache2k</groupId>
             <artifactId>cache2k-api</artifactId>
-            <version>${cache2k-version}</version>
+            <version>${cache2k.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.cache2k</groupId>
             <artifactId>cache2k-core</artifactId>
-            <version>${cache2k-version}</version>
+            <version>${cache2k.version}</version>
             <scope>runtime</scope>
         </dependency>
 
@@ -105,13 +107,20 @@
         <dependency>
             <groupId>org.graalvm.js</groupId>
             <artifactId>js</artifactId>
-            <version>20.2.0</version>
+            <version>${graalvm-js.version}</version>
         </dependency>
         <dependency>
             <groupId>org.graalvm.js</groupId>
             <artifactId>js-scriptengine</artifactId>
-            <version>20.2.0</version>
+            <version>${graalvm-js.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-pool2</artifactId>
+            <version>${commons-pool2.version}</version>
+        </dependency>
+
 
         <dependency>
             <groupId>org.springframework.boot</groupId>

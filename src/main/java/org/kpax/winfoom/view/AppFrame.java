@@ -589,8 +589,8 @@ public class AppFrame extends JFrame {
     private JMenu getMnFile() {
         if (mnFile == null) {
             mnFile = new JMenu("File");
-            mnFile.add(getMntmExit());
             mnFile.add(getMntmSettings());
+            mnFile.add(getMntmExit());
         }
         return mnFile;
     }

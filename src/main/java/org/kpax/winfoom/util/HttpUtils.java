@@ -21,6 +21,7 @@ import org.apache.http.impl.*;
 import org.apache.http.message.*;
 import org.apache.http.protocol.*;
 import org.kpax.winfoom.annotation.*;
+import org.kpax.winfoom.exception.*;
 import org.kpax.winfoom.proxy.*;
 import org.slf4j.*;
 import org.springframework.util.*;
@@ -478,6 +479,17 @@ public final class HttpUtils {
         } else {
             throw new AuthenticationException("No Authorization header found");
         }
+    }
+
+    public static String reasonPhraseForPac(Exception exception) {
+        if (exception instanceof PacFileException) {
+            return "Proxy Auto Config javascript file: syntax error";
+        } else if (exception instanceof PacScriptException) {
+            return "Proxy Auto Config javascript file: content not acceptable";
+        } else if (exception instanceof IOException) {
+            return "Proxy Auto Config javascript file: not found";
+        }
+        return null;
     }
 
 }

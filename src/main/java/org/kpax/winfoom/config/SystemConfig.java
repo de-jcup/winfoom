@@ -112,6 +112,18 @@ public class SystemConfig {
     @Value("${cache.globPattern.capacity:100}")
     private Integer cacheGlobPatternCapacity;
 
+    /**
+     * The pacScriptEngine pool maximum total instances.
+     */
+    @Value("${pacScriptEngine.pool.maxTotal:100}")
+    private Integer pacScriptEnginePoolMaxTotal;
+
+    /**
+     * The pacScriptEngine pool min idle instances.
+     */
+    @Value("${pacScriptEngine.pool.minIdle:20}")
+    private Integer pacScriptEnginePoolMinIdle;
+
     @PostConstruct
     private void init() {
         logger.info("System settings: {}", this);
@@ -155,6 +167,14 @@ public class SystemConfig {
 
     public Integer getCacheGlobPatternCapacity() {
         return cacheGlobPatternCapacity;
+    }
+
+    public Integer getPacScriptEnginePoolMaxTotal() {
+        return pacScriptEnginePoolMaxTotal;
+    }
+
+    public Integer getPacScriptEnginePoolMinIdle() {
+        return pacScriptEnginePoolMinIdle;
     }
 
     public RequestConfig.Builder applyConfig(final RequestConfig.Builder configBuilder) {

@@ -197,15 +197,13 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
             logger.debug("activeProxies: {}", activeProxies);
             this.proxyInfoIterator = activeProxies.iterator();
         } catch (Exception e) {
-            writeErrorResponse(
-                    HttpStatus.SC_INTERNAL_SERVER_ERROR,
-                    "Proxy Auto Config file error: " + e.getMessage());
+            writeErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, HttpUtils.reasonPhraseForPac(e));
             throw e;
         }
         if (!this.proxyInfoIterator.hasNext()) {
             writeErrorResponse(
                     HttpStatus.SC_BAD_GATEWAY,
-                    "Proxy Auto Config error: no available proxy server!");
+                    "Proxy Auto Config error: no available proxy server");
             throw new IllegalStateException("All proxy servers are blacklisted!");
         }
     }
