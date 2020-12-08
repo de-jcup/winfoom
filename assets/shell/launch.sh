@@ -26,27 +26,25 @@ if [ "$1" == "--help" ]; then
   exit 0
 fi
 
-ARGS="-server -XX:+UseG1GC -XX:MaxHeapFreeRatio=30 -XX:MinHeapFreeRatio=10"
+ARGS="-server -XX:+UseG1GC -XX:MaxHeapFreeRatio=30 -XX:MinHeapFreeRatio=10 -Dswing.aatext=true"
 
 if [ ! -z ${FOOM_ARGS+x} ]; then
   ARGS="$ARGS $FOOM_ARGS"
 fi
 
 if [ ! -z $1 ]; then
-	if [ "$1" == "--debug" ]; then
-	  ARGS="$ARGS -Dlogging.level.root=DEBUG -Dlogging.level.java.awt=INFO -Dlogging.level.sun.awt=INFO -Dlogging.level.javax.swing=INFO -Dlogging.level.jdk=INFO"
-	else
-	  echo "Invalid command, try 'launch --help' for more information"
-	  exit 1
-	fi
+  if [ "$1" == "--debug" ]; then
+    ARGS="$ARGS -Dlogging.level.root=DEBUG -Dlogging.level.java.awt=INFO -Dlogging.level.sun.awt=INFO -Dlogging.level.javax.swing=INFO -Dlogging.level.jdk=INFO"
+  else
+    echo "Invalid command, try 'launch --help' for more information"
+    exit 1
+  fi
 fi
 
 if [ -e out.log ]; then
-  rm -f out.log
-  if [ -e out.log ]; then
-    echo "Cannot remove 'out.log' file. Is there another application instance running?"
-    exit 2
-  fi
+  echo "Is there another application instance running?"
+  echo "If so, you need to close it first; otherwise try to manually remove the 'out.log' file"
+  exit 2
 fi
 
 if [ -e ./jdk/bin/java ]; then
@@ -57,7 +55,10 @@ if [ -z ${JAVA_EXE+x} ]; then
   JAVA_EXE=java
 fi
 
-$JAVA_EXE $ARGS -cp . -jar winfoom.jar >out.log 2>&1 &
+(
+  $JAVA_EXE $ARGS -cp . -jar winfoom.jar >out.log 2>&1
+  rm -f out.log
+) &
 
-echo "You can check the application log with: \$ tail -f ~/.winfoom/logs/winfoom.log"
+echo "You can check the application log with: \$ tail -n 150 -f ~/.winfoom/logs/winfoom.log"
 echo "If application failed to start, you may get the reason with: \$ cat out.log"

@@ -14,16 +14,22 @@
 package org.kpax.winfoom.config;
 
 import java.util.*;
+import java.util.stream.*;
 
 public class SystemContext {
-
-    public static final List<String> PROFILES =
-            Optional.ofNullable(System.getProperty("spring.profiles.active")).
-                    map(s -> Arrays.asList(s.split(","))).orElse(Collections.emptyList());
 
     public static final String OS_NAME = System.getProperty("os.name");
 
     public static final boolean IS_OS_WINDOWS = OS_NAME.startsWith("Windows");
+
+    public static final List<String> PROFILES =
+            Optional.ofNullable(System.getProperty("spring.profiles.active")).
+                    map(s -> Arrays.asList((s + (IS_OS_WINDOWS ? ",windows" : "")).split(","))).
+                    orElse(IS_OS_WINDOWS ? Collections.singletonList("windows") : Collections.emptyList());
+
+    public static void setProfiles() {
+        System.setProperty("spring.profiles.active", PROFILES.stream().collect(Collectors.joining(",")));
+    }
 
     public static boolean isGuiMode() {
         return PROFILES.contains("gui");

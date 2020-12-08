@@ -275,6 +275,7 @@ public class ApiController implements AutoCloseable {
 
     @Override
     public void close() {
+        logger.debug("Stop the api server");
         apiServer.stop();
     }
 }

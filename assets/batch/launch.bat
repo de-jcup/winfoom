@@ -18,7 +18,7 @@ setlocal EnableDelayedExpansion
 
 if "%1"=="--help" goto usage
 
-set ARGS=-server -XX:+UseG1GC -XX:MaxHeapFreeRatio=30 -XX:MinHeapFreeRatio=10
+set ARGS=-server -XX:+UseG1GC -XX:MaxHeapFreeRatio=30 -XX:MinHeapFreeRatio=10 -Dswing.aatext=true
 
 if defined FOOM_ARGS ARGS=%FOOM_ARGS% %ARGS%
 

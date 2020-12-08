@@ -80,6 +80,8 @@ public class FoomApplication {
             System.exit(1);
         }
 
+        SystemContext.setProfiles();
+
         logger.info("Bootstrap Spring's application context");
         try {
             SpringApplication.run(FoomApplication.class, args);

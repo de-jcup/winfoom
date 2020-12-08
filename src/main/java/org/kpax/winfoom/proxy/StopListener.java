@@ -28,5 +28,4 @@ public interface StopListener extends AutoCloseable {
         onStop();
     }
 
-    ;
 }
