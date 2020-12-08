@@ -15,8 +15,6 @@ package org.kpax.winfoom.proxy;
 import org.kpax.winfoom.annotation.*;
 import org.kpax.winfoom.config.*;
 import org.kpax.winfoom.pac.net.*;
-import org.kpax.winfoom.util.*;
-import org.kpax.winfoom.util.functional.*;
 import org.slf4j.*;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.context.support.*;
@@ -24,7 +22,6 @@ import org.springframework.core.annotation.*;
 import org.springframework.stereotype.*;
 import org.springframework.util.*;
 
-import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.util.stream.*;
@@ -59,8 +56,25 @@ public class ProxyController {
      *
      * @throws Exception
      */
-    public synchronized void start() throws IOException {
+    public synchronized void start() throws Exception {
         Assert.state(!started, "Already started");
+        List<StartupListener> startupListeners = Stream.of(applicationContext.getBeanNamesForType(StartupListener.class)).
+                map(applicationContext.getBeanFactory()::getSingleton).
+                filter(Objects::nonNull).map(b -> (StartupListener) b).collect(Collectors.toList());
+        try {
+            for (StartupListener startupListener : startupListeners) {
+                TypeQualifier typeQualifier = startupListener.getClass().getMethod("onStart").getDeclaredAnnotation(TypeQualifier.class);
+                if (typeQualifier == null || typeQualifier.value() == proxyConfig.getProxyType()) {
+                    logger.debug("Call onBeforeStart for: {}", startupListener.getClass());
+                    startupListener.onStart();
+                } else {
+                    logger.debug("onBeforeStart ignored for {}", startupListener.getClass());
+                }
+            }
+        } catch (Exception e) {
+            resetState();
+            throw e;
+        }
         if (proxyConfig.getProxyType().isSocks5()) {
             Authenticator.setDefault(new Authenticator() {
                 public PasswordAuthentication getPasswordAuthentication() {
@@ -76,32 +90,41 @@ public class ProxyController {
 
     /**
      * End the proxy session.
-     * <p>Also, it removes the {@link Authenticator}, if any.
      */
     public synchronized void stop() {
         if (started) {
             started = false;
-            resetAllResetableSingletons();
-
-            // We reset these suppliers because the network state
-            // might have changed during the proxy session.
-            // Though unlikely, we take no chances.
-            IpAddresses.allPrimaryAddresses.reset();
-            IpAddresses.primaryIPv4Address.reset();
-
-            // Remove auth for SOCKS proxy
-            if (proxyConfig.getProxyType().isSocks5()) {
-                Authenticator.setDefault(null);
-            }
+            resetState();
+        } else {
+            logger.info("Already stopped, nothing to do");
         }
     }
 
-    void resetAllResetableSingletons() {
-        logger.debug("Reset all resetable singletons");
-        Stream.of(applicationContext.getBeanNamesForType(Resetable.class)).
+    /**
+     * Reset the Spring beans state.
+     * <p>Also, it removes the {@link Authenticator}, if any.
+     */
+    private void resetState() {
+        callStopListeners();
+
+        // We reset these suppliers because the network state
+        // might have changed during the proxy session.
+        // Though unlikely, we take no chances.
+        IpAddresses.allPrimaryAddresses.reset();
+        IpAddresses.primaryIPv4Address.reset();
+
+        // Remove auth for SOCKS proxy
+        if (proxyConfig.getProxyType().isSocks5()) {
+            Authenticator.setDefault(null);
+        }
+    }
+
+    void callStopListeners() {
+        logger.debug("Call all StopListener.afterStop singletons");
+        Stream.of(applicationContext.getBeanNamesForType(StopListener.class)).
                 map(applicationContext.getBeanFactory()::getSingleton).
                 filter(Objects::nonNull).sorted(AnnotationAwareOrderComparator.INSTANCE).
-                map(b -> (AutoCloseable) b).forEach(InputOutputs::close);
+                map(b -> (StopListener) b).forEach(StopListener::onStop);
     }
 
     void restart() throws Exception {

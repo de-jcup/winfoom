@@ -57,7 +57,7 @@ import java.util.*;
 @ThreadSafe
 @Order(3)
 @Component
-public class PacScriptEvaluator implements Resetable {
+public class PacScriptEvaluator implements StartupListener, StopListener {
 
     private final Logger logger = LoggerFactory.getLogger(PacScriptEvaluator.class);
 
@@ -132,7 +132,39 @@ public class PacScriptEvaluator implements Resetable {
                         }, config);
             });
 
-    private volatile String jsMainFunction;
+    private String jsMainFunction;
+
+
+    @TypeQualifier(ProxyConfig.Type.PAC)
+    @Override
+    public void onStart() throws Exception {
+        GraalJSScriptEngine scriptEngine = enginePoolSingletonSupplier.get().borrowObject();
+        try {
+            if (isJsFunctionAvailable(scriptEngine, IPV6_AWARE_PAC_MAIN_FUNCTION)) {
+                jsMainFunction = IPV6_AWARE_PAC_MAIN_FUNCTION;
+            } else if (isJsFunctionAvailable(scriptEngine, STANDARD_PAC_MAIN_FUNCTION)) {
+                jsMainFunction = STANDARD_PAC_MAIN_FUNCTION;
+            } else {
+                throw new PacFileException("Function " + STANDARD_PAC_MAIN_FUNCTION +
+                        " or " + IPV6_AWARE_PAC_MAIN_FUNCTION + " not found in PAC Script.");
+            }
+        } finally {
+            enginePoolSingletonSupplier.get().returnObject(scriptEngine);
+        }
+    }
+
+    private boolean isJsFunctionAvailable(GraalJSScriptEngine eng, String functionName) {
+        // We want to test if the function is there, but without actually
+        // invoking it.
+        try {
+            Object typeofCheck = eng.eval("(function(name) { return typeof this[name]; })");
+            Object type = eng.invokeMethod(typeofCheck, "call", null, functionName);
+            return "function".equals(type);
+        } catch (NoSuchMethodException | ScriptException ex) {
+            logger.warn("Error on testing if the function is there", ex);
+            return false;
+        }
+    }
 
     /**
      * Load and parse the PAC script file.
@@ -148,19 +180,6 @@ public class PacScriptEvaluator implements Resetable {
             String content = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
             logger.info("PAC content: {}", content);
             return content;
-        }
-    }
-
-    private synchronized void initJsMainFunction(GraalJSScriptEngine scriptEngine) throws PacFileException {
-        if (jsMainFunction == null) {
-            if (isJsFunctionAvailable(scriptEngine, IPV6_AWARE_PAC_MAIN_FUNCTION)) {
-                jsMainFunction = IPV6_AWARE_PAC_MAIN_FUNCTION;
-            } else if (isJsFunctionAvailable(scriptEngine, STANDARD_PAC_MAIN_FUNCTION)) {
-                jsMainFunction = STANDARD_PAC_MAIN_FUNCTION;
-            } else {
-                throw new PacFileException("Function " + STANDARD_PAC_MAIN_FUNCTION +
-                        " or " + IPV6_AWARE_PAC_MAIN_FUNCTION + " not found in PAC Script.");
-            }
         }
     }
 
@@ -234,9 +253,6 @@ public class PacScriptEvaluator implements Resetable {
      */
     public List<ProxyInfo> findProxyForURL(URI uri) throws Exception {
         GraalJSScriptEngine scriptEngine = enginePoolSingletonSupplier.get().borrowObject();
-        if (jsMainFunction == null) {
-            initJsMainFunction(scriptEngine);
-        }
         try {
             Object callResult;
             try {
@@ -254,21 +270,8 @@ public class PacScriptEvaluator implements Resetable {
         }
     }
 
-    private boolean isJsFunctionAvailable(GraalJSScriptEngine eng, String functionName) {
-        // We want to test if the function is there, but without actually
-        // invoking it.
-        try {
-            Object typeofCheck = eng.eval("(function(name) { return typeof this[name]; })");
-            Object type = eng.invokeMethod(typeofCheck, "call", null, functionName);
-            return "function".equals(type);
-        } catch (NoSuchMethodException | ScriptException ex) {
-            logger.warn("Error on testing if the function is there", ex);
-            return false;
-        }
-    }
-
     @Override
-    public void close() {
+    public void onStop() {
         logger.debug("Reset the scriptEngineSupplier");
         enginePoolSingletonSupplier.reset();
         jsMainFunction = null;

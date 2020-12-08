@@ -11,11 +11,22 @@
  *
  */
 
-package org.kpax.winfoom.config;
+package org.kpax.winfoom.proxy;
 
-public interface ExitCodes {
-    int EC_OK = 0;
-    int EC_ERR_CHECK_SETTINGS = 1;
-    int EC_ERR_SPRING_CONTEXT_FAILED = 2;
-    int EC_ERR_GUI_NOT_SUPPORTED = 3;
+/**
+ * For every Spring singleton bean implementing this interface the method {@link #onStop()} is called
+ * when the local facade is stopped.
+ *
+ * @see org.kpax.winfoom.proxy.ProxyController#stop()
+ */
+@FunctionalInterface
+public interface StopListener extends AutoCloseable {
+    void onStop();
+
+    @Override
+    default void close() {
+        onStop();
+    }
+
+    ;
 }

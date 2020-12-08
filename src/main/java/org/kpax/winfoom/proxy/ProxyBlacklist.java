@@ -14,7 +14,6 @@ package org.kpax.winfoom.proxy;
 
 import org.kpax.winfoom.annotation.*;
 import org.kpax.winfoom.config.*;
-import org.kpax.winfoom.util.functional.*;
 import org.slf4j.*;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.stereotype.*;
@@ -32,7 +31,7 @@ import java.util.stream.*;
  */
 @ThreadSafe
 @Component
-public class ProxyBlacklist implements Resetable {
+public class ProxyBlacklist implements StopListener {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -128,7 +127,7 @@ public class ProxyBlacklist implements Resetable {
     }
 
     @Override
-    public void close() {
+    public void onStop() {
         logger.debug("Clear the blacklist");
         blacklistMap.clear();
     }

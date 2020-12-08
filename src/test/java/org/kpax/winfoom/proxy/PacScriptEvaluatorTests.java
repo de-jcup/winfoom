@@ -74,14 +74,14 @@ class PacScriptEvaluatorTests {
     @Test
     void loadPacFileContent_validLocalFile_NoError() throws Exception {
         when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(getClass().getClassLoader().getResource("proxy-simple.pac"));
-        proxyController.resetAllResetableSingletons();
+        proxyController.callStopListeners();
         pacScriptEvaluator.findProxyForURL(new URI("http://google.com"));
     }
 
     @Test
     void loadPacFileContent_validRemoteFile_NoError() throws Exception {
         when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(new URL("http://localhost:" + remoteServer.getLocalPort() + "/pacFile"));
-        proxyController.resetAllResetableSingletons();
+        proxyController.callStopListeners();
         pacScriptEvaluator.findProxyForURL(new URI("http://google.com"));
     }
 
@@ -89,7 +89,7 @@ class PacScriptEvaluatorTests {
     @Test
     void loadPacFileContent_invalidLocalFile_PacFileException() throws Exception {
         when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(getClass().getClassLoader().getResource("proxy-invalid.pac"));
-        proxyController.resetAllResetableSingletons();
+        proxyController.callStopListeners();
         Assertions.assertThrows(PacFileException.class, () -> {
             pacScriptEvaluator.findProxyForURL(new URI("http://google.com"));
         });

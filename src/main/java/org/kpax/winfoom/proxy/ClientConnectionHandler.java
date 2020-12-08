@@ -31,7 +31,7 @@ import java.net.*;
  */
 @ThreadSafe
 @Component
-public class ClientConnectionHandler implements Resetable {
+public class ClientConnectionHandler implements StopListener {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -82,7 +82,7 @@ public class ClientConnectionHandler implements Resetable {
     }
 
     @Override
-    public void close() throws Exception {
+    public void onStop() {
         proxyInfoSupplier.reset();
     }
 }

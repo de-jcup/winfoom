@@ -16,9 +16,10 @@ package org.kpax.winfoom.api.auth;
 import org.apache.http.auth.*;
 import org.apache.http.client.*;
 import org.kpax.winfoom.config.*;
+import org.kpax.winfoom.proxy.*;
 import org.kpax.winfoom.util.functional.*;
 
-public class NonWindowsCredentialsProvider implements CredentialsProvider, Resetable {
+public class NonWindowsCredentialsProvider implements CredentialsProvider, StopListener {
 
     private ProxyConfig proxyConfig;
 
@@ -49,7 +50,8 @@ public class NonWindowsCredentialsProvider implements CredentialsProvider, Reset
     }
 
     @Override
-    public void close() throws Exception {
+    public void onStop() {
         clear();
     }
+
 }

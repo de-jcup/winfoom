@@ -36,7 +36,7 @@ import java.util.concurrent.*;
 @ThreadSafe
 @Order(1)
 @Component
-class ConnectionPoolingManager implements Resetable {
+class ConnectionPoolingManager implements StopListener {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -175,7 +175,7 @@ class ConnectionPoolingManager implements Resetable {
     }
 
     @Override
-    public void close() {
+    public void onStop() {
         logger.debug("Close all active connection managers and reset the suppliers");
         poolingHttpSuppliers.stream().filter(SingletonSupplier::hasValue).
                 forEach(SingletonSupplier::reset);

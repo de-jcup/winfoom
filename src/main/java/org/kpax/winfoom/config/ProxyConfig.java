@@ -67,6 +67,10 @@ public class ProxyConfig {
     @Value("${api.userPassword:YWRtaW46d2luZm9vbQ==}")
     private String apiToken;
 
+
+    @Value("${proxy.type:DIRECT}")
+    private Type proxyType;
+
     @Value("${local.port:3129}")
     private Integer localPort;
 
@@ -90,9 +94,6 @@ public class ProxyConfig {
 
     @Value("${proxy.test.url:http://example.com}")
     private String proxyTestUrl;
-
-    @Value("${proxy.type:DIRECT}")
-    private Type proxyType;
 
     @Value("${proxy.socks5.username:#{null}}")
     private String proxySocks5Username;
@@ -319,7 +320,7 @@ public class ProxyConfig {
     }
 
     @JsonView(value = {Views.Common.class})
-    public ProxyType getProxyType() {
+    public Type getProxyType() {
         return proxyType;
     }
 
@@ -505,7 +506,6 @@ public class ProxyConfig {
         if (proxyStorePassword && StringUtils.isNotEmpty(proxySocks5Password)) {
             setProperty(config, "proxy.socks5.password", "encoded(" + Base64.getEncoder().encodeToString(proxySocks5Password.getBytes()) + ")");
         } else {
-            // Clear the stored password
             config.clearProperty("proxy.socks5.password");
         }
 

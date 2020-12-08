@@ -51,7 +51,7 @@ public class FoomApplication {
     public static void main(String[] args) {
         if (SystemContext.isGuiMode() && !SystemContext.IS_OS_WINDOWS) {
             logger.error("Graphical mode is not supported on " + SystemContext.OS_NAME + ", exit the application");
-            System.exit(ExitCodes.EC_ERR_GUI_NOT_SUPPORTED);
+            System.exit(1);
         }
 
         logger.info("Application started at: {}", new Date());
@@ -77,7 +77,7 @@ public class FoomApplication {
                                 "Remove the %s directory then try again.",
                         Paths.get(System.getProperty("user.home"), SystemConfig.APP_HOME_DIR_NAME)));
             }
-            System.exit(ExitCodes.EC_ERR_CHECK_SETTINGS);
+            System.exit(1);
         }
 
         logger.info("Bootstrap Spring's application context");
@@ -89,7 +89,7 @@ public class FoomApplication {
                 SwingUtils.showErrorMessage("Failed to launch the application." +
                         "<br>Please check the application's log file.");
             }
-            System.exit(ExitCodes.EC_ERR_SPRING_CONTEXT_FAILED);
+            System.exit(1);
         }
     }
 

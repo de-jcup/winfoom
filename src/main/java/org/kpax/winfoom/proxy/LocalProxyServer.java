@@ -15,7 +15,6 @@ package org.kpax.winfoom.proxy;
 import org.kpax.winfoom.annotation.*;
 import org.kpax.winfoom.config.*;
 import org.kpax.winfoom.util.*;
-import org.kpax.winfoom.util.functional.*;
 import org.slf4j.*;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.core.annotation.*;
@@ -34,7 +33,7 @@ import java.net.*;
 @ThreadSafe
 @Order(0)
 @Component
-class LocalProxyServer implements Resetable {
+class LocalProxyServer implements StopListener {
 
     private final Logger logger = LoggerFactory.getLogger(LocalProxyServer.class);
 
@@ -109,7 +108,7 @@ class LocalProxyServer implements Resetable {
     }
 
     @Override
-    public synchronized void close() {
+    public synchronized void onStop() {
         logger.info("Close the local proxy server");
         InputOutputs.close(serverSocket);
     }

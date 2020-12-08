@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.*;
  */
 @Order(2)
 @Component
-public class ProxyExecutorService implements ExecutorService, Resetable {
+public class ProxyExecutorService implements ExecutorService, StopListener {
 
     private final Logger logger = LoggerFactory.getLogger(ProxyExecutorService.class);
 
@@ -102,7 +102,7 @@ public class ProxyExecutorService implements ExecutorService, Resetable {
     }
 
     @Override
-    public void close() {
+    public void onStop() {
         logger.debug("Reset the proxy executor service");
         threadPoolSupplier.reset(ExecutorService::shutdownNow);
     }
