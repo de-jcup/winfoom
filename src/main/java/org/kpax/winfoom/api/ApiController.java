@@ -258,7 +258,6 @@ public class ApiController implements AutoCloseable {
                                 }
                             }
                         }).
-
                 registerHandler("/shutdown",
                         new GenericHttpRequestHandler(credentials) {
                             @Override
