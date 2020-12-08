@@ -581,6 +581,7 @@ public class AppFrame extends JFrame {
         if (menuBar == null) {
             menuBar = new JMenuBar();
             menuBar.add(getMnFile());
+            menuBar.add(getMntmSettings());
             menuBar.add(getMnHelp());
         }
         return menuBar;
@@ -589,7 +590,6 @@ public class AppFrame extends JFrame {
     private JMenu getMnFile() {
         if (mnFile == null) {
             mnFile = new JMenu("File");
-            mnFile.add(getMntmSettings());
             mnFile.add(getMntmExit());
         }
         return mnFile;
@@ -608,7 +608,6 @@ public class AppFrame extends JFrame {
     private JMenu getMntmSettings() {
         if (mntmSettings == null) {
             mntmSettings = new JMenu("Settings");
-            mntmSettings.setIcon(new TunedImageIcon("preferences-system.png"));
             mntmSettings.add(getAutoStartMenuItem());
             mntmSettings.add(getAutoDetectMenuItem());
         }

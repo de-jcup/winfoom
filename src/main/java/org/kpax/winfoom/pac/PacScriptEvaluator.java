@@ -88,8 +88,12 @@ public class PacScriptEvaluator implements Resetable {
     @Autowired
     private ProxyBlacklist proxyBlacklist;
 
-    private final DoubleExceptionSingletonSupplier<PacScriptEngine, PacFileException, IOException> scriptEngineSupplier =
-            new DoubleExceptionSingletonSupplier<PacScriptEngine, PacFileException, IOException>(this::createScriptEngine);
+    /**
+     * The supplier for the sharable {@link Engine} instance.
+     */
+    private SingletonSupplier<Engine> engineSingletonSupplier = new SingletonSupplier<>(() ->
+            Engine.newBuilder().allowExperimentalOptions(true).build()
+    );
 
     private final SingletonSupplier<String> helperJSScriptSupplier = new SingletonSupplier<>(() -> {
         try {
@@ -100,7 +104,12 @@ public class PacScriptEvaluator implements Resetable {
         }
     });
 
-    private final SingletonSupplier<GenericObjectPool<PacScriptEngine>> enginePoolSingletonSupplier =
+
+    /**
+     * The {@link GenericObjectPool} supplier.
+     * <p>Since the Graaljs {@link Context} is not thread safe, we maintain a pool of {@link GraalJSScriptEngine} instances.
+     */
+    private final SingletonSupplier<GenericObjectPool<GraalJSScriptEngine>> enginePoolSingletonSupplier =
             new SingletonSupplier<>(() -> {
                 GenericObjectPoolConfig config = new GenericObjectPoolConfig();
                 config.setMaxTotal(systemConfig.getPacScriptEnginePoolMaxTotal());
@@ -109,20 +118,21 @@ public class PacScriptEvaluator implements Resetable {
                 config.setTestOnCreate(false);
                 config.setTestOnReturn(false);
                 config.setBlockWhenExhausted(true);
-
-                return new GenericObjectPool<PacScriptEngine>(
-                        new BasePooledObjectFactory<PacScriptEngine>() {
+                return new GenericObjectPool<GraalJSScriptEngine>(
+                        new BasePooledObjectFactory<GraalJSScriptEngine>() {
                             @Override
-                            public PacScriptEngine create() throws PacFileException, IOException {
+                            public GraalJSScriptEngine create() throws PacFileException, IOException {
                                 return createScriptEngine();
                             }
 
                             @Override
-                            public PooledObject<PacScriptEngine> wrap(PacScriptEngine obj) {
-                                return new DefaultPooledObject<PacScriptEngine>(obj);
+                            public PooledObject<GraalJSScriptEngine> wrap(GraalJSScriptEngine obj) {
+                                return new DefaultPooledObject<GraalJSScriptEngine>(obj);
                             }
                         }, config);
             });
+
+    private volatile String jsMainFunction;
 
     /**
      * Load and parse the PAC script file.
@@ -141,15 +151,28 @@ public class PacScriptEvaluator implements Resetable {
         }
     }
 
-    private PacScriptEngine createScriptEngine() throws PacFileException, IOException {
+    private synchronized void initJsMainFunction(GraalJSScriptEngine scriptEngine) throws PacFileException {
+        if (jsMainFunction == null) {
+            if (isJsFunctionAvailable(scriptEngine, IPV6_AWARE_PAC_MAIN_FUNCTION)) {
+                jsMainFunction = IPV6_AWARE_PAC_MAIN_FUNCTION;
+            } else if (isJsFunctionAvailable(scriptEngine, STANDARD_PAC_MAIN_FUNCTION)) {
+                jsMainFunction = STANDARD_PAC_MAIN_FUNCTION;
+            } else {
+                throw new PacFileException("Function " + STANDARD_PAC_MAIN_FUNCTION +
+                        " or " + IPV6_AWARE_PAC_MAIN_FUNCTION + " not found in PAC Script.");
+            }
+        }
+    }
+
+    private GraalJSScriptEngine createScriptEngine() throws PacFileException, IOException {
         String pacSource = loadScript();
         try {
-            ScriptEngine engine = GraalJSScriptEngine.create(null,
+            GraalJSScriptEngine scriptEngine = GraalJSScriptEngine.create(engineSingletonSupplier.get(),
                     Context.newBuilder("js")
                             .allowHostAccess(HostAccess.ALL)
                             .allowHostClassLookup(s -> true)
                             .option("js.ecmascript-version", "2021"));
-            Assert.notNull(engine, "GraalJS script engine not found");
+            Assert.notNull(scriptEngine, "GraalJS script engine not found");
             String[] allowedGlobals =
                     ("Object,Function,Array,String,Date,Number,BigInt,"
                             + "Boolean,RegExp,Math,JSON,NaN,Infinity,undefined,"
@@ -164,7 +187,7 @@ public class PacScriptEvaluator implements Resetable {
                             + "WeakSet,Symbol,Reflect,Proxy,Promise,SharedArrayBuffer,"
                             + "Atomics,console,performance,"
                             + "arguments").split(",");
-            Object cleaner = engine.eval("(function(allowed) {\n"
+            Object cleaner = scriptEngine.eval("(function(allowed) {\n"
                     + "   var names = Object.getOwnPropertyNames(this);\n"
                     + "   MAIN: for (var i = 0; i < names.length; i++) {\n"
                     + "     for (var j = 0; j < allowed.length; j++) {\n"
@@ -176,20 +199,22 @@ public class PacScriptEvaluator implements Resetable {
                     + "   }\n"
                     + "})");
             try {
-                ((Invocable) engine).invokeMethod(cleaner, "call", null, allowedGlobals);
+                scriptEngine.invokeMethod(cleaner, "call", null, allowedGlobals);
             } catch (NoSuchMethodException ex) {
                 throw new ScriptException(ex);
             }
 
             // Execute the PAC javascript file
-            engine.eval(pacSource);
+            scriptEngine.eval(pacSource);
 
+            // Load the Javascript file helper
             try {
-                ((Invocable) engine).invokeMethod(engine.eval(helperJSScriptSupplier.get()), "call", null, pacHelperMethods);
+                scriptEngine.invokeMethod(scriptEngine.eval(helperJSScriptSupplier.get()),
+                        "call", null, pacHelperMethods);
             } catch (NoSuchMethodException ex) {
                 throw new ScriptException(ex);
             }
-            return new PacScriptEngine(engine);
+            return scriptEngine;
         } catch (ScriptException e) {
             throw new PacFileException(e);
         }
@@ -208,11 +233,15 @@ public class PacScriptEvaluator implements Resetable {
      * @throws IOException        when the PAC file cannot be loaded.
      */
     public List<ProxyInfo> findProxyForURL(URI uri) throws Exception {
-        PacScriptEngine scriptEngine = enginePoolSingletonSupplier.get().borrowObject();
+        GraalJSScriptEngine scriptEngine = enginePoolSingletonSupplier.get().borrowObject();
+        if (jsMainFunction == null) {
+            initJsMainFunction(scriptEngine);
+        }
         try {
             Object callResult;
             try {
-                callResult = scriptEngine.findProxyForURL(HttpUtils.toStrippedURLStr(uri), uri.getHost());
+                callResult = scriptEngine.invokeFunction(jsMainFunction,
+                        HttpUtils.toStrippedURLStr(uri), uri.getHost());
             } finally {
                 // Make sure we return the PacScriptEngine instance back to the pool
                 enginePoolSingletonSupplier.get().returnObject(scriptEngine);
@@ -221,23 +250,16 @@ public class PacScriptEvaluator implements Resetable {
             logger.debug("Parse proxyLine [{}] for uri [{}]", proxyLine, uri);
             return HttpUtils.parsePacProxyLine(proxyLine, proxyBlacklist::isActive);
         } catch (Exception ex) {
-            if (ex.getCause() instanceof ClassNotFoundException) {
-                // Is someone trying to break out of the sandbox ?
-                logger.warn("The downloaded PAC script is attempting to access Java class [{}] " +
-                        "which may be a sign of maliciousness. " +
-                        "You should investigate this with your network administrator.", ex.getCause());
-            }
-            // other unforeseen errors
-            throw new PacScriptException("Error when executing PAC script function: " + scriptEngine.jsMainFunction, ex);
+            throw new PacScriptException("Error when executing PAC script function: " + jsMainFunction, ex);
         }
     }
 
-    private boolean isJsFunctionAvailable(ScriptEngine eng, String functionName) {
+    private boolean isJsFunctionAvailable(GraalJSScriptEngine eng, String functionName) {
         // We want to test if the function is there, but without actually
         // invoking it.
         try {
             Object typeofCheck = eng.eval("(function(name) { return typeof this[name]; })");
-            Object type = ((Invocable) eng).invokeMethod(typeofCheck, "call", null, functionName);
+            Object type = eng.invokeMethod(typeofCheck, "call", null, functionName);
             return "function".equals(type);
         } catch (NoSuchMethodException | ScriptException ex) {
             logger.warn("Error on testing if the function is there", ex);
@@ -249,27 +271,7 @@ public class PacScriptEvaluator implements Resetable {
     public void close() {
         logger.debug("Reset the scriptEngineSupplier");
         enginePoolSingletonSupplier.reset();
-    }
-
-    private class PacScriptEngine {
-        private final Invocable invocable;
-        private final String jsMainFunction;
-
-        PacScriptEngine(ScriptEngine scriptEngine) throws PacFileException {
-            this.invocable = (Invocable) scriptEngine;
-            if (isJsFunctionAvailable(scriptEngine, IPV6_AWARE_PAC_MAIN_FUNCTION)) {
-                this.jsMainFunction = IPV6_AWARE_PAC_MAIN_FUNCTION;
-            } else if (isJsFunctionAvailable(scriptEngine, STANDARD_PAC_MAIN_FUNCTION)) {
-                this.jsMainFunction = STANDARD_PAC_MAIN_FUNCTION;
-            } else {
-                throw new PacFileException("Function " + STANDARD_PAC_MAIN_FUNCTION +
-                        " or " + IPV6_AWARE_PAC_MAIN_FUNCTION + " not found in PAC Script.");
-            }
-        }
-
-        Object findProxyForURL(String url, String host) throws ScriptException, NoSuchMethodException {
-            return invocable.invokeFunction(jsMainFunction, url, host);
-        }
+        jsMainFunction = null;
     }
 
 }

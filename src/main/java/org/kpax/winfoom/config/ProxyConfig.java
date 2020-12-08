@@ -460,6 +460,10 @@ public class ProxyConfig {
         return apiPort;
     }
 
+    public void setApiPort(Integer apiPort) {
+        this.apiPort = apiPort;
+    }
+
     public String getApiToken() {
         return apiToken;
     }
