@@ -379,7 +379,7 @@ public class AppFrame extends JFrame {
 
     private JButton getBtnCancelBlacklist() {
         if (btnCancelBlacklist == null) {
-            btnCancelBlacklist = new JButton("Cancel blacklist");
+            btnCancelBlacklist = new JButton("Whitelist");
             btnCancelBlacklist.setMargin(new Insets(2, 6, 2, 6));
             btnCancelBlacklist.addActionListener(e -> {
                 int clearCount = proxyBlacklist.clear();
