@@ -150,6 +150,11 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
             throw e;
         }
 
+        if (logger.isDebugEnabled()) {
+            for (Header header : request.getAllHeaders()) {
+                logger.debug(">>> Request header: {}", header);
+            }
+        }
     }
 
     /**

@@ -12,7 +12,11 @@
 
 package org.kpax.winfoom.config;
 
+import org.apache.http.auth.*;
 import org.apache.http.client.*;
+import org.apache.http.client.config.*;
+import org.apache.http.config.*;
+import org.apache.http.impl.auth.*;
 import org.apache.http.impl.auth.win.*;
 import org.apache.http.impl.client.*;
 import org.kpax.winfoom.api.auth.*;
@@ -23,7 +27,7 @@ import org.springframework.context.annotation.*;
  * Created on 1/24/2020
  */
 @Configuration
-class SecurityConfiguration {
+class WebConfiguration {
 
     /**
      * Create the default system wide {@link CredentialsProvider} for Windows OS.
@@ -43,5 +47,25 @@ class SecurityConfiguration {
         return new NonWindowsCredentialsProvider(proxyConfig);
     }
 
+    @Profile("windows")
+    @Bean
+    public Registry<AuthSchemeProvider> windowsAuthSchemeRegistry() {
+        return RegistryBuilder.<AuthSchemeProvider>create()
+                .register(AuthSchemes.BASIC, new BasicSchemeFactory())
+                .register(AuthSchemes.DIGEST, new DigestSchemeFactory())
+                .register(AuthSchemes.NTLM, new WindowsNTLMSchemeFactory(null))
+                .register(AuthSchemes.SPNEGO, new WindowsNegotiateSchemeFactory(null))
+                .build();
+    }
+
+    @Profile("!windows")
+    @Bean
+    public Registry<AuthSchemeProvider> nonWindowsAuthSchemeRegistry() {
+        return RegistryBuilder.<AuthSchemeProvider>create()
+                .register(AuthSchemes.BASIC, new BasicSchemeFactory())
+                .register(AuthSchemes.DIGEST, new DigestSchemeFactory())
+                .register(AuthSchemes.NTLM, new WindowsNTLMSchemeFactory(null))
+                .build();
+    }
 
 }

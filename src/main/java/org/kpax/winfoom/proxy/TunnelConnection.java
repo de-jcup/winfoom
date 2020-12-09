@@ -24,8 +24,6 @@ import org.apache.http.conn.routing.RouteInfo.*;
 import org.apache.http.entity.*;
 import org.apache.http.impl.*;
 import org.apache.http.impl.auth.HttpAuthenticator;
-import org.apache.http.impl.auth.*;
-import org.apache.http.impl.auth.win.*;
 import org.apache.http.impl.client.*;
 import org.apache.http.impl.conn.*;
 import org.apache.http.impl.execchain.TunnelRefusedException;
@@ -59,10 +57,12 @@ public class TunnelConnection {
     private CredentialsProvider credentialsProvider;
 
     @Autowired
+    private Registry<AuthSchemeProvider> authSchemeRegistry;
+
+    @Autowired
     private SystemConfig systemConfig;
 
     private ConnectionReuseStrategy reuseStrategy;
-    private Registry<AuthSchemeProvider> authSchemeRegistry;
     private HttpProcessor httpProcessor;
     private HttpRequestExecutor requestExec;
     private ProxyAuthenticationStrategy proxyAuthStrategy;
@@ -71,12 +71,6 @@ public class TunnelConnection {
     @PostConstruct
     void init() {
         this.reuseStrategy = new DefaultConnectionReuseStrategy();
-        this.authSchemeRegistry = RegistryBuilder.<AuthSchemeProvider>create()
-                .register(AuthSchemes.BASIC, new BasicSchemeFactory())
-                .register(AuthSchemes.DIGEST, new DigestSchemeFactory())
-                .register(AuthSchemes.NTLM, new WindowsNTLMSchemeFactory(null))
-                .register(AuthSchemes.SPNEGO, new WindowsNegotiateSchemeFactory(null))
-                .build();
         this.httpProcessor = new ImmutableHttpProcessor(new RequestTargetHost(),
                 new RequestClientConnControl(), new RequestUserAgent());
         this.requestExec = new HttpRequestExecutor();

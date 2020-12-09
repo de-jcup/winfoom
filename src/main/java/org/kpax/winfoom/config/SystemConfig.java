@@ -62,14 +62,14 @@ public class SystemConfig {
      * The frequency of running purge idle
      * on the connection manager pool (seconds).
      */
-    @Value("${connectionManager.clean.interval:30}")
+    @Value("${connectionManager.clean.interval:60}")
     private Integer connectionManagerCleanInterval;
 
     /**
      * The connections idle timeout,
      * to be purged by a scheduled task (seconds).
      */
-    @Value("${connectionManager.idleTimeout:30}")
+    @Value("${connectionManager.idleTimeout:100}")
     private Integer connectionManagerIdleTimeout;
 
     /**

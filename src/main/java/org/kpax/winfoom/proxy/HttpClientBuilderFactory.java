@@ -13,8 +13,10 @@
 package org.kpax.winfoom.proxy;
 
 import org.apache.http.*;
+import org.apache.http.auth.*;
 import org.apache.http.client.*;
 import org.apache.http.client.config.*;
+import org.apache.http.config.*;
 import org.apache.http.impl.client.*;
 import org.apache.http.impl.conn.*;
 import org.kpax.winfoom.annotation.*;
@@ -38,6 +40,9 @@ public class HttpClientBuilderFactory {
 
     @Autowired
     private CredentialsProvider credentialsProvider;
+
+    @Autowired
+    private Registry<AuthSchemeProvider> authSchemeRegistry;
 
     @Autowired
     private ConnectionPoolingManager connectionPoolingManager;
@@ -65,18 +70,20 @@ public class HttpClientBuilderFactory {
      * @return a pre-configured {@link HttpClientBuilder} instance for HTTP proxies.
      */
     private HttpClientBuilder createHttpClientBuilder(ProxyInfo proxyInfo) {
-        RequestConfig requestConfig = systemConfig.applyConfig(RequestConfig.custom())
-                .setProxy(new HttpHost(proxyInfo.getProxyHost().getHostName(), proxyInfo.getProxyHost().getPort()))
-                .setCircularRedirectsAllowed(true)
-                .build();
-        return WinHttpClients.custom().setDefaultCredentialsProvider(credentialsProvider)
-                .setConnectionManager(connectionPoolingManager.getHttpConnectionManager())
-                .setConnectionManagerShared(true)
-                .setDefaultRequestConfig(requestConfig)
-                .setRoutePlanner(new DefaultProxyRoutePlanner(requestConfig.getProxy()))
-                .disableAutomaticRetries()
-                .disableRedirectHandling()
-                .disableCookieManagement();
+        RequestConfig requestConfig = systemConfig.applyConfig(RequestConfig.custom()).
+                setProxy(new HttpHost(proxyInfo.getProxyHost().getHostName(), proxyInfo.getProxyHost().getPort())).
+                setCircularRedirectsAllowed(true).
+                build();
+        return HttpClients.custom().
+                setDefaultCredentialsProvider(credentialsProvider).
+                setDefaultAuthSchemeRegistry(authSchemeRegistry).
+                setConnectionManager(connectionPoolingManager.getHttpConnectionManager()).
+                setConnectionManagerShared(true).
+                setDefaultRequestConfig(requestConfig).
+                setRoutePlanner(new DefaultProxyRoutePlanner(requestConfig.getProxy())).
+                disableAutomaticRetries().
+                disableRedirectHandling().
+                disableCookieManagement();
     }
 
     /**
