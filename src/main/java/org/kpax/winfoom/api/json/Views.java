@@ -16,7 +16,7 @@ package org.kpax.winfoom.api.json;
 import org.kpax.winfoom.config.*;
 
 /**
- * Jackson's views to control which fields should be available, based on operation system and proxy type.
+ * Jackson's views to control which fields should be JSON available, based on the operation system and proxy type.
  */
 public class Views {
 

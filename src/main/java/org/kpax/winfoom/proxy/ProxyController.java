@@ -63,7 +63,8 @@ public class ProxyController {
                 filter(Objects::nonNull).map(b -> (StartupListener) b).collect(Collectors.toList());
         try {
             for (StartupListener startupListener : startupListeners) {
-                TypeQualifier typeQualifier = startupListener.getClass().getMethod("onStart").getDeclaredAnnotation(TypeQualifier.class);
+                TypeQualifier typeQualifier = startupListener.getClass().getMethod("onStart").
+                        getDeclaredAnnotation(TypeQualifier.class);
                 if (typeQualifier == null || typeQualifier.value() == proxyConfig.getProxyType()) {
                     logger.debug("Call onBeforeStart for: {}", startupListener.getClass());
                     startupListener.onStart();

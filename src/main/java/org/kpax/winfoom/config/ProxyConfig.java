@@ -238,6 +238,7 @@ public class ProxyConfig {
         setProxyPort(httpHost.getPort());
     }
 
+    @JsonView(value = {Views.Settings.class})
     public String getAppVersion() {
         return appVersion;
     }

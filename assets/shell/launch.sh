@@ -26,7 +26,7 @@ if [ "$1" == "--help" ]; then
   exit 0
 fi
 
-ARGS="-server -XX:+UseG1GC -XX:MaxHeapFreeRatio=30 -XX:MinHeapFreeRatio=10 -Dswing.aatext=true"
+ARGS="-server -XX:+UseG1GC -XX:MaxHeapFreeRatio=30 -XX:MinHeapFreeRatio=10"
 
 if [ ! -z ${FOOM_ARGS+x} ]; then
   ARGS="$ARGS $FOOM_ARGS"
@@ -43,7 +43,7 @@ fi
 
 if [ -e out.log ]; then
   echo "Is there another application instance running?"
-  echo "If so, you need to close it first; otherwise try to manually remove the 'out.log' file"
+  echo "If so, you need to close it first; otherwise remove the 'out.log' file and retry"
   exit 2
 fi
 
@@ -62,3 +62,4 @@ fi
 
 echo "You can check the application log with: \$ tail -n 150 -f ~/.winfoom/logs/winfoom.log"
 echo "If application failed to start, you may get the reason with: \$ cat out.log"
+echo "Use foomcli script for management (like start, stop etc.)"
