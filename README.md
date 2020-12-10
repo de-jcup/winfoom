@@ -252,7 +252,8 @@ The available settings:
 |connection.request.timeout|The timeout for request connection (seconds)|Integer|30|
 
 ### Authentication
-* For HTTP proxy type, Winfoom uses the current Windows user credentials to authenticate to the remote proxy.
+* For HTTP proxy type, Winfoom uses the current Windows user credentials to authenticate to the remote proxy. 
+  On Linux/Macos you need to provide the user and password (or DOMAIN\user and password if the DOMAIN is required) 
 * For SOCKS5 proxy type, the user/password need the be provided when required.
 
 ### Error codes
