@@ -49,20 +49,21 @@ class HttpConnectClientConnectionProcessor extends ClientConnectionProcessor {
         try (Tunnel tunnel = tunnelConnection.open(proxy, target, requestLine.getProtocolVersion())) {
             try {
                 // Handle the tunnel response
-                logger.debug("Write status line");
+                logger.debug("Write status line {}", tunnel.getStatusLine());
                 clientConnection.write(tunnel.getStatusLine());
 
-                logger.debug("Write headers");
                 for (Header header : tunnel.getResponse().getAllHeaders()) {
+                    logger.debug("Write header {}", header);
                     clientConnection.write(header);
                 }
+
+                // Write empty line
                 clientConnection.writeln();
 
                 // The proxy facade mediates the full duplex communication
                 // between the client and the remote proxy.
                 // This usually ends on connection reset, timeout or any other error
                 duplex(tunnel, clientConnection);
-
             } catch (Exception e) {
                 logger.debug("Error on handling CONNECT response", e);
             }

@@ -62,7 +62,6 @@ public class TunnelConnection {
     @Autowired
     private SystemConfig systemConfig;
 
-    private ConnectionReuseStrategy reuseStrategy;
     private HttpProcessor httpProcessor;
     private HttpRequestExecutor requestExec;
     private ProxyAuthenticationStrategy proxyAuthStrategy;
@@ -70,7 +69,6 @@ public class TunnelConnection {
 
     @PostConstruct
     void init() {
-        this.reuseStrategy = new DefaultConnectionReuseStrategy();
         this.httpProcessor = new ImmutableHttpProcessor(new RequestTargetHost(),
                 new RequestClientConnControl(), new RequestUserAgent());
         this.requestExec = new HttpRequestExecutor();
@@ -131,7 +129,7 @@ public class TunnelConnection {
                 if (authenticator.handleAuthChallenge(
                         proxy, response, proxyAuthStrategy, proxyAuthState, context)) {
                     // Retry request
-                    if (reuseStrategy.keepAlive(response, context)) {
+                    if (DefaultConnectionReuseStrategy.INSTANCE.keepAlive(response, context)) {
                         // Consume response content
                         logger.debug("Now consume entity");
                         EntityUtils.consume(response.getEntity());
