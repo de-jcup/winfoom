@@ -64,9 +64,9 @@ Now you should have the generated executable *jar* file under the *target* direc
 The prepackaged `winfoom.zip` contains the following executable files: `launch.bat`. 
 * `launch.bat` launches the application (Windows systems)
 * `launchGui.bat` launches the application in graphical mode (Windows systems)
-* `launch.sh` launches the application (Linux/Macos systems)
+* `launch.sh` launches the application (Linux/Macos systems, needs to be made executable)
 * `foomcli.bat` manages the application (Windows systems)
-* `foomcli.sh` manages the application (Linux/Macos systems)
+* `foomcli.sh` manages the application (Linux/Macos systems, needs to be made executable)
 
 On Windows systems, Winfoom can be launched by double-click on `launchGui.bat` or
 from the command prompt:
