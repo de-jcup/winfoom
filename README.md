@@ -147,12 +147,13 @@ but before that, you need to configure it. Execute:
 
 to get the current configuration. You'll get something like:
 
-`{
+```
+{
 "proxyType" : "DIRECT",
 "localPort" : 3129,
 "proxyTestUrl" : "https://example.com"
 }
-`
+```
 
 The output is in JSON format. The name of the fields is self-descriptive. 
 Suppose you want to configure Winfoom for a HTTP proxy. First, change the proxy type to HTTP with:
@@ -161,26 +162,28 @@ Suppose you want to configure Winfoom for a HTTP proxy. First, change the proxy 
 
 Then, executing `foomcli config` again, the output is something like:
 
-`{
+```
+{
 "proxyType" : "HTTP",
 "proxyHost" : "",
 "proxyPort" : 0,
 "localPort" : 3129,
 "proxyTestUrl" : "http://example.com"
 }
-`
+```
 
 To change the above values, copy the content of the output into a text file named, let's say, `http_config.json` 
 in the same directory, and edit the field's values accordingly:
 
-`{
+```
+{
 "proxyType" : "HTTP",
 "proxyHost" : "192.168.0.105",
 "proxyPort" : 80,
 "localPort" : 3129,
 "proxyTestUrl" : "http://example.com"
 }
-`
+```
 
 To load the new values, execute:
 
@@ -201,20 +204,22 @@ To put Winfoom in autostart mode first execute:
 
 The output would be something like:
 
-`{
+```
+{
 "autostart" : false,
 "autodetect" : false,
 "appVersion" : "3.0.1",
 "apiPort" : 9999
 }
-`
+```
 
 Copy the output into a file named, let's say, `settings.json` and modify accordingly:
 
-`{
+```
+{
 "autostart" : true
 }
-`
+```
 
 Since we only modify the autostart option, the other fields are dropped off.
 
