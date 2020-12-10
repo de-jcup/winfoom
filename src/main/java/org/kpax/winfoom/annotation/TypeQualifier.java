@@ -13,10 +13,17 @@
 
 package org.kpax.winfoom.annotation;
 
+
 import org.kpax.winfoom.config.*;
 
 import java.lang.annotation.*;
 
+/**
+ * When present on {@link org.kpax.winfoom.proxy.StartupListener#onStart()} this method would run
+ * only for the specified {@link org.kpax.winfoom.config.ProxyConfig.Type}.
+ *
+ * @see org.kpax.winfoom.proxy.StartupListener
+ */
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented

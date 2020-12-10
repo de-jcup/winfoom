@@ -18,7 +18,7 @@ setlocal EnableDelayedExpansion
 
 if "%1"=="--help" goto usage
 
-set ARGS=-server -XX:+UseG1GC -XX:MaxHeapFreeRatio=30 -XX:MinHeapFreeRatio=10 -Dswing.aatext=true
+set ARGS=-server -XX:+UseG1GC -XX:MaxHeapFreeRatio=30 -XX:MinHeapFreeRatio=10
 
 if defined FOOM_ARGS ARGS=%FOOM_ARGS% %ARGS%
 
@@ -31,7 +31,7 @@ for %%a in (%*) do (
 		set ARGS=%ARGS% -Dlogging.level.root=DEBUG -Dlogging.level.java.awt=INFO -Dlogging.level.sun.awt=INFO -Dlogging.level.javax.swing=INFO -Dlogging.level.jdk=INFO
 	)
 	if "%%a"=="--gui" (
-		set ARGS=%ARGS% -Dspring.profiles.active=gui
+		set ARGS=%ARGS% -Dswing.aatext=true -Dspring.profiles.active=gui
 	)
 )
 

@@ -62,7 +62,7 @@ public final class HttpUtils {
      * These headers will be removed from client's response if there is an enclosing
      * entity.
      */
-    public static final List<String> ENTITY_BANNED_HEADERS = Arrays.asList(
+    public static final List<String> ENTITY_BANNED_HEADERS = List.of(
             HttpHeaders.CONTENT_LENGTH,
             HttpHeaders.CONTENT_TYPE,
             HttpHeaders.CONTENT_ENCODING,
@@ -462,14 +462,22 @@ public final class HttpUtils {
         return uri.contains("://");
     }
 
-    public static boolean verifyBasicAuth(@NotNull final HttpRequest request, @NotNull final String encodedUserPassword)
+    /**
+     * Verify whether the {@link HttpRequest} instance is authorized against the provided token.
+     *
+     * @param request
+     * @param apiToken
+     * @return
+     * @throws AuthenticationException
+     */
+    public static boolean verifyBasicAuth(@NotNull final HttpRequest request, @NotNull final String apiToken)
             throws AuthenticationException {
         Header authHeader = request.getFirstHeader(HttpHeaders.AUTHORIZATION);
         if (authHeader != null) {
             String[] tokens = authHeader.getValue().split("\\s");
             if (tokens.length == 2) {
                 if ("Basic".equals(tokens[0])) {
-                    return encodedUserPassword.equals(tokens[1]);
+                    return apiToken.equals(tokens[1]);
                 } else {
                     throw new AuthenticationException("Only 'Basic' authorization is supported");
                 }
@@ -481,6 +489,12 @@ public final class HttpUtils {
         }
     }
 
+    /**
+     * Construct a header's Reason-Phrase for PAC mode, giving an {@link Exception}.
+     *
+     * @param exception the given exception
+     * @return the reason phrase
+     */
     public static String reasonPhraseForPac(Exception exception) {
         if (exception instanceof PacFileException) {
             return "Proxy Auto Config javascript file: syntax error";

@@ -13,6 +13,12 @@
 
 package org.kpax.winfoom.proxy;
 
+/**
+ * If a Spring managed bean implements this, the method {@link #onStart()} would run
+ * before the local server starts.
+ *
+ * @see org.kpax.winfoom.annotation.TypeQualifier
+ */
 @FunctionalInterface
 public interface StartupListener {
     void onStart() throws Exception;

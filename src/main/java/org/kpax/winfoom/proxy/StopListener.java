@@ -15,7 +15,7 @@ package org.kpax.winfoom.proxy;
 
 /**
  * For every Spring singleton bean implementing this interface the method {@link #onStop()} is called
- * when the local facade is stopped.
+ * when the local proxy server is stopped.
  *
  * @see org.kpax.winfoom.proxy.ProxyController#stop()
  */

@@ -18,7 +18,9 @@ import org.kpax.winfoom.exception.*;
 import org.kpax.winfoom.util.*;
 import org.springframework.util.*;
 
-
+/**
+ * The DTO for API server.
+ */
 public class ProxyConfigDto {
 
     private ProxyConfig.Type proxyType;

@@ -17,6 +17,9 @@ import org.apache.http.auth.*;
 
 import java.security.*;
 
+/**
+ * Manage the API server credentials.
+ */
 public class ApiCredentials implements Credentials {
 
     private Principal principal;

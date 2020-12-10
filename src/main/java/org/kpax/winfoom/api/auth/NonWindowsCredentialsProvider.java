@@ -19,6 +19,10 @@ import org.kpax.winfoom.config.*;
 import org.kpax.winfoom.proxy.*;
 import org.kpax.winfoom.util.functional.*;
 
+/**
+ * The {@link CredentialsProvider} for non Windows systems.
+ * Currently, only NTLM protocol is supported.
+ */
 public class NonWindowsCredentialsProvider implements CredentialsProvider, StopListener {
 
     private ProxyConfig proxyConfig;

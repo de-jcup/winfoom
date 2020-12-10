@@ -171,7 +171,7 @@ public class ProxyConfig {
             if (!HttpUtils.isValidPort(getProxyPort())) {
                 throw new InvalidProxySettingsException("Invalid proxy port");
             }
-            if (proxyType.isHttp()) {
+            if (!SystemContext.IS_OS_WINDOWS && proxyType.isHttp()) {
                 if (StringUtils.isEmpty(getProxyHttpUsername())) {
                     throw new InvalidProxySettingsException("Missing proxy username");
                 }

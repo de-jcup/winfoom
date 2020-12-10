@@ -22,6 +22,6 @@ import java.lang.annotation.*;
  */
 @Documented
 @Target(ElementType.TYPE)
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.SOURCE)
 public @interface ThreadSafe {
 }

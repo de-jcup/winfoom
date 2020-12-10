@@ -38,7 +38,7 @@ import java.io.*;
 import java.lang.reflect.*;
 
 /**
- * Open a server and map various request handlers.
+ * Open an API server and map various request handlers.
  */
 @Profile({"!gui & !test"})
 @Component
@@ -89,7 +89,7 @@ public class ApiController implements AutoCloseable {
                                 if (proxyController.isRunning()) {
                                     try {
                                         proxyController.stop();
-                                        response.setEntity(new StringEntity("The local proxy server is now stopped"));
+                                        response.setEntity(new StringEntity("The local proxy server has been stopped"));
                                     } catch (Exception e) {
                                         logger.error("Error on stopping local proxy server", e);
                                         response.setEntity(new StringEntity("Failed to stop the local proxy: " + e.getMessage()));
@@ -190,7 +190,7 @@ public class ApiController implements AutoCloseable {
                                                             ProxyConfigDto.class);
                                             proxyConfigDto.validate();
                                             BeanUtils.copyNonNullProperties(proxyConfigDto, proxyConfig);
-                                            response.setEntity(new StringEntity("Proxy configuration applied"));
+                                            response.setEntity(new StringEntity("Proxy configuration changed"));
                                         } catch (IOException e) {
                                             logger.error("Error on parsing JSON", e);
                                             response.setEntity(new StringEntity("Failed to parse JSON: " + e.getMessage()));
@@ -199,10 +199,10 @@ public class ApiController implements AutoCloseable {
                                             response.setEntity(new StringEntity("Invalid JSON: " + e.getMessage()));
                                         } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
                                             logger.error("Error on applying proxy configuration", e);
-                                            response.setEntity(new StringEntity("Failed to apply proxy configuration: " + e.getMessage()));
+                                            response.setEntity(new StringEntity("Failed to changed proxy configuration: " + e.getMessage()));
                                         }
                                     } else {
-                                        response.setEntity(new StringEntity("Failed to apply proxy configuration: no JSON found"));
+                                        response.setEntity(new StringEntity("Failed to changed proxy configuration: no JSON found"));
                                     }
                                 }
                             }
@@ -231,7 +231,7 @@ public class ApiController implements AutoCloseable {
                                 logger.debug("'settings post' command received");
                                 boolean running = proxyController.isRunning();
                                 if (running) {
-                                    response.setEntity(new StringEntity("The local proxy server is up, you need to stop it before applying configuration"));
+                                    response.setEntity(new StringEntity("The local proxy server is up, you need to stop it before changing settings"));
                                 } else {
                                     if (request instanceof BasicHttpEntityEnclosingRequest) {
                                         BasicHttpEntityEnclosingRequest entityEnclosingRequest = (BasicHttpEntityEnclosingRequest) request;
@@ -241,7 +241,7 @@ public class ApiController implements AutoCloseable {
                                                             ProxyConfigDto.class);
                                             proxyConfigDto.validate();
                                             BeanUtils.copyNonNullProperties(proxyConfigDto, proxyConfig);
-                                            response.setEntity(new StringEntity("Proxy settings applied"));
+                                            response.setEntity(new StringEntity("Proxy settings changed"));
                                         } catch (IOException e) {
                                             logger.error("Error on parsing JSON", e);
                                             response.setEntity(new StringEntity("Failed to parse JSON: " + e.getMessage()));
@@ -250,10 +250,10 @@ public class ApiController implements AutoCloseable {
                                             response.setEntity(new StringEntity("Invalid JSON: " + e.getMessage()));
                                         } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
                                             logger.error("Error on applying proxy settings", e);
-                                            response.setEntity(new StringEntity("Failed to apply proxy settings: " + e.getMessage()));
+                                            response.setEntity(new StringEntity("Failed to change proxy settings: " + e.getMessage()));
                                         }
                                     } else {
-                                        response.setEntity(new StringEntity("Failed to apply proxy settings: no JSON found"));
+                                        response.setEntity(new StringEntity("Failed to changed proxy settings: no JSON found"));
                                     }
                                 }
                             }

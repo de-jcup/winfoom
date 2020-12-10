@@ -28,8 +28,13 @@ An example of such a facade for NTLM proxies is [CNTLM](http://cntlm.sourceforge
 ## Download Winfoom
 ### Download prepackaged
 To try out Winfoom without needing to download the source and package it, check out the [releases](https://github.com/ecovaci/winfoom/releases) for a prepackaged `winfoom.zip`.
-Winfoom is a Java application and comes with a release that includes a Java environment [AdoptOpenJDK](https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.5%2B10/OpenJDK11U-jdk_x64_windows_hotspot_11.0.5_10.msi),
-so you don't have to install anything.
+Winfoom is a Java application and requires a Java Runtime Environment (at least v11).
+
+If it is not already installed on your system, you can download it from [AdoptOpenJDK](https://adoptopenjdk.net/) or, 
+on Linux systems, use your package manager.
+
+If, for certain reasons, you do not want to install Java globally on your system then download the JRE archive according
+to your system architecture then unzip it in the Winfoom directory and rename it to `jdk`.
 
 ### Build from source code
 If you decide to build the executable *jar* file from the source code, you would need these prerequisites:
@@ -53,29 +58,49 @@ or, if you did not install Maven, use the Maven Wrapper:
 Now you should have the generated executable *jar* file under the *target* directory.
 
 ## Run Winfoom
-> 👉 Note: Winfoom only works on Windows OS!
 
-The prepackaged `winfoom.zip` contains a single executable file: `launch.bat`. 
+The prepackaged `winfoom.zip` contains the following executable files: `launch.bat`. 
+* `launch.bat` launches the application (Windows systems)
+* `launchGui.bat` launches the application in graphical mode (Windows systems)
+* `launch.sh` launches the application (Linux/Macos systems)
+* `foomcli.bat` manages the application (Windows systems)
+* `foomcli.sh` manages the application (Linux/Macos systems)
 
-Available commands:
-* `launch.bat` launches the application using the bundled JRE.
-* `launch.bat --debug` launches the application using the bundled JRE in debug mode.
-* `launch.bat --systemjre` launches the application using your system JRE - you'll need a JRE v.11 (at least).
-* `launch.bat --debug --systemjre`  launches the application using your system JRE in debug mode.
+On Windows systems, Winfoom can be launched by double-click on `launchGui.bat` or
+from the command prompt:
 
-Winfoom can be launched with modified system or user parameters like this:
+`launch`
 
-`launch.bat "-Dsocket.soTimeout=10" "-Dconnection.request.timeout=60"`
+or, to run it in debug mode:
 
-> 👉 Note:The above command only works with Windows Command Prompt (not Windows Powershell)
+`launch --debug`
 
-The fastest way to run Winfoom is by double-click on `launch.bat` file.
+or, to run it in the graphical mode:
+
+`launch --gui`
+
+On Linux/Macos systems, there is no graphical mode available. Make sure the `*.sh` files are executable.
+To run Winfoom, execute in a terminal:
+
+`./launch.sh`
+
+or, to run it in debug mode:
+
+`./launch.sh --debug`
+
+Winfoom can be launched with modified Java and system parameters by defining the environment variable `FOOM_ARGS`. For example:
+
+`FOOM_ARGS=-Dsocket.soTimeout=10 -Dconnection.request.timeout=60`
+
+> 👉 Note: It's a good idea to add the Winfoom's directory to the PATH environment variable.
 
 ## Winfoom's logs
 The application log file is placed under `<user.home.dir>/.winfoom/logs` directory.
 
 ## Configuration
 ### User settings
+
+#### The graphical mode (Windows only)
 Winfoom has a graphical user interface that allows configuration.
  
 The first thing to select is the proxy type:
@@ -86,6 +111,116 @@ The first thing to select is the proxy type:
 5) `DIRECT` - no proxy, used for various testing environments
 
 Then fill in the required fields. You can use the field's tooltip to get more information.
+
+To put the application in `autostart` mode or `autodetect` mode see the `Settings` menu.
+
+#### The command line mode (all systems)
+If you run the application in non-graphical mode, Winfoom exposes an API accessible over HTTP on a local port (default 9999, configurable), 
+that allows configuration and management.
+
+The script `foomcli` provides easy access to this API. 
+
+To get help about the usage execute:
+
+`foomcli --help` (on Linux/Macos is `./foomcli.sh --help`)
+
+> 👉 Note: You can move the script `foomcli` whatever location you want. It is not required to be in the Winfoom's directory.
+
+_Examples_
+
+After launching Winfoom, check the status of the local proxy facade:
+
+`foomcli status`
+
+If the local proxy is stopped, you cat start it with:
+
+`foomcli start`
+
+but before that, you need to configure it. Execute:
+
+`foomcli config`
+
+to get the current configuration. You'll get something like:
+
+`{
+"proxyType" : "DIRECT",
+"localPort" : 3129,
+"proxyTestUrl" : "https://example.com"
+}
+`
+
+The output is in JSON format. The name of the fields is self-descriptive. 
+Suppose you want to configure Winfoom for a HTTP proxy. First, change the proxy type to HTTP with:
+
+`foomcli config -t http`
+
+Then, executing `foomcli config` again, the output is something like:
+
+`{
+"proxyType" : "HTTP",
+"proxyHost" : "",
+"proxyPort" : 0,
+"localPort" : 3129,
+"proxyTestUrl" : "http://example.com"
+}
+`
+
+To change the above values, copy the content of the output into a text file named, let's say, `http_config.json` 
+in the same directory, and edit the field's values accordingly:
+
+`{
+"proxyType" : "HTTP",
+"proxyHost" : "192.168.0.105",
+"proxyPort" : 80,
+"localPort" : 3129,
+"proxyTestUrl" : "http://example.com"
+}
+`
+
+To load the new values, execute:
+
+`foomcli config -f http_config.json`
+
+and check the new configuration with `foomcli config` to be sure everything is as expected.
+
+Now you can start the local proxy facade with `foomcli start`. 
+At this moment you should be able to use Winfoom as a proxy facade in your browser.
+
+If you want to shut down Winfoom then execute `foomcli shutdown`
+
+---
+
+To put Winfoom in autostart mode first execute:
+
+`foomcli settings`
+
+The output would be something like:
+
+`{
+"autostart" : false,
+"autodetect" : false,
+"appVersion" : "3.0.1",
+"apiPort" : 9999
+}
+`
+
+Copy the output into a file named, let's say, `settings.json` and modify accordingly:
+
+`{
+"autostart" : true
+}
+`
+
+Since we only modify the autostart option, the other fields are dropped off.
+
+To load the new values, execute:
+
+`foomcli settings -f settings.json`
+
+then check the new settings with `foomcli settings`
+
+> 👉 Note: If you modify the apiPort then you need to set the environment variable FOOM_LOCATION. 
+> (For example FOOM_LOCATION=localhost:<your new port>)
 
 ### System settings
 The system settings configuration file is `<user.home.dir>/.winfoom/system.properties`.
@@ -129,10 +264,6 @@ Now you should be able to access any URL without Firefox asking for credentials.
 
 _If you don't have an available proxy, you still can test WinFoom by installing [WinGate](https://www.wingate.com/) and configure it to act 
 as a NTML proxy._
-
-
-# Todo
-   - Linux/MacOS porting.
    
 # Coding Guidance
 
