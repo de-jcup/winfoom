@@ -12,32 +12,30 @@
 
 package org.kpax.winfoom.proxy;
 
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.impl.bootstrap.HttpServer;
-import org.apache.http.impl.bootstrap.ServerBootstrap;
-import org.apache.http.protocol.HttpContext;
-import org.apache.http.protocol.HttpRequestHandler;
+import org.apache.http.*;
+import org.apache.http.entity.*;
+import org.apache.http.impl.bootstrap.*;
+import org.apache.http.protocol.*;
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.kpax.winfoom.FoomApplicationTest;
-import org.kpax.winfoom.config.ProxyConfig;
-import org.kpax.winfoom.exception.PacFileException;
-import org.kpax.winfoom.pac.PacScriptEvaluator;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.ApplicationContext;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.junit.jupiter.api.extension.*;
+import org.kpax.winfoom.*;
+import org.kpax.winfoom.config.*;
+import org.kpax.winfoom.exception.*;
+import org.kpax.winfoom.pac.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.boot.test.context.*;
+import org.springframework.boot.test.mock.mockito.*;
+import org.springframework.context.*;
+import org.springframework.test.annotation.*;
+import org.springframework.test.context.*;
+import org.springframework.test.context.junit.jupiter.*;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URL;
+import java.io.*;
+import java.net.*;
+import java.util.*;
 
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @ExtendWith(SpringExtension.class)
@@ -75,6 +73,7 @@ class PacScriptEvaluatorTests {
     void loadPacFileContent_validLocalFile_NoError() throws Exception {
         when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(getClass().getClassLoader().getResource("proxy-simple.pac"));
         proxyController.callStopListeners();
+        pacScriptEvaluator.onStart();
         pacScriptEvaluator.findProxyForURL(new URI("http://google.com"));
     }
 
@@ -82,6 +81,7 @@ class PacScriptEvaluatorTests {
     void loadPacFileContent_validRemoteFile_NoError() throws Exception {
         when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(new URL("http://localhost:" + remoteServer.getLocalPort() + "/pacFile"));
         proxyController.callStopListeners();
+        pacScriptEvaluator.onStart();
         pacScriptEvaluator.findProxyForURL(new URI("http://google.com"));
     }
 
@@ -91,8 +91,21 @@ class PacScriptEvaluatorTests {
         when(proxyConfig.getProxyPacFileLocationAsURL()).thenReturn(getClass().getClassLoader().getResource("proxy-invalid.pac"));
         proxyController.callStopListeners();
         Assertions.assertThrows(PacFileException.class, () -> {
+            pacScriptEvaluator.onStart();
             pacScriptEvaluator.findProxyForURL(new URI("http://google.com"));
         });
+    }
+
+    @Test
+    void findProxyForURL_AllHelperMethods_NoError()
+            throws Exception {
+        when(proxyConfig.getProxyPacFileLocationAsURL()).
+                thenReturn(getClass().getClassLoader().getResource("proxy-simple-all-helpers.pac"));
+        proxyController.callStopListeners();
+        pacScriptEvaluator.onStart();
+        List<ProxyInfo> proxies = pacScriptEvaluator.findProxyForURL(new URI("http://host:80/path?param1=val"));
+        assertEquals(1, proxies.size());
+        assertTrue(proxies.get(0).getType().isDirect());
     }
 
     @AfterAll

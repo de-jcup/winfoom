@@ -110,7 +110,6 @@ public class PacProxyClientConnectionTests {
             }
         }).create();
         remoteServer.start();
-        proxyController.start();
     }
 
     @Order(1)
