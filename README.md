@@ -24,6 +24,8 @@ This way, the software application will only have to deal with a basic proxy wit
 
 An example of such a facade for NTLM proxies is [CNTLM](http://cntlm.sourceforge.net/)
 
+> 👉 Note: Currently, on Linux/Macos the Kerberos proxy is not supported yet.
+
 # Getting Started
 ## Download Winfoom
 ### Download prepackaged
