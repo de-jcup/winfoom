@@ -122,6 +122,9 @@ that allows configuration and management.
 
 The script `foomcli` provides easy access to this API. 
 
+> 👉 Note: The `foomcli` script requires `curl`. The current version of WIndows 10 provides it by default.
+> You can check if it is available by executing `curl --version` in your terminal. If you see something like `command not found` then you need to manually install it.
+
 To get help about the usage execute:
 
 `foomcli --help` (on Linux/Macos is `./foomcli.sh --help`)
