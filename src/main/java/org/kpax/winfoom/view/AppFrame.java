@@ -30,13 +30,14 @@ import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
+import java.util.concurrent.*;
 
 @Profile("gui")
 @Component
 public class AppFrame extends JFrame {
     private static final long serialVersionUID = 4009799697210970761L;
 
-    private static final Logger logger = LoggerFactory.getLogger(AppFrame.class);
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private static final int ICON_SIZE = 16;
 
@@ -158,14 +159,17 @@ public class AppFrame extends JFrame {
     }
 
     public void activate() {
-        if (proxyConfig.isAutostart()) {
-            getBtnStart().doClick();
-            dispatchEvent(new WindowEvent(
-                    this, WindowEvent.WINDOW_ICONIFIED));
-        } else {
-            focusOnStartButton();
-            setVisible(true);
-        }
+        boolean started = proxyConfig.isAutostart() && startServer();
+        EventQueue.invokeLater(() -> {
+            if (started) {
+                getBtnStop().requestFocus();
+                dispatchEvent(new WindowEvent(
+                        this, WindowEvent.WINDOW_ICONIFIED));
+            } else {
+                focusOnStartButton();
+                setVisible(true);
+            }
+        });
     }
 
     private boolean autoDetectProxySettings() {
@@ -399,7 +403,7 @@ public class AppFrame extends JFrame {
         if (btnTest == null) {
             btnTest = new JButton("Test");
             btnTest.setMargin(new Insets(2, 6, 2, 6));
-            btnTest.addActionListener(event -> SwingUtils.executeRunnable(() -> {
+            btnTest.addActionListener(event -> SwingUtils.executeCallable(Executors.callable(() -> {
                 setBtnEnable(false);
                 try {
                     String testURL = JOptionPane.showInputDialog(AppFrame.this, "Test URL*:", proxyConfig.getProxyTestUrl());
@@ -418,9 +422,7 @@ public class AppFrame extends JFrame {
                 } finally {
                     setBtnEnable(true);
                 }
-
-
-            }, AppFrame.this));
+            }), AppFrame.this));
             btnTest.setIcon(new TunedImageIcon("test.png"));
             btnTest.setToolTipText("Test the proxy settings");
             btnTest.setEnabled(false);
@@ -434,11 +436,11 @@ public class AppFrame extends JFrame {
             btnAutoDetect.setMargin(new Insets(2, 6, 2, 6));
             btnAutoDetect.setIcon(new TunedImageIcon("system-search.png"));
             btnAutoDetect.addActionListener((event) -> {
-                SwingUtils.executeRunnable(() -> {
+                SwingUtils.executeCallable(Executors.callable(() -> {
                             if (autoDetectProxySettings()) {
                                 applyProxyType();
                             }
-                        }, AppFrame.this
+                        }), AppFrame.this
                 );
             });
             btnAutoDetect.setToolTipText(HttpUtils.toHtml("Attempt to load the system's current proxy settings"));
@@ -712,7 +714,8 @@ public class AppFrame extends JFrame {
         return true;
     }
 
-    private void startServer() {
+    private boolean startServer() {
+        logger.debug("Prepare for starting the local server");
         if (proxyConfig.getProxyType().isSocks5()) {
             if (StringUtils.isNotEmpty(proxyConfig.getProxySocks5Username())
                     && StringUtils.isEmpty(proxyConfig.getProxySocks5Password())) {
@@ -721,12 +724,14 @@ public class AppFrame extends JFrame {
                                 "\nDo you still want to proceed?", "Warning", JOptionPane.OK_CANCEL_OPTION,
                         JOptionPane.WARNING_MESSAGE);
                 if (option != JOptionPane.OK_OPTION) {
-                    return;
+                    return false;
                 }
             }
         }
+        logger.debug("Disable all components");
         disableAll();
-        SwingUtils.executeRunnable(() -> {
+        logger.debug("Now start the server ");
+        return SwingUtils.executeCallable(() -> {
             if (isValidInput()) {
                 try {
                     proxyController.start();
@@ -735,6 +740,7 @@ public class AppFrame extends JFrame {
                     if (proxyConfig.isAutoConfig()) {
                         getBtnCancelBlacklist().setEnabled(true);
                     }
+                    return true;
                 } catch (Exception e) {
                     logger.error("Error on starting proxy server", e);
                     enableInput();
@@ -744,8 +750,8 @@ public class AppFrame extends JFrame {
             } else {
                 enableInput();
             }
+            return false;
         }, this);
-
     }
 
     private void stopServer() {

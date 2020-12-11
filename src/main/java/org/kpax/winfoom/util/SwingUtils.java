@@ -15,6 +15,7 @@
 package org.kpax.winfoom.util;
 
 import org.kpax.winfoom.annotation.*;
+import org.slf4j.*;
 import org.springframework.util.*;
 
 import javax.imageio.*;
@@ -24,6 +25,7 @@ import java.awt.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * Various Swing related methods.
@@ -31,6 +33,8 @@ import java.util.*;
  * @author Eugen Covaci
  */
 public class SwingUtils {
+
+    private static final Logger logger = LoggerFactory.getLogger(SwingUtils.class);
 
     private static final String DLG_ERR_TITLE = "Winfoom: Error";
 
@@ -132,25 +136,31 @@ public class SwingUtils {
     }
 
     /**
-     * Execute a {@link Runnable}, showing a waiting cursor until the execution ends.
+     * Execute a {@link Callable}, showing a waiting cursor until the execution ends.
      *
-     * @param runnable the {@link Runnable} instance (not null)
+     * @param callable the {@link Callable} instance (not null)
      * @param frame    the current {@link JFrame}
      */
-    public static void executeRunnable(@NotNull final Runnable runnable, @NotNull final JFrame frame) {
-        Assert.notNull(runnable, "runnable cannot be null");
-        Assert.notNull(frame, "frame cannot be null");
-        frame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-        Thread thread = new Thread(() -> {
+    public static <T> T executeCallable(@NotNull final Callable<T> callable, @NotNull final JFrame frame) {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        try {
+            Future<T> future = executorService.submit(callable);
+            frame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
             try {
-                runnable.run();
+                return future.get();
+            } catch (InterruptedException e) {
+                logger.error("Execution interrupted", e);
+                return null;
+            } catch (ExecutionException e) {
+                logger.warn("Error on computing the Callable instance, this isn't supposed to happen", e);
+                return null;
             } finally {
                 EventQueue.invokeLater(() ->
                         frame.setCursor(Cursor.getDefaultCursor()));
             }
-        });
-        thread.setDaemon(true);
-        thread.start();
+        } finally {
+            executorService.shutdownNow();
+        }
     }
 
     /**
