@@ -16,23 +16,40 @@ package org.kpax.winfoom.config;
 import java.util.*;
 import java.util.stream.*;
 
+/**
+ * Provide information about the current operating system, Spring's active profiles.
+ */
 public class SystemContext {
 
+    /**
+     * The name of the current operating system.
+     */
     public static final String OS_NAME = System.getProperty("os.name");
 
+    /**
+     * Is Windows the current operating system?
+     */
     public static final boolean IS_OS_WINDOWS = OS_NAME.toLowerCase(Locale.ROOT).startsWith("windows");
 
+    /**
+     * The list of provided Spring active profiles with the {@code windows} profile appended
+     * if the current operating system is Windows.
+     */
     public static final List<String> PROFILES =
             Optional.ofNullable(System.getProperty("spring.profiles.active")).
-                    map(s -> Arrays.asList((s + (IS_OS_WINDOWS ? ",windows" : "")).split(","))).
+                    map(s -> List.of((s + (IS_OS_WINDOWS ? ",windows" : "")).split(","))).
                     orElse(IS_OS_WINDOWS ? Collections.singletonList("windows") : Collections.emptyList());
 
-    public static void setProfiles() {
-        System.setProperty("spring.profiles.active", PROFILES.stream().collect(Collectors.joining(",")));
-    }
+    /**
+     * Is the application running in graphical mode?
+     */
+    public static boolean IS_GUI_MODE = PROFILES.contains("gui");
 
-    public static boolean isGuiMode() {
-        return PROFILES.contains("gui");
+    /**
+     * Apply {@link #PROFILES}'s content to the {@code spring.profiles.active} environment variable.
+     */
+    public static void setSpringActiveProfiles() {
+        System.setProperty("spring.profiles.active", PROFILES.stream().collect(Collectors.joining(",")));
     }
 
 }

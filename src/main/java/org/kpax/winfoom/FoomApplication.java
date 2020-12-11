@@ -49,7 +49,7 @@ public class FoomApplication {
     }
 
     public static void main(String[] args) {
-        if (SystemContext.isGuiMode() && !SystemContext.IS_OS_WINDOWS) {
+        if (SystemContext.IS_GUI_MODE && !SystemContext.IS_OS_WINDOWS) {
             logger.error("Graphical mode is not supported on " + SystemContext.OS_NAME + ", exit the application");
             System.exit(1);
         }
@@ -59,7 +59,7 @@ public class FoomApplication {
             logger.info("Application shutdown at: {}", new Date());
         }));
 
-        if (SystemContext.isGuiMode()) {
+        if (SystemContext.IS_GUI_MODE) {
             try {
                 UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
             } catch (Exception e) {
@@ -72,7 +72,7 @@ public class FoomApplication {
             checkAppVersion();
         } catch (Exception e) {
             logger.error("Failed to verify app version", e);
-            if (SystemContext.isGuiMode()) {
+            if (SystemContext.IS_GUI_MODE) {
                 SwingUtils.showErrorMessage(String.format("Failed to verify application version.<br>" +
                                 "Remove the %s directory then try again.",
                         Paths.get(System.getProperty("user.home"), SystemConfig.APP_HOME_DIR_NAME)));
@@ -80,14 +80,14 @@ public class FoomApplication {
             System.exit(1);
         }
 
-        SystemContext.setProfiles();
+        SystemContext.setSpringActiveProfiles();
 
         logger.info("Bootstrap Spring's application context");
         try {
             SpringApplication.run(FoomApplication.class, args);
         } catch (Exception e) {
             logger.error("Error on bootstrapping Spring's application context", e);
-            if (SystemContext.isGuiMode()) {
+            if (SystemContext.IS_GUI_MODE) {
                 SwingUtils.showErrorMessage("Failed to launch the application." +
                         "<br>Please check the application's log file.");
             }
@@ -126,7 +126,7 @@ public class FoomApplication {
                             logger.info("Backup the existent proxy.properties file since is invalid" +
                                     " (from a previous incompatible version)");
                             InputOutputs.backupFile(proxyConfigPath,
-                                    SystemContext.isGuiMode(),
+                                    SystemContext.IS_GUI_MODE,
                                     StandardCopyOption.REPLACE_EXISTING);
                         }
                     }
@@ -134,17 +134,17 @@ public class FoomApplication {
                     logger.info("Version not found within proxy.properties, " +
                             "backup both config files since they are invalid (from a previous incompatible version)");
                     InputOutputs.backupFile(proxyConfigPath,
-                            SystemContext.isGuiMode(),
+                            SystemContext.IS_GUI_MODE,
                             StandardCopyOption.REPLACE_EXISTING);
                     InputOutputs.backupFile(appHomePath.resolve(SystemConfig.FILENAME),
-                            SystemContext.isGuiMode(),
+                            SystemContext.IS_GUI_MODE,
                             StandardCopyOption.REPLACE_EXISTING);
                 }
             } else {
                 logger.info("No proxy.properties found, backup the system.properties file " +
                         "since is invalid (from a previous incompatible version)");
                 InputOutputs.backupFile(appHomePath.resolve(SystemConfig.FILENAME),
-                        SystemContext.isGuiMode(),
+                        SystemContext.IS_GUI_MODE,
                         StandardCopyOption.REPLACE_EXISTING);
             }
         }
