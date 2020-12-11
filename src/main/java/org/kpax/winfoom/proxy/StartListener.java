@@ -20,6 +20,6 @@ package org.kpax.winfoom.proxy;
  * @see org.kpax.winfoom.annotation.TypeQualifier
  */
 @FunctionalInterface
-public interface StartupListener {
+public interface StartListener {
     void onStart() throws Exception;
 }

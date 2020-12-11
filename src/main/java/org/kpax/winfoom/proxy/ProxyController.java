@@ -58,18 +58,18 @@ public class ProxyController {
      */
     public synchronized void start() throws Exception {
         Assert.state(!started, "Already started");
-        List<StartupListener> startupListeners = Stream.of(applicationContext.getBeanNamesForType(StartupListener.class)).
+        List<StartListener> startListeners = Stream.of(applicationContext.getBeanNamesForType(StartListener.class)).
                 map(applicationContext.getBeanFactory()::getSingleton).
-                filter(Objects::nonNull).map(b -> (StartupListener) b).collect(Collectors.toList());
+                filter(Objects::nonNull).map(b -> (StartListener) b).collect(Collectors.toList());
         try {
-            for (StartupListener startupListener : startupListeners) {
-                TypeQualifier typeQualifier = startupListener.getClass().getMethod("onStart").
+            for (StartListener startListener : startListeners) {
+                TypeQualifier typeQualifier = startListener.getClass().getMethod("onStart").
                         getDeclaredAnnotation(TypeQualifier.class);
                 if (typeQualifier == null || typeQualifier.value() == proxyConfig.getProxyType()) {
-                    logger.debug("Call onBeforeStart for: {}", startupListener.getClass());
-                    startupListener.onStart();
+                    logger.debug("Call onBeforeStart for: {}", startListener.getClass());
+                    startListener.onStart();
                 } else {
-                    logger.debug("onBeforeStart ignored for {}", startupListener.getClass());
+                    logger.debug("onBeforeStart ignored for {}", startListener.getClass());
                 }
             }
         } catch (Exception e) {

@@ -57,7 +57,7 @@ import java.util.*;
 @ThreadSafe
 @Order(3)
 @Component
-public class PacScriptEvaluator implements StartupListener, StopListener {
+public class PacScriptEvaluator implements StartListener, StopListener {
 
     private final Logger logger = LoggerFactory.getLogger(PacScriptEvaluator.class);
 
