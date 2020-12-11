@@ -30,7 +30,6 @@ import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
-import java.util.concurrent.*;
 
 @Profile("gui")
 @Component
@@ -403,7 +402,7 @@ public class AppFrame extends JFrame {
         if (btnTest == null) {
             btnTest = new JButton("Test");
             btnTest.setMargin(new Insets(2, 6, 2, 6));
-            btnTest.addActionListener(event -> SwingUtils.executeCallable(Executors.callable(() -> {
+            btnTest.addActionListener(event -> SwingUtils.executeRunnable(() -> {
                 setBtnEnable(false);
                 try {
                     String testURL = JOptionPane.showInputDialog(AppFrame.this, "Test URL*:", proxyConfig.getProxyTestUrl());
@@ -422,7 +421,7 @@ public class AppFrame extends JFrame {
                 } finally {
                     setBtnEnable(true);
                 }
-            }), AppFrame.this));
+            }, AppFrame.this));
             btnTest.setIcon(new TunedImageIcon("test.png"));
             btnTest.setToolTipText("Test the proxy settings");
             btnTest.setEnabled(false);
@@ -436,11 +435,11 @@ public class AppFrame extends JFrame {
             btnAutoDetect.setMargin(new Insets(2, 6, 2, 6));
             btnAutoDetect.setIcon(new TunedImageIcon("system-search.png"));
             btnAutoDetect.addActionListener((event) -> {
-                SwingUtils.executeCallable(Executors.callable(() -> {
+                SwingUtils.executeRunnable(() -> {
                             if (autoDetectProxySettings()) {
                                 applyProxyType();
                             }
-                        }), AppFrame.this
+                        }, AppFrame.this
                 );
             });
             btnAutoDetect.setToolTipText(HttpUtils.toHtml("Attempt to load the system's current proxy settings"));

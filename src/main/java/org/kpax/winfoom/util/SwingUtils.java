@@ -15,8 +15,8 @@
 package org.kpax.winfoom.util;
 
 import org.kpax.winfoom.annotation.*;
+import org.kpax.winfoom.util.functional.*;
 import org.slf4j.*;
-import org.springframework.util.*;
 
 import javax.imageio.*;
 import javax.swing.*;
@@ -161,6 +161,17 @@ public class SwingUtils {
         } finally {
             executorService.shutdownNow();
         }
+    }
+
+    /**
+     * Execute a {@link Runnable} within the dispatch thread of the Swing's system EventQueue,
+     * showing a waiting cursor until the execution ends.
+     *
+     * @param runnable the {@link Runnable} instance (not null)
+     * @param frame    the current {@link JFrame}
+     */
+    public static void executeRunnable(@NotNull final Runnable runnable, @NotNull final JFrame frame) {
+        executeCallable(new InvokeLaterCallable<>(runnable), frame);
     }
 
     /**
