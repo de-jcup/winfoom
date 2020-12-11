@@ -14,7 +14,7 @@
 
 @echo off
 
-setlocal EnableExpansion
+setlocal EnableExtensions
 
 set ARGS=-server -XX:+UseG1GC -XX:MaxHeapFreeRatio=30 -XX:MinHeapFreeRatio=10 -Dswing.aatext=true -Dspring.profiles.active=gui
 
