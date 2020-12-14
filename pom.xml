@@ -172,9 +172,10 @@
                 <executions>
                     <execution>
                         <id>makeRelease</id> <!--Run with `mvn antrun:run@makeRelease`-->
-                        <phase>none</phase>
+                        <phase>package</phase>
                         <configuration>
                             <target>
+                                <echo>Generate the release archive</echo>
                                 <mkdir dir="${project.build.directory}/release"/>
                                 <echo>Copy the *.bat files to release directory</echo>
                                 <copy todir="${project.build.directory}/release">
