@@ -11,7 +11,7 @@
  *
  */
 
-package org.kpax.winfoom.config;
+package org.kpax.winfoom.util;
 
 import org.apache.commons.lang3.*;
 

@@ -11,13 +11,14 @@
  *
  */
 
-package org.kpax.winfoom.api.auth;
+package org.kpax.winfoom.proxy;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.auth.*;
 import org.apache.http.client.*;
 import org.kpax.winfoom.config.*;
-import org.kpax.winfoom.proxy.*;
 import org.kpax.winfoom.util.functional.*;
+import org.springframework.util.*;
 
 /**
  * The {@link CredentialsProvider} for non Windows systems.
@@ -32,9 +33,13 @@ public class NonWindowsCredentialsProvider implements CredentialsProvider, StopL
     }
 
     private SingletonSupplier<NTCredentials> ntCredentialsSupplier = new SingletonSupplier<NTCredentials>(() -> {
+        Assert.state(StringUtils.isNotEmpty(proxyConfig.getProxyHttpUsername()), "proxyConfig.proxyHttpUsername cannot be empty");
+        Assert.state(StringUtils.isNotEmpty(proxyConfig.getProxyHttpPassword()), "proxyConfig.proxyHttpPassword cannot be empty");
         int backslashIndex = proxyConfig.getProxyHttpUsername().indexOf('\\');
+        Assert.state(backslashIndex < proxyConfig.getProxyHttpUsername().length() - 1, "proxyConfig.proxyHttpUsername is invalid: missing username");
         String domain = backslashIndex > -1 ? proxyConfig.getProxyHttpUsername().substring(0, backslashIndex) : null;
-        return new NTCredentials(proxyConfig.getProxyHttpUsername(), proxyConfig.getProxyHttpPassword(), null, domain);
+        String username = backslashIndex > -1 ? proxyConfig.getProxyHttpUsername().substring(backslashIndex + 1) : proxyConfig.getProxyHttpUsername();
+        return new NTCredentials(username, proxyConfig.getProxyHttpPassword(), null, domain);
     });
 
 

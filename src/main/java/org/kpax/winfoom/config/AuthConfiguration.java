@@ -19,7 +19,7 @@ import org.apache.http.config.*;
 import org.apache.http.impl.auth.*;
 import org.apache.http.impl.auth.win.*;
 import org.apache.http.impl.client.*;
-import org.kpax.winfoom.api.auth.*;
+import org.kpax.winfoom.proxy.*;
 import org.springframework.context.annotation.*;
 
 /**
@@ -27,7 +27,7 @@ import org.springframework.context.annotation.*;
  * Created on 1/24/2020
  */
 @Configuration
-class WebConfiguration {
+class AuthConfiguration {
 
     /**
      * Create the default system wide {@link CredentialsProvider} for Windows OS.
@@ -62,9 +62,7 @@ class WebConfiguration {
     @Bean
     public Registry<AuthSchemeProvider> nonWindowsAuthSchemeRegistry() {
         return RegistryBuilder.<AuthSchemeProvider>create()
-                .register(AuthSchemes.BASIC, new BasicSchemeFactory())
-                .register(AuthSchemes.DIGEST, new DigestSchemeFactory())
-                .register(AuthSchemes.NTLM, new WindowsNTLMSchemeFactory(null))
+                .register(AuthSchemes.NTLM, new NTLMSchemeFactory())
                 .build();
     }
 
