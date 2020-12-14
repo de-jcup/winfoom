@@ -63,6 +63,7 @@ class AuthConfiguration {
     public Registry<AuthSchemeProvider> nonWindowsAuthSchemeRegistry() {
         return RegistryBuilder.<AuthSchemeProvider>create()
                 .register(AuthSchemes.NTLM, new NTLMSchemeFactory())
+                .register(AuthSchemes.BASIC, new BasicSchemeFactory())
                 .build();
     }
 

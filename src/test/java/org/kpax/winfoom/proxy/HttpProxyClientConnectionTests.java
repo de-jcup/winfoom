@@ -128,6 +128,7 @@ class HttpProxyClientConnectionTests {
     @Test
     @Order(1)
     void httpProxy_NonConnect_True() throws IOException {
+        when(proxyConfig.getProxyHost()).thenReturn("localhost");
         HttpHost localProxy = new HttpHost("localhost", LOCAL_PROXY_PORT, "http");
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
             RequestConfig config = RequestConfig.custom()
