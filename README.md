@@ -12,7 +12,7 @@ If you find this application helpful, don't forget to give it a star ⭐
 # Overview
 Winfoom is an HTTP(s) proxy server facade that allows applications to authenticate through the following proxies: 
 
-* NTML or Kerberos HTTP authenticated proxy
+* NTLM or Kerberos HTTP authenticated proxy
 * SOCKS version 4 or 5, with or without authentication
 * Proxy Auto Config files - including Mozilla Firefox extension that is not part of original Netscape specification
 
