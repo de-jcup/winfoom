@@ -165,58 +165,6 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>3.0.0</version>
-                <executions>
-                    <execution>
-                        <id>makeRelease</id> <!--Run with `mvn antrun:run@makeRelease`-->
-                        <phase>package</phase>
-                        <configuration>
-                            <target>
-                                <echo>Generate the release archive</echo>
-                                <mkdir dir="${project.build.directory}/release"/>
-                                <echo>Copy the *.bat files to release directory</echo>
-                                <copy todir="${project.build.directory}/release">
-                                    <fileset dir="${project.basedir}/assets/batch">
-                                        <include name="**/*.bat"/>
-                                    </fileset>
-                                </copy>
-                                <echo>Copy the *.sh files to release directory</echo>
-                                <copy todir="${project.build.directory}/release">
-                                    <fileset dir="${project.basedir}/assets/shell">
-                                        <include name="**/*.sh"/>
-                                    </fileset>
-                                </copy>
-                                <echo>Copy the .jar file to release directory</echo>
-                                <copy todir="${project.build.directory}/release">
-                                    <fileset dir="${project.build.directory}">
-                                        <include name="winfoom.jar"/>
-                                    </fileset>
-                                </copy>
-                                <echo>Copy the LICENSE file to release directory</echo>
-                                <copy todir="${project.build.directory}/release">
-                                    <fileset dir="${project.basedir}">
-                                        <include name="LICENSE"/>
-                                    </fileset>
-                                </copy>
-                                <echo>Make the release archive</echo>
-                                <zip destfile="${project.build.directory}/release/winfoom.zip"
-                                    basedir="${project.build.directory}/release" excludes="*.zip">
-                                </zip>
-                                <echo>Clean up</echo>
-                                <delete>
-                                    <fileset dir="${project.build.directory}/release" excludes="*.zip" />
-                                </delete>
-                            </target>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
     </build>
 </project>

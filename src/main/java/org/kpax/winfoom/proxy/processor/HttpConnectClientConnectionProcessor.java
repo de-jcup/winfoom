@@ -53,7 +53,10 @@ class HttpConnectClientConnectionProcessor extends ClientConnectionProcessor {
                 clientConnection.write(tunnel.getStatusLine());
 
                 for (Header header : tunnel.getResponse().getAllHeaders()) {
-                    logger.debug("Write header {}", header);
+                    if (!HttpHeaders.PROXY_AUTHENTICATE.equalsIgnoreCase(header.getName())) {
+                        logger.debug("Write header {}", header);
+                        clientConnection.write(header);
+                    }
                     clientConnection.write(header);
                 }
 

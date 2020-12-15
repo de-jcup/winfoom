@@ -36,6 +36,7 @@ import org.springframework.stereotype.*;
 import javax.annotation.*;
 import java.io.*;
 import java.lang.reflect.*;
+import java.util.concurrent.*;
 
 /**
  * Open an API server and map various request handlers.
@@ -264,7 +265,15 @@ public class ApiController implements AutoCloseable {
                             public void doGet(HttpRequest request, HttpResponse response, HttpContext context)
                                     throws IOException {
                                 logger.debug("'shutdown' command received");
-                                applicationContext.close();
+                                new Thread(() -> {
+                                    // Give this request time to properly finish
+                                    try {
+                                        Thread.sleep(1000);
+                                    } catch (InterruptedException e) {
+                                       // Ignore
+                                    }
+                                    applicationContext.close();
+                                }).start();
                                 response.setEntity(new StringEntity("Application has been shutdown"));
                             }
                         }).create();
@@ -274,7 +283,11 @@ public class ApiController implements AutoCloseable {
 
     @Override
     public void close() {
-        logger.debug("Stop the api server");
-        apiServer.stop();
+        logger.info("Stop the api server");
+        try {
+            apiServer.shutdown(0, TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            logger.debug("Error on stopping API server", e);
+        }
     }
 }
