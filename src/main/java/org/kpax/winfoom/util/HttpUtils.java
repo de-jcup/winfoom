@@ -506,9 +506,16 @@ public final class HttpUtils {
         return null;
     }
 
-    public static String removeCRAndLF(String reasonPhrase) {
-        if (reasonPhrase != null) {
-            return reasonPhrase.replaceAll("(\\r|\\n)", " ");
+    /**
+     * Remove CR and LF characters by replacing them with the {@code replacement} String.
+     *
+     * @param input       the input
+     * @param replacement the string to be substituted for each match
+     * @return The resulting String
+     */
+    public static String replaceCRAndLF(String input, @NotNull String replacement) {
+        if (input != null) {
+            return input.replaceAll("(\\r|\\n)", replacement);
         }
         return null;
     }

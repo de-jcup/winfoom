@@ -295,7 +295,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
         logger.debug("Write error response: statusCode = {}  reasonPhrase = [{}]", statusCode, reasonPhrase);
         try {
             write(HttpUtils.toStatusLine(request != null ? request.getProtocolVersion() : HttpVersion.HTTP_1_1,
-                    statusCode, HttpUtils.removeCRAndLF(reasonPhrase)));
+                    statusCode, HttpUtils.replaceCRAndLF(reasonPhrase, StringUtils.SPACE)));
             write(HttpUtils.createHttpHeader(HTTP.DATE_HEADER, HttpUtils.getCurrentDate()));
             writeln();
         } catch (Exception ex) {

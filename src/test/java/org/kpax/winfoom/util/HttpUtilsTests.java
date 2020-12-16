@@ -12,6 +12,7 @@
 
 package org.kpax.winfoom.util;
 
+import org.apache.commons.lang3.*;
 import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpRequest;
@@ -19,14 +20,12 @@ import org.apache.http.HttpVersion;
 import org.apache.http.entity.ContentType;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicHttpRequest;
-import org.assertj.core.internal.Predicates;
 import org.junit.jupiter.api.Test;
 import org.kpax.winfoom.proxy.ProxyInfo;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
-import java.util.function.Predicate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -197,18 +196,18 @@ class HttpUtilsTests {
     @Test
     void removeCRAndLF_NoneExist_TheSame () {
         String s = "bla?foo";
-        assertEquals(s, HttpUtils.removeCRAndLF(s));
+        assertEquals(s, HttpUtils.replaceCRAndLF(s, StringUtils.SPACE));
     }
 
     @Test
     void removeCRAndLF_CRExist_CRRemoved () {
         String s = "bla\rfoo";
-        assertEquals("bla foo", HttpUtils.removeCRAndLF(s));
+        assertEquals("bla foo", HttpUtils.replaceCRAndLF(s, StringUtils.SPACE));
     }
 
     @Test
     void removeCRAndLF_LFExist_CRRemoved () {
         String s = "bla\nfoo";
-        assertEquals("bla foo", HttpUtils.removeCRAndLF(s));
+        assertEquals("bla foo", HttpUtils.replaceCRAndLF(s, StringUtils.SPACE));
     }
 }
