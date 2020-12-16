@@ -292,6 +292,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
      * @param reasonPhrase the request's reason code
      */
     public void writeErrorResponse(int statusCode, String reasonPhrase) {
+        logger.debug("Write error response: statusCode = {}  reasonPhrase = [{}]", statusCode, reasonPhrase);
         try {
             write(HttpUtils.toStatusLine(request != null ? request.getProtocolVersion() : HttpVersion.HTTP_1_1,
                     statusCode, reasonPhrase));
