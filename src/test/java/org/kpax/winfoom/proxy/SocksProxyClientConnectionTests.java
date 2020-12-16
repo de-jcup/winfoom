@@ -43,6 +43,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.IOException;
+import java.util.concurrent.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.kpax.winfoom.TestConstants.LOCAL_PROXY_PORT;
@@ -178,7 +179,7 @@ public class SocksProxyClientConnectionTests {
     @AfterAll
     void after() {
         socksRemoteProxyServer.stop();
-        remoteServer.stop();
+        remoteServer.shutdown(0, TimeUnit.MILLISECONDS);
         when(proxyConfig.getProxyType()).thenReturn(ProxyConfig.Type.SOCKS4);
         proxyController.stop();
     }

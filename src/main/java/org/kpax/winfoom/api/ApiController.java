@@ -45,6 +45,8 @@ import java.util.concurrent.*;
 @Component
 public class ApiController implements AutoCloseable {
 
+    private static final int SHUTDOWN_GRACE_PERIOD = 1000;
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private HttpServer apiServer;
@@ -265,16 +267,8 @@ public class ApiController implements AutoCloseable {
                             public void doGet(HttpRequest request, HttpResponse response, HttpContext context)
                                     throws IOException {
                                 logger.debug("'shutdown' command received");
-                                new Thread(() -> {
-                                    // Give this request time to properly finish
-                                    try {
-                                        Thread.sleep(1000);
-                                    } catch (InterruptedException e) {
-                                       // Ignore
-                                    }
-                                    applicationContext.close();
-                                }).start();
-                                response.setEntity(new StringEntity("Application has been shutdown"));
+                                new Thread(applicationContext::close).start();
+                                response.setEntity(new StringEntity("Shutdown initiated"));
                             }
                         }).create();
         apiServer.start();
@@ -285,6 +279,11 @@ public class ApiController implements AutoCloseable {
     public void close() {
         logger.info("Stop the api server");
         try {
+            try {
+                apiServer.awaitTermination(SHUTDOWN_GRACE_PERIOD, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException e) {
+                // Ignore
+            }
             apiServer.shutdown(0, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             logger.debug("Error on stopping API server", e);

@@ -50,6 +50,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.time.Instant;
 import java.util.Map;
+import java.util.concurrent.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.kpax.winfoom.TestConstants.LOCAL_PROXY_PORT;
@@ -431,7 +432,7 @@ public class PacProxyClientConnectionTests {
 
     @AfterAll
     void after() {
-        remoteServer.stop();
+        remoteServer.shutdown(0, TimeUnit.MILLISECONDS);
         when(proxyConfig.getProxyType()).thenReturn(ProxyConfig.Type.PAC);
         proxyController.stop();
     }

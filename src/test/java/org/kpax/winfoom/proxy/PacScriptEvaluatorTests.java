@@ -33,6 +33,7 @@ import org.springframework.test.context.junit.jupiter.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.concurrent.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -110,6 +111,6 @@ class PacScriptEvaluatorTests {
 
     @AfterAll
     void after() {
-        remoteServer.stop();
+        remoteServer.shutdown(0, TimeUnit.MILLISECONDS);
     }
 }
