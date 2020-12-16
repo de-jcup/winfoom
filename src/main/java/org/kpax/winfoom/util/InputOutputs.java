@@ -85,10 +85,9 @@ public final class InputOutputs {
     }
 
     public static String generateCacheFilename() {
-        return new StringBuffer()
-                .append(System.nanoTime())
-                .append("-")
-                .append((int) (Math.random() * 100)).toString();
+        return System.nanoTime() +
+                "-" +
+                (int) (Math.random() * 100);
     }
 
 

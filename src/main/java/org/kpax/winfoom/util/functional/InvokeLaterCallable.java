@@ -28,7 +28,7 @@ public class InvokeLaterCallable<V> implements Callable<V> {
     }
 
     @Override
-    public V call() throws Exception {
+    public V call() {
         EventQueue.invokeLater(task);
         return null;
     }

@@ -169,7 +169,7 @@ public class ApiController implements AutoCloseable {
                                     response.setEntity(new StringEntity(new ObjectMapper().
                                             configure(MapperFeature.DEFAULT_VIEW_INCLUSION, false).
                                             writerWithDefaultPrettyPrinter().
-                                            withView(Views.getViewForType((ProxyConfig.Type) proxyConfig.getProxyType())).
+                                            withView(Views.getViewForType(proxyConfig.getProxyType())).
                                             writeValueAsString(proxyConfig)));
                                 } catch (Exception e) {
                                     logger.error("Error on serializing proxy configuration", e);

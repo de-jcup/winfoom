@@ -91,7 +91,7 @@ public class PacScriptEvaluator implements StartListener, StopListener {
     /**
      * The supplier for the sharable {@link Engine} instance.
      */
-    private SingletonSupplier<Engine> engineSingletonSupplier = new SingletonSupplier<>(() ->
+    private final SingletonSupplier<Engine> engineSingletonSupplier = new SingletonSupplier<>(() ->
             Engine.newBuilder().allowExperimentalOptions(true).build()
     );
 

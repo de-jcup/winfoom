@@ -172,13 +172,19 @@ public class ProxyConfig {
                 throw new InvalidProxySettingsException("Invalid proxy port");
             }
             if (!SystemContext.IS_OS_WINDOWS && proxyType.isHttp()) {
-                if (StringUtils.isEmpty(getProxyHttpUsername())) {
+                if (StringUtils.isEmpty(proxyHttpUsername)) {
                     throw new InvalidProxySettingsException("Missing proxy username");
+                } else {
+                    int backslashIndex = proxyHttpUsername.indexOf('\\');
+                    // Check whether it begins or ends with '\' character
+                    if (backslashIndex == 0 ||
+                            backslashIndex == proxyHttpUsername.length() - 1) {
+                        throw new InvalidProxySettingsException("The proxy username is invalid");
+                    }
                 }
-                if (StringUtils.isEmpty(getProxyHttpPassword())) {
+                if (StringUtils.isEmpty(proxyHttpPassword)) {
                     throw new InvalidProxySettingsException("Missing proxy password");
                 }
-
             }
         } else if (proxyType.isPac()) {
             if (StringUtils.isEmpty(proxyPacFileLocation)) {

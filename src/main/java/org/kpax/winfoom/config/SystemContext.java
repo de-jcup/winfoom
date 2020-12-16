@@ -43,13 +43,13 @@ public class SystemContext {
     /**
      * Is the application running in graphical mode?
      */
-    public static boolean IS_GUI_MODE = PROFILES.contains("gui");
+    public static final boolean IS_GUI_MODE = PROFILES.contains("gui");
 
     /**
      * Apply {@link #PROFILES}'s content to the {@code spring.profiles.active} environment variable.
      */
     public static void setSpringActiveProfiles() {
-        System.setProperty("spring.profiles.active", PROFILES.stream().collect(Collectors.joining(",")));
+        System.setProperty("spring.profiles.active", String.join(",", PROFILES));
     }
 
 }

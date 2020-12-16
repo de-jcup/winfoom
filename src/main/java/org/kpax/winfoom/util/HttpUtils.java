@@ -313,7 +313,7 @@ public final class HttpUtils {
      * @return the wrapped text.
      */
     public static String toHtml(final String text) {
-        return new StringBuilder("<html>").append(text).append("</html>").toString();
+        return "<html>" + text + "</html>";
     }
 
     /**

@@ -33,8 +33,8 @@ public class GlobPatternMatcher {
     @Autowired
     private SystemConfig systemConfig;
 
-    private SingletonSupplier<Cache<String, Pattern>> globPatternCacheSupplier =
-            new SingletonSupplier<Cache<String, Pattern>>(() ->
+    private final SingletonSupplier<Cache<String, Pattern>> globPatternCacheSupplier =
+            new SingletonSupplier<>(() ->
                     Cache2kBuilder.of(String.class, Pattern.class)
                             .name("precompiledGlobPattern")
                             .eternal(true)

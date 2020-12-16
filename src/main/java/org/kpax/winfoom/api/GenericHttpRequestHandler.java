@@ -75,25 +75,23 @@ public class GenericHttpRequestHandler implements HttpRequestHandler {
     }
 
     public void doGet(HttpRequest request, HttpResponse response, HttpContext context)
-            throws HttpException, IOException {
+            throws IOException {
         response.setStatusCode(HttpStatus.SC_NOT_FOUND);
         response.setReasonPhrase("No handler found for GET method");
     }
 
     public void doPost(HttpRequest request, HttpResponse response, HttpContext context)
-            throws HttpException, IOException {
+            throws IOException {
         response.setStatusCode(HttpStatus.SC_NOT_FOUND);
         response.setReasonPhrase("No handler found for POST method");
     }
 
-    public void doPut(HttpRequest request, HttpResponse response, HttpContext context)
-            throws HttpException, IOException {
+    public void doPut(HttpRequest request, HttpResponse response, HttpContext context) {
         response.setStatusCode(HttpStatus.SC_NOT_FOUND);
         response.setReasonPhrase("No handler found for PUT method");
     }
 
-    public void doDelete(HttpRequest request, HttpResponse response, HttpContext context)
-            throws HttpException, IOException {
+    public void doDelete(HttpRequest request, HttpResponse response, HttpContext context) {
         response.setStatusCode(HttpStatus.SC_NOT_FOUND);
         response.setReasonPhrase("No handler found for DELETE method");
     }

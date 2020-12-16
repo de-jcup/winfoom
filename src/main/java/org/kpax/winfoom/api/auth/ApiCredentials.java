@@ -22,7 +22,7 @@ import java.security.*;
  */
 public class ApiCredentials implements Credentials {
 
-    private Principal principal;
+    private final Principal principal;
 
     public ApiCredentials(String apiUserPassword) {
         principal = new BasicUserPrincipal(apiUserPassword);
