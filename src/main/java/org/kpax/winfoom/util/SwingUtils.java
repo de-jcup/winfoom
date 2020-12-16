@@ -17,6 +17,7 @@ package org.kpax.winfoom.util;
 import org.kpax.winfoom.annotation.*;
 import org.kpax.winfoom.util.functional.*;
 import org.slf4j.*;
+import org.springframework.util.*;
 
 import javax.imageio.*;
 import javax.swing.*;
@@ -136,42 +137,25 @@ public class SwingUtils {
     }
 
     /**
-     * Execute a {@link Callable}, showing a waiting cursor until the execution ends.
-     *
-     * @param callable the {@link Callable} instance (not null)
-     * @param frame    the current {@link JFrame}
-     */
-    public static <T> T executeCallable(@NotNull final Callable<T> callable, @NotNull final JFrame frame) {
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-        try {
-            Future<T> future = executorService.submit(callable);
-            frame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-            try {
-                return future.get();
-            } catch (InterruptedException e) {
-                logger.error("Execution interrupted", e);
-                return null;
-            } catch (ExecutionException e) {
-                logger.warn("Error on computing the Callable instance, this isn't supposed to happen", e);
-                return null;
-            } finally {
-                EventQueue.invokeLater(() ->
-                        frame.setCursor(Cursor.getDefaultCursor()));
-            }
-        } finally {
-            executorService.shutdownNow();
-        }
-    }
-
-    /**
-     * Execute a {@link Runnable} within the dispatch thread of the Swing's system EventQueue,
-     * showing a waiting cursor until the execution ends.
+     * Execute a {@link Runnable}, showing a waiting cursor until the execution ends.
      *
      * @param runnable the {@link Runnable} instance (not null)
      * @param frame    the current {@link JFrame}
      */
     public static void executeRunnable(@NotNull final Runnable runnable, @NotNull final JFrame frame) {
-        executeCallable(new InvokeLaterCallable<>(runnable), frame);
+        Assert.notNull(runnable, "runnable cannot be null");
+        Assert.notNull(frame, "frame cannot be null");
+        frame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+        Thread thread = new Thread(() -> {
+            try {
+                runnable.run();
+            } finally {
+                EventQueue.invokeLater(() ->
+                        frame.setCursor(Cursor.getDefaultCursor()));
+            }
+        });
+        thread.setDaemon(true);
+        thread.start();
     }
 
     /**

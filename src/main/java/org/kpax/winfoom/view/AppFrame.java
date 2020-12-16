@@ -730,27 +730,28 @@ public class AppFrame extends JFrame {
         logger.debug("Disable all components");
         disableAll();
         logger.debug("Now start the server ");
-        return SwingUtils.executeCallable(() -> {
-            if (isValidInput()) {
-                try {
-                    proxyController.start();
-                    getBtnTest().setEnabled(true);
-                    getBtnStop().setEnabled(true);
-                    if (proxyConfig.isAutoConfig()) {
-                        getBtnCancelBlacklist().setEnabled(true);
-                    }
-                    return true;
-                } catch (Exception e) {
-                    logger.error("Error on starting proxy server", e);
-                    enableInput();
-                    SwingUtils.showErrorMessage(AppFrame.this,
-                            "Error on starting proxy server.<br>See the application's log for details.");
+        if (isValidInput()) {
+            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+            try {
+                proxyController.start();
+                getBtnTest().setEnabled(true);
+                getBtnStop().setEnabled(true);
+                if (proxyConfig.isAutoConfig()) {
+                    getBtnCancelBlacklist().setEnabled(true);
                 }
-            } else {
+                return true;
+            } catch (Exception e) {
+                logger.error("Error on starting proxy server", e);
                 enableInput();
+                SwingUtils.showErrorMessage(AppFrame.this,
+                        "Error on starting proxy server.<br>See the application's log for details.");
+            } finally {
+                setCursor(Cursor.getDefaultCursor());
             }
-            return false;
-        }, this);
+        } else {
+            enableInput();
+        }
+        return false;
     }
 
     private void stopServer() {
