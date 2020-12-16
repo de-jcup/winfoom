@@ -55,7 +55,6 @@ class HttpConnectClientConnectionProcessor extends ClientConnectionProcessor {
                 for (Header header : tunnel.getResponse().getAllHeaders()) {
                     logger.debug("Write header {}", header);
                     clientConnection.write(header);
-                    clientConnection.write(header);
                 }
 
                 // Write empty line
