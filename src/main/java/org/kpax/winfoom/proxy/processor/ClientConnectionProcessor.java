@@ -22,6 +22,7 @@ import org.slf4j.*;
 import org.springframework.beans.factory.annotation.*;
 
 import java.io.*;
+import java.net.*;
 import java.util.concurrent.*;
 
 /**
@@ -88,12 +89,20 @@ public abstract class ClientConnectionProcessor {
                 () -> {
                     try {
                         secondSource.getInputStream().transferTo(firstSource.getOutputStream());
+                    } catch (SocketTimeoutException e) {
+                        logger.debug("Timeout exception on executing second to first transfer: {}", e.getMessage());
+                    } catch (SocketException e) {
+                        logger.debug("Socket exception on executing second to first transfer: {}", e.getMessage());
                     } catch (Exception e) {
                         logger.debug("Error on executing second to first transfer", e);
                     }
                 });
         try {
             firstSource.getInputStream().transferTo(secondSource.getOutputStream());
+        } catch (SocketTimeoutException e) {
+            logger.debug("Timeout exception on executing first to second transfer: {}", e.getMessage());
+        } catch (SocketException e) {
+            logger.debug("Socket exception on executing first to second transfer: {}", e.getMessage());
         } catch (Exception e) {
             logger.debug("Error on executing first to second transfer", e);
         }
@@ -104,9 +113,9 @@ public abstract class ClientConnectionProcessor {
             } catch (ExecutionException e) {// Normally, we shouldn't get here
                 logger.debug("Error on executing second to first transfer", e.getCause());
             } catch (InterruptedException e) {
-                logger.debug("Transfer from second to first interrupted", e);
+                logger.debug("Transfer from second to first interrupted: {}", e.getMessage());
             } catch (CancellationException e) {
-                logger.debug("Transfer from second to first cancelled", e);
+                logger.debug("Transfer from second to first cancelled: {}", e.getMessage());
             }
         }
         logger.debug("End full duplex communication");

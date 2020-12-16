@@ -451,7 +451,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
     private boolean processProxy(ProxyInfo proxy) {
         ClientConnectionProcessor connectionProcessor = connectionProcessorSelector.selectConnectionProcessor(
                 connect, proxy);
-        logger.debug("Process proxy {} using connectionProcessor: {}", proxy, connectionProcessor);
+        logger.debug("Process connection for proxy {} using connectionProcessor: {}", proxy, connectionProcessor);
         try {
             connectionProcessor.process(this, proxy);
             return true;
