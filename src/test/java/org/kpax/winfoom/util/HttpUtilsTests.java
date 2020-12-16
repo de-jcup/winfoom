@@ -193,4 +193,22 @@ class HttpUtilsTests {
         assertEquals(HttpHeaders.VIA, viaHeader.getName());
         assertEquals("1.1 winfoom, 1.0 bla (bla)", viaHeader.getValue());
     }
+
+    @Test
+    void removeCRAndLF_NoneExist_TheSame () {
+        String s = "bla?foo";
+        assertEquals(s, HttpUtils.removeCRAndLF(s));
+    }
+
+    @Test
+    void removeCRAndLF_CRExist_CRRemoved () {
+        String s = "bla\rfoo";
+        assertEquals("bla foo", HttpUtils.removeCRAndLF(s));
+    }
+
+    @Test
+    void removeCRAndLF_LFExist_CRRemoved () {
+        String s = "bla\nfoo";
+        assertEquals("bla foo", HttpUtils.removeCRAndLF(s));
+    }
 }

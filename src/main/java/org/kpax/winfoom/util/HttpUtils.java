@@ -506,4 +506,11 @@ public final class HttpUtils {
         return null;
     }
 
+    public static String removeCRAndLF(String reasonPhrase) {
+        if (reasonPhrase != null) {
+            return reasonPhrase.replaceAll("(\\r|\\n)", " ");
+        }
+        return null;
+    }
+
 }
