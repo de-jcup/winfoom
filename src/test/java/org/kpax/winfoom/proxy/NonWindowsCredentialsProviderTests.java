@@ -59,11 +59,4 @@ public class NonWindowsCredentialsProviderTests {
         assertEquals("Incorrect password", "randomPassword", credentials.getPassword());
     }
 
-
-    @Test
-    public void getCredentials_withDomainMissingUsername_Error() {
-        when(proxyConfig.getProxyHttpUsername()).thenReturn("MyDomain\\");
-        when(proxyConfig.getProxyHttpPassword()).thenReturn("randomPassword");
-        assertThrows(IllegalStateException.class, () -> new NonWindowsCredentialsProvider(proxyConfig).getCredentials(null));
-    }
 }

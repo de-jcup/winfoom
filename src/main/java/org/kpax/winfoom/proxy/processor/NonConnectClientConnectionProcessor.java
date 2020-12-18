@@ -54,7 +54,7 @@ class NonConnectClientConnectionProcessor extends ClientConnectionProcessor {
 
     @Override
     void handleRequest(final ClientConnection clientConnection, final ProxyInfo proxyInfo)
-            throws IOException {
+            throws IOException, ProxyAuthorizationException {
         try (CloseableHttpClient httpClient = clientBuilderFactory.createClientBuilder(proxyInfo).build()) {
             URI uri = clientConnection.getRequestUri();
             HttpHost target = new HttpHost(uri.getHost(),
@@ -69,8 +69,11 @@ class NonConnectClientConnectionProcessor extends ClientConnectionProcessor {
 
             // Execute the request
             try (CloseableHttpResponse response = httpClient.execute(target, clientConnection.getRequest(), context)) {
+                StatusLine statusLine = response.getStatusLine();
+                if (statusLine.getStatusCode() == HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED) {
+                    throw new ProxyAuthorizationException(response);
+                }
                 try {
-                    StatusLine statusLine = response.getStatusLine();
                     logger.debug("Write status line: {}", statusLine);
                     clientConnection.write(statusLine);
                     clientConnection.write(HttpUtils.createViaHeader(

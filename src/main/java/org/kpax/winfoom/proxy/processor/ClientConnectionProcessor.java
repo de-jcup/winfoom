@@ -14,6 +14,7 @@ package org.kpax.winfoom.proxy.processor;
 
 import org.apache.http.*;
 import org.kpax.winfoom.annotation.*;
+import org.kpax.winfoom.auth.*;
 import org.kpax.winfoom.config.*;
 import org.kpax.winfoom.exception.*;
 import org.kpax.winfoom.proxy.*;
@@ -21,6 +22,7 @@ import org.kpax.winfoom.util.*;
 import org.slf4j.*;
 import org.springframework.beans.factory.annotation.*;
 
+import javax.security.auth.login.*;
 import java.io.*;
 import java.net.*;
 import java.util.concurrent.*;
@@ -44,6 +46,9 @@ public abstract class ClientConnectionProcessor {
     @Autowired
     private ProxyBlacklist proxyBlacklist;
 
+    @Autowired
+    private AuthenticationContext authenticationContext;
+
     /**
      * Process the client's connection. That is:<br>
      * <ul>
@@ -60,7 +65,7 @@ public abstract class ClientConnectionProcessor {
      */
     abstract void handleRequest(@NotNull final ClientConnection clientConnection,
                                 @NotNull final ProxyInfo proxyInfo)
-            throws IOException, HttpException;
+            throws IOException, HttpException, ProxyAuthorizationException;
 
     /**
      * Handle the exception thrown by {@link #handleRequest(ClientConnection, ProxyInfo)} method.
@@ -137,7 +142,32 @@ public abstract class ClientConnectionProcessor {
             throws ProxyConnectException {
         logger.debug("Process {} for {}", clientConnection, proxyInfo);
         try {
-            handleRequest(clientConnection, proxyInfo);
+            try {
+                if (proxyConfig.isKerberos()) {
+                    try {
+                        // Handle the request within Kerberos authenticated context
+                        authenticationContext.kerberosAuthenticator().execute(() -> handleRequest(clientConnection, proxyInfo),
+                                IOException.class, HttpException.class, RuntimeException.class, ProxyAuthorizationException.class);
+                    } catch (ProxyAuthorizationException e) {
+                        // The Kerberos proxy rejected the request.
+                        // Normally this can only happen if the ticket is expired
+                        // so we re-login to get a new valid ticket
+                        if (authenticationContext.kerberosAuthenticator().authenticate()) {
+                            // Handle the request within Kerberos authenticated context for the second time
+                            authenticationContext.kerberosAuthenticator().execute(() -> handleRequest(clientConnection, proxyInfo),
+                                    IOException.class, HttpException.class, RuntimeException.class, ProxyAuthorizationException.class);
+                        }
+                    }
+                } else {
+                    handleRequest(clientConnection, proxyInfo);
+                }
+            } catch (LoginException e) {
+                logger.debug("Failed to login to Kerberos proxy", e);
+                clientConnection.writeErrorResponse(HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED, true);
+            } catch (ProxyAuthorizationException e) {
+                logger.debug("Proxy authorization failed", e);
+                clientConnection.writeHttpResponse(e.getResponse());
+            }
         } catch (Exception e) {
             logger.debug("Error on handling request", e);
             try {
@@ -150,4 +180,5 @@ public abstract class ClientConnectionProcessor {
             }
         }
     }
+
 }

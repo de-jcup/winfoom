@@ -35,6 +35,8 @@ public class ProxyConfigDto {
     private Integer localPort;
     private String proxyTestUrl;
 
+    private ProxyConfig.HttpAuthProtocol httpAuthProtocol;
+
     private Integer apiPort;
     private Boolean autodetect;
     private Boolean autostart;
@@ -141,6 +143,14 @@ public class ProxyConfigDto {
 
     public void setAutostart(Boolean autostart) {
         this.autostart = autostart;
+    }
+
+    public ProxyConfig.HttpAuthProtocol getHttpAuthProtocol() {
+        return httpAuthProtocol;
+    }
+
+    public void setHttpAuthProtocol(ProxyConfig.HttpAuthProtocol httpAuthProtocol) {
+        this.httpAuthProtocol = httpAuthProtocol;
     }
 
     public void validate() throws InvalidProxySettingsException {

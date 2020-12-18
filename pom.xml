@@ -23,7 +23,7 @@
     </parent>
     <groupId>org.kpax</groupId>
     <artifactId>winfoom</artifactId>
-    <version>3.0.4-SNAPSHOT</version>
+    <version>3.0.4</version>
 
     <name>winfoom</name>
     <url>https://github.com/ecovaci/winfoom</url>
@@ -42,6 +42,8 @@
         <mock-server.version>5.9.0</mock-server.version>
         <littleproxy.version>1.1.2</littleproxy.version>
         <mockserver-netty.version>5.10.0</mockserver-netty.version>
+        <kerby.version>2.0.1</kerby.version>
+        <pac4j.version>4.2.0</pac4j.version>
     </properties>
 
     <dependencies>
@@ -153,6 +155,20 @@
             <groupId>org.mock-server</groupId>
             <artifactId>mockserver-netty</artifactId>
             <version>${mockserver-netty.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.kerby</groupId>
+            <artifactId>kerb-simplekdc</artifactId>
+            <version>${kerby.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.pac4j</groupId>
+            <artifactId>pac4j-kerberos</artifactId>
+            <version>${pac4j.version}</version>
             <scope>test</scope>
         </dependency>
 

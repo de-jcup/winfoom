@@ -125,6 +125,12 @@ public class ProxyConfig {
     @Value("${autodetect:false}")
     private boolean autodetect;
 
+    @Value("${http.auth.protocol:#{null}}")
+    private HttpAuthProtocol httpAuthProtocol;
+
+    @Value("${KRB5_CONFIG:/etc/krb5.conf}")
+    private String krb5ConfFilepath;
+
     private Path tempDirectory;
 
     @PostConstruct
@@ -172,18 +178,37 @@ public class ProxyConfig {
                 throw new InvalidProxySettingsException("Invalid proxy port");
             }
             if (!SystemContext.IS_OS_WINDOWS && proxyType.isHttp()) {
+                if (httpAuthProtocol == null) {
+                    throw new InvalidProxySettingsException("Missing HTTP proxy authentication protocol");
+                }
+
                 if (StringUtils.isEmpty(proxyHttpUsername)) {
                     throw new InvalidProxySettingsException("Missing proxy username");
                 } else {
                     int backslashIndex = proxyHttpUsername.indexOf('\\');
+
+                    if (httpAuthProtocol.isKerberos() && backslashIndex < 0) {
+                        throw new InvalidProxySettingsException("The proxy username is invalid: should contain the domain in the form DOMAIN\\username");
+                    }
+
                     // Check whether it begins or ends with '\' character
                     if (backslashIndex == 0 ||
                             backslashIndex == proxyHttpUsername.length() - 1) {
                         throw new InvalidProxySettingsException("The proxy username is invalid");
                     }
                 }
+
                 if (StringUtils.isEmpty(proxyHttpPassword)) {
                     throw new InvalidProxySettingsException("Missing proxy password");
+                }
+
+                if (httpAuthProtocol.isKerberos()) {
+                    Path krb5ConfPath = Paths.get(krb5ConfFilepath);
+                    if (!Files.exists(krb5ConfPath)) {
+                        throw new InvalidProxySettingsException("File not found: " + krb5ConfFilepath);
+                    } else if (!Files.isReadable(krb5ConfPath)) {
+                        throw new InvalidProxySettingsException("File not readable: " + krb5ConfFilepath);
+                    }
                 }
             }
         } else if (proxyType.isPac()) {
@@ -401,6 +426,16 @@ public class ProxyConfig {
         return proxyHttpUsername;
     }
 
+    public String getProxyKrbPrincipal() {
+        if (proxyHttpUsername != null) {
+            int backslashIndex = proxyHttpUsername.indexOf('\\');
+            String username = backslashIndex > -1 ? proxyHttpUsername.substring(backslashIndex + 1) : proxyHttpUsername;
+            String domain = backslashIndex > -1 ? proxyHttpUsername.substring(0, backslashIndex) : null;
+            return username + "@" + domain.toUpperCase(Locale.ROOT);
+        }
+        return null;
+    }
+
     public String getProxyHttpPassword() {
         return proxyHttpPassword;
     }
@@ -458,6 +493,11 @@ public class ProxyConfig {
         this.autodetect = autodetect;
     }
 
+    public boolean isKerberos() {
+        return !SystemContext.IS_OS_WINDOWS &&
+                proxyType.isHttp() && httpAuthProtocol != null && httpAuthProtocol.isKerberos();
+    }
+
     @Autowired
     private void setTempDirectory(@Value("${user.home}") String userHome) {
         tempDirectory = Paths.get(userHome, SystemConfig.APP_HOME_DIR_NAME, "temp");
@@ -474,6 +514,20 @@ public class ProxyConfig {
 
     public String getApiToken() {
         return apiToken;
+    }
+
+    @JsonView(value = {Views.HttpNonWindows.class})
+    public HttpAuthProtocol getHttpAuthProtocol() {
+        return httpAuthProtocol;
+    }
+
+    public void setHttpAuthProtocol(HttpAuthProtocol httpAuthProtocol) {
+        this.httpAuthProtocol = httpAuthProtocol;
+    }
+
+    @JsonView(value = {Views.HttpNonWindows.class})
+    public String getKrb5ConfFilepath() {
+        return krb5ConfFilepath;
     }
 
     /**
@@ -518,6 +572,7 @@ public class ProxyConfig {
 
         setProperty(config, "proxy.pac.fileLocation", proxyPacFileLocation);
         setProperty(config, "blacklist.timeout", blacklistTimeout);
+        setProperty(config, "http.auth.protocol", httpAuthProtocol);
         setProperty(config, "autostart", autostart);
         setProperty(config, "autodetect", autodetect);
         propertiesBuilder.save();
@@ -608,6 +663,23 @@ public class ProxyConfig {
         @Override
         public boolean isDirect() {
             return this == DIRECT;
+        }
+
+    }
+
+    public enum HttpAuthProtocol {
+        NTLM, KERBEROS, BASIC;
+
+        public boolean isNtlm() {
+            return this == NTLM;
+        }
+
+        public boolean isKerberos() {
+            return this == KERBEROS;
+        }
+
+        public boolean isBasic() {
+            return this == BASIC;
         }
 
     }

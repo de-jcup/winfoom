@@ -64,6 +64,8 @@ class AuthConfiguration {
         return RegistryBuilder.<AuthSchemeProvider>create()
                 .register(AuthSchemes.NTLM, new NTLMSchemeFactory())
                 .register(AuthSchemes.BASIC, new BasicSchemeFactory())
+                .register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory())
+                .register(AuthSchemes.KERBEROS, new KerberosSchemeFactory())
                 .build();
     }
 

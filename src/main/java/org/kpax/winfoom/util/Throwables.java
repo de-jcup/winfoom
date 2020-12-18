@@ -13,6 +13,7 @@
 package org.kpax.winfoom.util;
 
 import org.apache.commons.lang3.exception.*;
+import org.kpax.winfoom.annotation.*;
 import org.springframework.util.*;
 
 import java.util.*;
@@ -75,6 +76,53 @@ public class Throwables {
      */
     public static boolean isChecked(Throwable throwable) {
         return !isUnchecked(throwable);
+    }
+
+    public static <T extends Exception> void throwIfMatches(@NotNull Exception e,
+                                                            @NotNull Class<T> cls) throws T {
+        if (e.getClass().isAssignableFrom(cls)) {
+            throw cls.cast(e);
+        }
+    }
+
+    public static <T extends Exception,
+            U extends Exception> void throwIfMatches(@NotNull Exception e,
+                                                     @NotNull Class<T> cls1,
+                                                     @NotNull Class<U> cls2) throws T, U {
+        if (e.getClass().isAssignableFrom(cls1)) {
+            throw cls1.cast(e);
+        }
+
+        if (e.getClass().isAssignableFrom(cls2)) {
+            throw cls2.cast(e);
+        }
+    }
+
+    public static <E1 extends Exception,
+            E2 extends Exception,
+            E3 extends Exception> void throwIfMatches(@NotNull Exception e,
+                                                      @NotNull Class<E1> cls1,
+                                                      @NotNull Class<E2> cls2,
+                                                      @NotNull Class<E3> cls3) throws E1, E2, E3 {
+        throwIfMatches(e, cls1, cls2);
+        if (e.getClass().isAssignableFrom(cls3)) {
+            throw cls3.cast(e);
+        }
+    }
+
+    public static <E1 extends Exception,
+            E2 extends Exception,
+            E3 extends Exception,
+            E4 extends Exception> void throwIfMatches(@NotNull Exception e,
+                                                      @NotNull Class<E1> cls1,
+                                                      @NotNull Class<E2> cls2,
+                                                      @NotNull Class<E3> cls3,
+                                                      @NotNull Class<E4> cls4
+    ) throws E1, E2, E3, E4 {
+        throwIfMatches(e, cls1, cls2, cls3);
+        if (e.getClass().isAssignableFrom(cls4)) {
+            throw cls4.cast(e);
+        }
     }
 
 }

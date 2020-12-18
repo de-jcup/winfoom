@@ -278,25 +278,56 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
      * Write a simple response with only the status line and date header, followed by an empty line.
      * <p><b>This method commits the response.</b></p>
      *
-     * @param statusCode the request's status code.
+     * @param statusCode the status code
+     * @see #writeErrorResponse(int, String, boolean)
      */
     public void writeErrorResponse(int statusCode) {
-        writeErrorResponse(statusCode, null);
+        writeErrorResponse(statusCode, null, false);
+    }
+
+    /**
+     * Write a simple response with only the status line, date header and an optional {@code Connection: Close} header,
+     * followed by an empty line.
+     * <p><b>This method commits the response.</b></p>
+     *
+     * @param statusCode      the status code
+     * @param closeConnection whether to add {@code Connection: Close} header
+     * @see #writeErrorResponse(int, String, boolean)
+     */
+    public void writeErrorResponse(int statusCode, boolean closeConnection) {
+        writeErrorResponse(statusCode, null, closeConnection);
     }
 
     /**
      * Write a simple response with only the status line and date header, followed by an empty line.
      * <p><b>This method commits the response.</b></p>
      *
-     * @param statusCode   the request's status code.
-     * @param reasonPhrase the request's reason code
+     * @param statusCode   the status code
+     * @param reasonPhrase the reason phrase
+     * @see #writeErrorResponse(int, String, boolean)
      */
     public void writeErrorResponse(int statusCode, String reasonPhrase) {
+        writeErrorResponse(statusCode, reasonPhrase, false);
+    }
+
+    /**
+     * Write a simple response with only the status line, date header and an optional {@code Connection: Close} header,
+     * followed by an empty line.
+     * <p><b>This method commits the response.</b></p>
+     *
+     * @param statusCode      the status code
+     * @param reasonPhrase    the reason phrase
+     * @param closeConnection whether to add {@code Connection: Close} header
+     */
+    public void writeErrorResponse(int statusCode, String reasonPhrase, boolean closeConnection) {
         logger.debug("Write error response: statusCode = {}  reasonPhrase = [{}]", statusCode, reasonPhrase);
         try {
             write(HttpUtils.toStatusLine(request != null ? request.getProtocolVersion() : HttpVersion.HTTP_1_1,
                     statusCode, HttpUtils.replaceCRAndLF(reasonPhrase, StringUtils.SPACE)));
             write(HttpUtils.createHttpHeader(HTTP.DATE_HEADER, HttpUtils.getCurrentDate()));
+            if (closeConnection) {
+                write(HttpUtils.createHttpHeader(HTTP.CONN_DIRECTIVE, HTTP.CONN_CLOSE));
+            }
             writeln();
         } catch (Exception ex) {
             logger.debug("Error on writing error response", ex);
@@ -308,9 +339,9 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
      * <p><b>This method commits the response.</b></p>
      *
      * @param httpResponse the HTTP response
-     * @throws Exception
+     * @throws IOException
      */
-    public void writeHttpResponse(@NotNull final HttpResponse httpResponse) throws Exception {
+    public void writeHttpResponse(@NotNull final HttpResponse httpResponse) throws IOException {
         StatusLine statusLine = httpResponse.getStatusLine();
         logger.debug("Write statusLine {}", statusLine);
         write(statusLine);

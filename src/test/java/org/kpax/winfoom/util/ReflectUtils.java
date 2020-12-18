@@ -18,7 +18,11 @@ import java.lang.reflect.Modifier;
 public class ReflectUtils {
 
     public static void setFinalStatic(final Object obj, String fieldName, Object newValue) throws Exception {
-        Field field = obj.getClass().getField(fieldName);
+        setFinalStatic(obj.getClass(), fieldName, newValue);
+    }
+
+    public static void setFinalStatic(final Class cls, String fieldName, Object newValue) throws Exception {
+        Field field = cls.getField(fieldName);
         field.setAccessible(true);
         Field modifiersField = Field.class.getDeclaredField("modifiers");
         modifiersField.setAccessible(true);

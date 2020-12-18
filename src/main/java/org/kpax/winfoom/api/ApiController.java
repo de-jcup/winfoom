@@ -141,8 +141,7 @@ public class ApiController implements AutoCloseable {
                             public void doGet(HttpRequest request, HttpResponse response, HttpContext context)
                                     throws IOException {
                                 logger.debug("'autodetect' command received");
-                                boolean running = proxyController.isRunning();
-                                if (!running) {
+                                if (proxyController.isStopped()) {
                                     try {
                                         boolean result = proxyConfig.autoDetect();
                                         if (result) {

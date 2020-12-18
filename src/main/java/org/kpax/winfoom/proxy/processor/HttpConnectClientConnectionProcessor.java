@@ -42,7 +42,7 @@ class HttpConnectClientConnectionProcessor extends ClientConnectionProcessor {
 
     @Override
     void handleRequest(final ClientConnection clientConnection, final ProxyInfo proxyInfo)
-            throws IOException, HttpException {
+            throws IOException, HttpException, ProxyAuthorizationException {
         RequestLine requestLine = clientConnection.getRequestLine();
         HttpHost target = HttpHost.create(requestLine.getUri());
         HttpHost proxy = new HttpHost(proxyInfo.getProxyHost().getHostName(), proxyInfo.getProxyHost().getPort());
@@ -69,13 +69,15 @@ class HttpConnectClientConnectionProcessor extends ClientConnectionProcessor {
             }
         } catch (TunnelRefusedException tre) {
             logger.debug("The tunnel request was rejected by the proxy host", tre);
+            if (tre.getResponse().getStatusLine().getStatusCode() == HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED) {
+                throw new ProxyAuthorizationException(tre.getResponse());
+            }
             try {
                 clientConnection.writeHttpResponse(tre.getResponse());
             } catch (Exception e) {
                 logger.debug("Error on writing response", e);
             }
         }
-
     }
 
     @Override

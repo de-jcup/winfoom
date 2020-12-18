@@ -137,4 +137,9 @@ public class ProxyController {
         return started;
     }
 
+
+    public boolean isStopped() {
+        return !started;
+    }
+
 }
