@@ -97,7 +97,7 @@ class SocksConnectClientConnectionProcessor extends ClientConnectionProcessor {
                     || HttpUtils.isConnectionTimeout((SocketException) e)) {
                 throw new ProxyConnectException(e.getMessage(), e);
             } else if (HttpUtils.isSOCKSAuthenticationFailed((SocketException) e)) {
-                clientConnection.writeErrorResponse(HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED);
+                clientConnection.writeProxyAuthRequiredErrorResponse();
             } else {
                 clientConnection.writeErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
             }

@@ -147,6 +147,7 @@ public abstract class ClientConnectionProcessor {
                 if (proxyConfig.isKerberos()) {
                     try {
                         logger.debug("First attempt to handle request within Kerberos auth context");
+
                         // Handle the request within Kerberos authenticated context
                         authenticationContext.kerberosAuthenticator().execute(() -> handleRequest(clientConnection, proxyInfo),
                                 IOException.class,
@@ -155,6 +156,7 @@ public abstract class ClientConnectionProcessor {
                                 ProxyAuthorizationException.class);
                     } catch (ProxyAuthorizationException e) {
                         logger.debug("Authorization error on first attempt", e);
+
                         // The Kerberos proxy rejected the request.
                         // Normally this happens when the ticket is expired
                         // so we re-login to get a new valid ticket

@@ -18,19 +18,29 @@ import org.apache.http.client.*;
 import org.kpax.winfoom.config.*;
 import org.kpax.winfoom.util.functional.*;
 
+import java.security.*;
+
 /**
  * The {@link CredentialsProvider} for non Windows systems.
- * Currently, only NTLM protocol is supported.
  */
 public class NonWindowsCredentialsProvider implements CredentialsProvider, StopListener {
 
     private ProxyConfig proxyConfig;
 
-    private final SingletonSupplier<NTCredentials> ntCredentialsSupplier = new SingletonSupplier<NTCredentials>(() -> {
-        int backslashIndex = proxyConfig.getProxyHttpUsername().indexOf('\\');
-        String username = backslashIndex > -1 ? proxyConfig.getProxyHttpUsername().substring(backslashIndex + 1) : proxyConfig.getProxyHttpUsername();
-        String domain = backslashIndex > -1 ? proxyConfig.getProxyHttpUsername().substring(0, backslashIndex) : null;
-        return new NTCredentials(username, proxyConfig.getProxyHttpPassword(), null, domain);
+    private final SingletonSupplier<Credentials> credentialsSupplier = new SingletonSupplier<Credentials>(() -> {
+        if (proxyConfig.isKerberos()) {
+            return new NoCredentials();
+        } else if (proxyConfig.isNtlm()) {
+            int backslashIndex = proxyConfig.getProxyHttpUsername().indexOf('\\');
+            String username = backslashIndex > -1 ?
+                    proxyConfig.getProxyHttpUsername().substring(backslashIndex + 1) : proxyConfig.getProxyHttpUsername();
+            String domain = backslashIndex > -1 ?
+                    proxyConfig.getProxyHttpUsername().substring(0, backslashIndex) : null;
+            return new NTCredentials(username, proxyConfig.getProxyHttpPassword(), null, domain);
+        } else {
+            return new UsernamePasswordCredentials(proxyConfig.getProxyHttpUsername(),
+                    proxyConfig.getProxyHttpPassword());
+        }
     });
 
     public NonWindowsCredentialsProvider(ProxyConfig proxyConfig) {
@@ -44,12 +54,12 @@ public class NonWindowsCredentialsProvider implements CredentialsProvider, StopL
 
     @Override
     public Credentials getCredentials(AuthScope authscope) {
-        return ntCredentialsSupplier.get();
+        return credentialsSupplier.get();
     }
 
     @Override
     public void clear() {
-        ntCredentialsSupplier.reset();
+        credentialsSupplier.reset();
     }
 
     @Override
@@ -57,4 +67,17 @@ public class NonWindowsCredentialsProvider implements CredentialsProvider, StopL
         clear();
     }
 
+    private static class NoCredentials implements Credentials {
+
+        @Override
+        public String getPassword() {
+            return null;
+        }
+
+        @Override
+        public Principal getUserPrincipal() {
+            return null;
+        }
+
+    }
 }

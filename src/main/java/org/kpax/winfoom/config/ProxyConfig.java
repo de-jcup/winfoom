@@ -498,6 +498,11 @@ public class ProxyConfig {
                 proxyType.isHttp() && httpAuthProtocol != null && httpAuthProtocol.isKerberos();
     }
 
+    public boolean isNtlm() {
+        return !SystemContext.IS_OS_WINDOWS &&
+                proxyType.isHttp() && httpAuthProtocol != null && httpAuthProtocol.isNtlm();
+    }
+
     @Autowired
     private void setTempDirectory(@Value("${user.home}") String userHome) {
         tempDirectory = Paths.get(userHome, SystemConfig.APP_HOME_DIR_NAME, "temp");

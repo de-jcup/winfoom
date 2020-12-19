@@ -43,7 +43,7 @@ class SocksNonConnectClientConnectionProcessor extends NonConnectClientConnectio
                 throw new ProxyConnectException(e.getMessage(), e);
             }
         } else if (e instanceof SocketException && HttpUtils.isSOCKSAuthenticationFailed((SocketException) e)) {
-            clientConnection.writeErrorResponse(HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED);
+            clientConnection.writeProxyAuthRequiredErrorResponse();
         } else if (e instanceof HttpHostConnectException) {
             if (e.getCause() instanceof ConnectException) {
                 throw new ProxyConnectException(e.getMessage(), e);
