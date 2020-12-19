@@ -168,7 +168,7 @@ public class KerberosAuthenticator implements AutoCloseable {
             try {
                 Subject.doAs(subject, action);
             } catch (PrivilegedActionException e) {
-                logger.debug("Error on executing action " + e.getException());
+                logger.debug("Error on executing action ", e);
                 Throwables.throwIfMatches(e.getException(), cls1, cls2, cls3, cls4);
                 throw e;
             }
