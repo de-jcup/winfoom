@@ -18,11 +18,13 @@ import org.apache.http.auth.*;
 import org.apache.http.entity.*;
 import org.apache.http.protocol.*;
 import org.kpax.winfoom.annotation.*;
+import org.kpax.winfoom.proxy.*;
 import org.kpax.winfoom.util.*;
 import org.slf4j.*;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * The base class for all API request handlers.
@@ -33,36 +35,64 @@ public class GenericHttpRequestHandler implements HttpRequestHandler {
 
     private final Credentials credentials;
 
-    public GenericHttpRequestHandler(@NotNull Credentials credentials) {
+    private final ProxyExecutorService executorService;
+
+    private final int requestTimeout;
+
+    public GenericHttpRequestHandler(@NotNull Credentials credentials, ProxyExecutorService executorService, int requestTimeout) {
         this.credentials = credentials;
+        this.executorService = executorService;
+        this.requestTimeout = requestTimeout;
     }
 
     @Override
     public void handle(HttpRequest request, HttpResponse response, HttpContext context)
             throws HttpException, IOException {
+        logger.debug("Received request {}", request);
         boolean isAuthorized = handleAuthorization(request, response, context);
         if (isAuthorized) {
-            String method = request.getRequestLine().getMethod().toUpperCase(Locale.ROOT);
-            if ("GET".equals(method)) {
-                doGet(request, response, context);
-            } else if ("POST".equals(method)) {
-                doPost(request, response, context);
-            } else if ("PUT".equals(method)) {
-                doPut(request, response, context);
-            } else if ("DELETE".equals(method)) {
-                doDelete(request, response, context);
-            } else {
-                response.setStatusCode(HttpStatus.SC_NOT_FOUND);
-                response.setReasonPhrase(String.format("No handler found for %s method", method));
+            Future<Object> future = executorService.submit(() -> {
+                String method = request.getRequestLine().getMethod().toUpperCase(Locale.ROOT);
+                if ("GET".equals(method)) {
+                    doGet(request, response, context);
+                } else if ("POST".equals(method)) {
+                    doPost(request, response, context);
+                } else if ("PUT".equals(method)) {
+                    doPut(request, response, context);
+                } else if ("DELETE".equals(method)) {
+                    doDelete(request, response, context);
+                } else {
+                    response.setStatusCode(HttpStatus.SC_NOT_FOUND);
+                    response.setReasonPhrase(String.format("No handler found for %s method", method));
+                }
+                return null;
+            });
+
+            try {
+                future.get(requestTimeout, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                logger.debug("Request execution interrupted", e);
+                response.setStatusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+                response.setEntity(new StringEntity("Command execution interrupted"));
+            } catch (ExecutionException e) {
+                Throwables.throwIfMatches(e.getCause(), HttpException.class, IOException.class, RuntimeException.class);
+                logger.debug("Error on executing request", e);
+                response.setStatusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+                response.setEntity(new StringEntity("Error on executing command: " + e.getMessage()));
+
+            } catch (TimeoutException e) {
+                logger.debug("Request timeout", e);
+                response.setStatusCode(HttpStatus.SC_REQUEST_TIMEOUT);
+                response.setEntity(new StringEntity("Command timeout"));
             }
         }
     }
 
     private boolean handleAuthorization(HttpRequest request, HttpResponse response, HttpContext context) throws UnsupportedEncodingException {
-        boolean result = false;
+        boolean isAuthorized = false;
         try {
-            result = HttpUtils.verifyBasicAuth(request, credentials.getUserPrincipal().getName());
-            if (!result) {
+            isAuthorized = HttpUtils.verifyBasicAuth(request, credentials.getUserPrincipal().getName());
+            if (!isAuthorized) {
                 response.setStatusCode(HttpStatus.SC_FORBIDDEN);
                 response.setEntity(new StringEntity("Incorrect user/password"));
             }
@@ -71,7 +101,8 @@ public class GenericHttpRequestHandler implements HttpRequestHandler {
             response.setStatusCode(HttpStatus.SC_UNAUTHORIZED);
             response.setEntity(new StringEntity(e.getMessage()));
         }
-        return result;
+        logger.debug("Is request authorized? {}", isAuthorized);
+        return isAuthorized;
     }
 
     public void doGet(HttpRequest request, HttpResponse response, HttpContext context)

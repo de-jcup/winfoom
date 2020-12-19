@@ -88,7 +88,7 @@ public class Throwables {
      * @throws E
      */
     public static <E extends Exception> void throwIfMatches(
-            @NotNull Exception e,
+            @NotNull Throwable e,
             @NotNull Class<E> cls) throws E {
         if (cls.isAssignableFrom(e.getClass())) {
             throw cls.cast(e);
@@ -96,16 +96,16 @@ public class Throwables {
     }
 
     /**
-     * A generalization of {@link #throwIfMatches(Exception, Class)}
+     * A generalization of {@link #throwIfMatches(Throwable, Class)}
      *
-     * @param e    the {@link Exception} instance
+     * @param e    the {@link Throwable} instance
      * @param cls1 the first {@link Class} to match against
      * @param cls2 the second {@link Class} to match against
      * @param <E1> the type of the first {@link Exception} to be thrown
      * @param <E2> the type of the second {@link Exception} to be thrown
      * @throws E1
      * @throws E2
-     * @see #throwIfMatches(Exception, Class)
+     * @see #throwIfMatches(Throwable, Class)
      */
     public static <E1 extends Exception,
             E2 extends Exception> void throwIfMatches(
@@ -117,7 +117,7 @@ public class Throwables {
     }
 
     /**
-     * A generalization of {@link #throwIfMatches(Exception, Class)}
+     * A generalization of {@link #throwIfMatches(Throwable, Class)}
      *
      * @param e    the {@link Exception} instance
      * @param cls1 the first {@link Class} to match against
@@ -129,12 +129,12 @@ public class Throwables {
      * @throws E1
      * @throws E2
      * @throws E3
-     * @see #throwIfMatches(Exception, Class)
+     * @see #throwIfMatches(Throwable, Class)
      */
     public static <E1 extends Exception,
             E2 extends Exception,
             E3 extends Exception> void throwIfMatches(
-            @NotNull Exception e,
+            @NotNull Throwable e,
             @NotNull Class<E1> cls1,
             @NotNull Class<E2> cls2,
             @NotNull Class<E3> cls3) throws E1, E2, E3 {
@@ -144,7 +144,7 @@ public class Throwables {
     }
 
     /**
-     * A generalization of {@link #throwIfMatches(Exception, Class)}
+     * A generalization of {@link #throwIfMatches(Throwable, Class)}
      *
      * @param e    the {@link Exception} instance
      * @param cls1 the first {@link Class} to match against
@@ -159,13 +159,13 @@ public class Throwables {
      * @throws E2
      * @throws E3
      * @throws E4
-     * @see #throwIfMatches(Exception, Class)
+     * @see #throwIfMatches(Throwable, Class)
      */
     public static <E1 extends Exception,
             E2 extends Exception,
             E3 extends Exception,
             E4 extends Exception> void throwIfMatches(
-            @NotNull Exception e,
+            @NotNull Throwable e,
             @NotNull Class<E1> cls1,
             @NotNull Class<E2> cls2,
             @NotNull Class<E3> cls3,

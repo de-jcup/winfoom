@@ -124,6 +124,13 @@ public class SystemConfig {
     @Value("${pacScriptEngine.pool.minIdle:20}")
     private Integer pacScriptEnginePoolMinIdle;
 
+    /**
+     * The connections idle timeout,
+     * to be purged by a scheduled task (seconds).
+     */
+    @Value("${apiServer.request.timeout:10}")
+    private Integer apiServerRequestTimeout;
+
     @PostConstruct
     private void init() {
         logger.info("System settings: {}", this);
@@ -177,6 +184,10 @@ public class SystemConfig {
         return pacScriptEnginePoolMinIdle;
     }
 
+    public Integer getApiServerRequestTimeout() {
+        return apiServerRequestTimeout;
+    }
+
     public RequestConfig.Builder applyConfig(final RequestConfig.Builder configBuilder) {
         return configBuilder.setConnectTimeout(socketConnectTimeout * 1000)
                 .setConnectionRequestTimeout(connectionRequestTimeout * 1000)
@@ -202,6 +213,9 @@ public class SystemConfig {
                 ", connectionRequestTimeout=" + connectionRequestTimeout +
                 ", preferIPv6Addresses=" + preferIPv6Addresses +
                 ", cacheGlobPatternCapacity=" + cacheGlobPatternCapacity +
+                ", pacScriptEnginePoolMaxTotal=" + pacScriptEnginePoolMaxTotal +
+                ", pacScriptEnginePoolMinIdle=" + pacScriptEnginePoolMinIdle +
+                ", apiServerRequestTimeout=" + apiServerRequestTimeout +
                 '}';
     }
 }

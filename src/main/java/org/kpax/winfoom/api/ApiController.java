@@ -55,7 +55,13 @@ public class ApiController implements AutoCloseable {
     private ProxyConfig proxyConfig;
 
     @Autowired
+    private SystemConfig systemConfig;
+
+    @Autowired
     private ProxyController proxyController;
+
+    @Autowired
+    private ProxyExecutorService executorService;
 
     @Autowired
     private ConfigurableApplicationContext applicationContext;
@@ -66,7 +72,7 @@ public class ApiController implements AutoCloseable {
         logger.info("Register API request handlers");
         apiServer = ServerBootstrap.bootstrap().setListenerPort(proxyConfig.getApiPort()).
                 registerHandler("/start",
-                        new GenericHttpRequestHandler(credentials) {
+                        new GenericHttpRequestHandler(credentials, executorService, systemConfig.getApiServerRequestTimeout()) {
                             @Override
                             public void doGet(HttpRequest request, HttpResponse response, HttpContext context)
                                     throws IOException {
@@ -84,7 +90,7 @@ public class ApiController implements AutoCloseable {
                             }
                         }).
                 registerHandler("/stop",
-                        new GenericHttpRequestHandler(credentials) {
+                        new GenericHttpRequestHandler(credentials, executorService, systemConfig.getApiServerRequestTimeout()) {
                             @Override
                             public void doGet(HttpRequest request, HttpResponse response, HttpContext context)
                                     throws IOException {
@@ -103,7 +109,7 @@ public class ApiController implements AutoCloseable {
                             }
                         }).
                 registerHandler("/status",
-                        new GenericHttpRequestHandler(credentials) {
+                        new GenericHttpRequestHandler(credentials, executorService, systemConfig.getApiServerRequestTimeout()) {
                             @Override
                             public void doGet(HttpRequest request, HttpResponse response, HttpContext context)
                                     throws IOException {
@@ -113,7 +119,7 @@ public class ApiController implements AutoCloseable {
                             }
                         }).
                 registerHandler("/validate",
-                        new GenericHttpRequestHandler(credentials) {
+                        new GenericHttpRequestHandler(credentials, executorService, systemConfig.getApiServerRequestTimeout()) {
                             @Override
                             public void doGet(HttpRequest request, HttpResponse response, HttpContext context)
                                     throws IOException {
@@ -136,7 +142,7 @@ public class ApiController implements AutoCloseable {
                             }
                         }).
                 registerHandler("/autodetect",
-                        new GenericHttpRequestHandler(credentials) {
+                        new GenericHttpRequestHandler(credentials, executorService, systemConfig.getApiServerRequestTimeout()) {
                             @Override
                             public void doGet(HttpRequest request, HttpResponse response, HttpContext context)
                                     throws IOException {
@@ -159,7 +165,7 @@ public class ApiController implements AutoCloseable {
                             }
                         }).
                 registerHandler("/config",
-                        new GenericHttpRequestHandler(credentials) {
+                        new GenericHttpRequestHandler(credentials, executorService, systemConfig.getApiServerRequestTimeout()) {
                             @Override
                             public void doGet(HttpRequest request, HttpResponse response, HttpContext context)
                                     throws IOException {
@@ -210,7 +216,7 @@ public class ApiController implements AutoCloseable {
                             }
                         }).
                 registerHandler("/settings",
-                        new GenericHttpRequestHandler(credentials) {
+                        new GenericHttpRequestHandler(credentials, executorService, systemConfig.getApiServerRequestTimeout()) {
                             @Override
                             public void doGet(HttpRequest request, HttpResponse response, HttpContext context)
                                     throws IOException {
@@ -261,7 +267,7 @@ public class ApiController implements AutoCloseable {
                             }
                         }).
                 registerHandler("/shutdown",
-                        new GenericHttpRequestHandler(credentials) {
+                        new GenericHttpRequestHandler(credentials, executorService, systemConfig.getApiServerRequestTimeout()) {
                             @Override
                             public void doGet(HttpRequest request, HttpResponse response, HttpContext context)
                                     throws IOException {
