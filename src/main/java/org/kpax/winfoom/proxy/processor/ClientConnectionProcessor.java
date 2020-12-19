@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.*;
 import javax.security.auth.login.*;
 import java.io.*;
 import java.net.*;
+import java.security.*;
 import java.util.concurrent.*;
 
 /**
@@ -145,28 +146,42 @@ public abstract class ClientConnectionProcessor {
             try {
                 if (proxyConfig.isKerberos()) {
                     try {
+                        logger.debug("First attempt to handle request within Kerberos auth context");
                         // Handle the request within Kerberos authenticated context
-                        authenticationContext.kerberosAuthenticator().execute(() -> handleRequest(clientConnection, proxyInfo),
-                                IOException.class, HttpException.class, RuntimeException.class, ProxyAuthorizationException.class);
+                        authenticationContext.kerberosAuthenticator().execute(
+                                () -> handleRequest(clientConnection, proxyInfo),
+                                IOException.class,
+                                HttpException.class,
+                                RuntimeException.class,
+                                ProxyAuthorizationException.class);
                     } catch (ProxyAuthorizationException e) {
+                        logger.debug("Authorization error on first attempt", e);
                         // The Kerberos proxy rejected the request.
-                        // Normally this can only happen if the ticket is expired
+                        // Normally this happens when the ticket is expired
                         // so we re-login to get a new valid ticket
-                        if (authenticationContext.kerberosAuthenticator().authenticate()) {
-                            // Handle the request within Kerberos authenticated context for the second time
-                            authenticationContext.kerberosAuthenticator().execute(() -> handleRequest(clientConnection, proxyInfo),
-                                    IOException.class, HttpException.class, RuntimeException.class, ProxyAuthorizationException.class);
-                        }
+                        authenticationContext.kerberosAuthenticator().authenticate();
+                        logger.debug("Second attempt to handle request within Kerberos auth context");
+                        // Handle the request within Kerberos authenticated context for the second time
+                        authenticationContext.kerberosAuthenticator().execute(
+                                () -> handleRequest(clientConnection, proxyInfo),
+                                IOException.class,
+                                HttpException.class,
+                                RuntimeException.class,
+                                ProxyAuthorizationException.class);
                     }
                 } else {
                     handleRequest(clientConnection, proxyInfo);
                 }
             } catch (LoginException e) {
                 logger.debug("Failed to login to Kerberos proxy", e);
-                clientConnection.writeErrorResponse(HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED, true);
+                clientConnection.writeProxyAuthRequiredErrorResponse();
             } catch (ProxyAuthorizationException e) {
                 logger.debug("Proxy authorization failed", e);
                 clientConnection.writeHttpResponse(e.getResponse());
+            } catch (PrivilegedActionException e) {
+                logger.debug("Failed to execute action", e);
+                clientConnection.writeErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR,
+                        "Cannot perform Kerberos authentication");
             }
         } catch (Exception e) {
             logger.debug("Error on handling request", e);

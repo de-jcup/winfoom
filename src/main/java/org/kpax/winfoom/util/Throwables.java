@@ -89,11 +89,11 @@ public class Throwables {
             U extends Exception> void throwIfMatches(@NotNull Exception e,
                                                      @NotNull Class<T> cls1,
                                                      @NotNull Class<U> cls2) throws T, U {
-        if (e.getClass().isAssignableFrom(cls1)) {
+        if (cls1.isAssignableFrom(e.getClass())) {
             throw cls1.cast(e);
         }
 
-        if (e.getClass().isAssignableFrom(cls2)) {
+        if (cls2.isAssignableFrom(e.getClass())) {
             throw cls2.cast(e);
         }
     }
@@ -105,7 +105,7 @@ public class Throwables {
                                                       @NotNull Class<E2> cls2,
                                                       @NotNull Class<E3> cls3) throws E1, E2, E3 {
         throwIfMatches(e, cls1, cls2);
-        if (e.getClass().isAssignableFrom(cls3)) {
+        if (cls3.isAssignableFrom(e.getClass())) {
             throw cls3.cast(e);
         }
     }
@@ -120,7 +120,7 @@ public class Throwables {
                                                       @NotNull Class<E4> cls4
     ) throws E1, E2, E3, E4 {
         throwIfMatches(e, cls1, cls2, cls3);
-        if (e.getClass().isAssignableFrom(cls4)) {
+        if (cls4.isAssignableFrom(e.getClass())) {
             throw cls4.cast(e);
         }
     }

@@ -29,6 +29,8 @@ import java.util.*;
 
 public class KerberosAuthenticator implements AutoCloseable {
 
+    public static final int MIN_LOGIN_INTERVAL = 30;
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final ProxyConfig proxyConfig;
@@ -43,43 +45,52 @@ public class KerberosAuthenticator implements AutoCloseable {
         this.proxyConfig = proxyConfig;
     }
 
-    public synchronized boolean authenticate() throws LoginException {
+    public synchronized void authenticate() throws LoginException {
+        logger.debug("Attempting Kerberos authentication");
+
         if (kerberosTicket != null &&
-                kerberosTicket.getEndTime().after(new Date())) {
+                kerberosTicket.isCurrent() &&
+                DateUtils.secondBetween(kerberosTicket.getAuthTime(), new Date()) < MIN_LOGIN_INTERVAL) {
             logger.debug("Already authenticated, nothing to do");
-            return false;
+            return;
         }
 
         if (loginContext != null) {
             try {
+                logger.debug("Existent LoginContext found, try logout");
                 loginContext.logout();
-            } catch (LoginException e) {
+            } catch (Exception e) {
                 logger.warn("Cannot logout the former LoginContext, proceed with login", e);
             }
         }
 
-        loginContext = new Krb5LoginModule();
-        Map<String, String> map = new HashMap<>();
-        map.put("storeKey", "true");
-//        map.put("doNotPrompt", "true"); ???
-
-        subject = new Subject();
-
-        loginContext.initialize(subject, new CallbackHandler() {
-            @Override
-            public void handle(Callback[] callbacks) {
-                for (Callback callback : callbacks) {
-                    if (callback instanceof NameCallback) {
-                        ((NameCallback) callback).setName(proxyConfig.getProxyKrbPrincipal());
-                    } else if (callback instanceof PasswordCallback) {
-                        ((PasswordCallback) callback).setPassword(proxyConfig.getProxyHttpPassword().toCharArray());
+        try {
+            loginContext = new Krb5LoginModule();
+            Map<String, String> map = new HashMap<>();
+            map.put("storeKey", "true");
+            subject = new Subject();
+            loginContext.initialize(subject, new CallbackHandler() {
+                @Override
+                public void handle(Callback[] callbacks) {
+                    for (Callback callback : callbacks) {
+                        if (callback instanceof NameCallback) {
+                            ((NameCallback) callback).setName(proxyConfig.getProxyKrbPrincipal());
+                        } else if (callback instanceof PasswordCallback) {
+                            ((PasswordCallback) callback).setPassword(proxyConfig.getProxyHttpPassword().toCharArray());
+                        }
                     }
                 }
-            }
-        }, null, map);
+            }, null, map);
 
-        loginContext.login();
-        loginContext.commit();
+            logger.debug("About to login principal {}", proxyConfig.getProxyKrbPrincipal());
+            loginContext.login();
+            loginContext.commit();
+        } catch (Exception e) {
+            // Cleanup on exception
+            logout();
+            throw e;
+        }
+
 
         // Retrieve the Kerberos credentials
         // Get Kerberos ticket
@@ -91,7 +102,6 @@ public class KerberosAuthenticator implements AutoCloseable {
 
         logger.debug("kerberosTicket {}", kerberosTicket);
 
-        return true;
     }
 
     void logout() {
@@ -99,25 +109,48 @@ public class KerberosAuthenticator implements AutoCloseable {
             try {
                 loginContext.logout();
             } catch (Exception e) {
-                logger.debug("Error on JAAS logout", e);
+                logger.debug("Error on Kerberos logout", e);
             }
         }
         subject = null;
         kerberosTicket = null;
-
     }
 
-    public <E1 extends Exception, E2 extends Exception, E3 extends Exception> void execute(
-            PrivilegedExceptionRunnable action,
+    public Date getLastLoginDate() {
+        return kerberosTicket != null ? kerberosTicket.getAuthTime() : null;
+    }
+
+    public <E1 extends Exception, E2 extends Exception> void execute(
+            PrivilegedActionWrapper action,
             Class<E1> cls1,
-            Class<E2> cls2,
-            Class<E3> cls3)
-            throws E1, E2, E3 {
-        if (loginContext != null) {
+            Class<E2> cls2)
+            throws E1, E2, PrivilegedActionException {
+        if (subject != null) {
             try {
                 Subject.doAs(subject, action);
             } catch (PrivilegedActionException e) {
+                logger.debug("Error on executing action", e);
+                Throwables.throwIfMatches(e.getException(), cls1, cls2);
+                throw e;
+            }
+        } else {
+            throw new SecurityException("JAAS authentication not found");
+        }
+    }
+
+    public <E1 extends Exception, E2 extends Exception, E3 extends Exception> void execute(
+            PrivilegedActionWrapper action,
+            Class<E1> cls1,
+            Class<E2> cls2,
+            Class<E3> cls3)
+            throws E1, E2, E3, PrivilegedActionException {
+        if (subject != null) {
+            try {
+                Subject.doAs(subject, action);
+            } catch (PrivilegedActionException e) {
+                logger.debug("Error on executing action", e);
                 Throwables.throwIfMatches(e.getException(), cls1, cls2, cls3);
+                throw e;
             }
         } else {
             throw new SecurityException("JAAS authentication not found");
@@ -125,17 +158,19 @@ public class KerberosAuthenticator implements AutoCloseable {
     }
 
     public <E1 extends Exception, E2 extends Exception, E3 extends Exception, E4 extends Exception> void execute(
-            PrivilegedExceptionRunnable action,
+            PrivilegedActionWrapper action,
             Class<E1> cls1,
             Class<E2> cls2,
             Class<E3> cls3,
             Class<E4> cls4)
-            throws E1, E2, E3, E4 {
-        if (loginContext != null) {
+            throws E1, E2, E3, E4, PrivilegedActionException {
+        if (subject != null) {
             try {
                 Subject.doAs(subject, action);
             } catch (PrivilegedActionException e) {
+                logger.debug("Error on executing action " + e.getException());
                 Throwables.throwIfMatches(e.getException(), cls1, cls2, cls3, cls4);
+                throw e;
             }
         } else {
             throw new SecurityException("JAAS authentication not found");

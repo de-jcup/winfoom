@@ -17,6 +17,7 @@ import org.apache.http.*;
 import org.apache.http.client.methods.*;
 import org.apache.http.client.protocol.*;
 import org.apache.http.conn.*;
+import org.apache.http.entity.*;
 import org.apache.http.impl.client.*;
 import org.apache.http.util.*;
 import org.kpax.winfoom.annotation.*;
@@ -71,6 +72,10 @@ class NonConnectClientConnectionProcessor extends ClientConnectionProcessor {
             try (CloseableHttpResponse response = httpClient.execute(target, clientConnection.getRequest(), context)) {
                 StatusLine statusLine = response.getStatusLine();
                 if (statusLine.getStatusCode() == HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED) {
+                    //HttpUtils.readEntity(response);
+                    if (response.getEntity() != null) {
+                        response.setEntity(new BufferedHttpEntity(response.getEntity()));
+                    }
                     throw new ProxyAuthorizationException(response);
                 }
                 try {

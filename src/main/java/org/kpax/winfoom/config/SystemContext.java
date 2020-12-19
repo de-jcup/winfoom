@@ -14,7 +14,6 @@
 package org.kpax.winfoom.config;
 
 import java.util.*;
-import java.util.stream.*;
 
 /**
  * Provide information about the current operating system, Spring's active profiles.

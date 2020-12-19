@@ -2,9 +2,9 @@ package org.kpax.winfoom.util.functional;
 
 import java.security.*;
 
-public interface PrivilegedExceptionRunnable extends PrivilegedExceptionAction {
+public interface PrivilegedActionWrapper extends PrivilegedExceptionAction {
 
-    void execute () throws Exception;
+    void execute() throws Exception;
 
     @Override
     default Object run() throws Exception {

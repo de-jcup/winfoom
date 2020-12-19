@@ -278,59 +278,50 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
      * Write a simple response with only the status line and date header, followed by an empty line.
      * <p><b>This method commits the response.</b></p>
      *
-     * @param statusCode the status code
-     * @see #writeErrorResponse(int, String, boolean)
+     * @param statusCode the request's status code.
      */
     public void writeErrorResponse(int statusCode) {
-        writeErrorResponse(statusCode, null, false);
-    }
-
-    /**
-     * Write a simple response with only the status line, date header and an optional {@code Connection: Close} header,
-     * followed by an empty line.
-     * <p><b>This method commits the response.</b></p>
-     *
-     * @param statusCode      the status code
-     * @param closeConnection whether to add {@code Connection: Close} header
-     * @see #writeErrorResponse(int, String, boolean)
-     */
-    public void writeErrorResponse(int statusCode, boolean closeConnection) {
-        writeErrorResponse(statusCode, null, closeConnection);
+        writeErrorResponse(statusCode, null);
     }
 
     /**
      * Write a simple response with only the status line and date header, followed by an empty line.
      * <p><b>This method commits the response.</b></p>
      *
-     * @param statusCode   the status code
-     * @param reasonPhrase the reason phrase
-     * @see #writeErrorResponse(int, String, boolean)
+     * @param statusCode   the request's status code.
+     * @param reasonPhrase the request's reason code
      */
     public void writeErrorResponse(int statusCode, String reasonPhrase) {
-        writeErrorResponse(statusCode, reasonPhrase, false);
-    }
-
-    /**
-     * Write a simple response with only the status line, date header and an optional {@code Connection: Close} header,
-     * followed by an empty line.
-     * <p><b>This method commits the response.</b></p>
-     *
-     * @param statusCode      the status code
-     * @param reasonPhrase    the reason phrase
-     * @param closeConnection whether to add {@code Connection: Close} header
-     */
-    public void writeErrorResponse(int statusCode, String reasonPhrase, boolean closeConnection) {
         logger.debug("Write error response: statusCode = {}  reasonPhrase = [{}]", statusCode, reasonPhrase);
         try {
             write(HttpUtils.toStatusLine(request != null ? request.getProtocolVersion() : HttpVersion.HTTP_1_1,
                     statusCode, HttpUtils.replaceCRAndLF(reasonPhrase, StringUtils.SPACE)));
             write(HttpUtils.createHttpHeader(HTTP.DATE_HEADER, HttpUtils.getCurrentDate()));
-            if (closeConnection) {
-                write(HttpUtils.createHttpHeader(HTTP.CONN_DIRECTIVE, HTTP.CONN_CLOSE));
-            }
             writeln();
         } catch (Exception ex) {
             logger.debug("Error on writing error response", ex);
+        }
+    }
+
+    public void writeProxyAuthRequiredErrorResponse() {
+        logger.debug("Write error response: statusCode = {}", HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED);
+        String body = "<!DOCTYPE HTML \"-//IETF//DTD HTML 2.0//EN\">\n"
+                + "<html><head>\n"
+                + "<title>" + "Proxy authentication failed" + "</title>\n"
+                + "</head><body>\n"
+                + "Winfoom failed to login to the remote proxy with the provided credentials"
+                + "</body></html>\n";
+        byte[] bytes = body.getBytes(Charset.forName("UTF-8"));
+        try {
+            write(HttpUtils.toStatusLine(request != null ? request.getProtocolVersion() : HttpVersion.HTTP_1_1,
+                    HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED));
+            write(HttpUtils.createHttpHeader(HTTP.DATE_HEADER, HttpUtils.getCurrentDate()));
+            write(HttpUtils.createHttpHeader(HttpHeaders.CONTENT_LENGTH, "" + bytes.length));
+            writeln();
+            outputStream.write(bytes);
+            outputStream.flush();
+        } catch (Exception ex) {
+            logger.debug("Error on writing proxy auth required error response", ex);
         }
     }
 
@@ -339,9 +330,9 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
      * <p><b>This method commits the response.</b></p>
      *
      * @param httpResponse the HTTP response
-     * @throws IOException
+     * @throws Exception
      */
-    public void writeHttpResponse(@NotNull final HttpResponse httpResponse) throws IOException {
+    public void writeHttpResponse(@NotNull final HttpResponse httpResponse) throws Exception {
         StatusLine statusLine = httpResponse.getStatusLine();
         logger.debug("Write statusLine {}", statusLine);
         write(statusLine);

@@ -619,6 +619,8 @@ public class ProxyConfig {
         return "ProxyConfig{" +
                 "appVersion=" + appVersion +
                 ", apiPort=" + apiPort +
+                ", apiToken=" + apiToken +
+                ", proxyType=" + proxyType +
                 ", localPort=" + localPort +
                 ", proxyHttpHost=" + proxyHttpHost +
                 ", proxySocks5Host=" + proxySocks5Host +
@@ -627,13 +629,15 @@ public class ProxyConfig {
                 ", proxySocks5Port=" + proxySocks5Port +
                 ", proxySocks4Port=" + proxySocks4Port +
                 ", proxyTestUrl=" + proxyTestUrl +
-                ", proxyType=" + proxyType +
-                ", proxyUsername=" + getProxyUsername() +
+                ", proxySocks5Username=" + proxySocks5Username +
+                ", proxyHttpUsername=" + proxyHttpUsername +
                 ", proxyStorePassword=" + proxyStorePassword +
                 ", proxyPacFileLocation=" + proxyPacFileLocation +
                 ", blacklistTimeout=" + blacklistTimeout +
                 ", autostart=" + autostart +
                 ", autodetect=" + autodetect +
+                ", httpAuthProtocol=" + httpAuthProtocol +
+                ", krb5ConfFilepath=" + krb5ConfFilepath +
                 ", tempDirectory=" + tempDirectory +
                 '}';
     }

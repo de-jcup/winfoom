@@ -58,6 +58,7 @@ public class ProxyController {
      */
     public synchronized void start() throws Exception {
         Assert.state(!started, "Already started");
+        logger.debug("Attempting to start local proxy facade with: {}", proxyConfig);
         List<StartListener> startListeners = Stream.of(applicationContext.getBeanNamesForType(StartListener.class)).
                 map(applicationContext.getBeanFactory()::getSingleton).
                 filter(Objects::nonNull).map(b -> (StartListener) b).collect(Collectors.toList());

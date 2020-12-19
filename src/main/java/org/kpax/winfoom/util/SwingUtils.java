@@ -15,7 +15,6 @@
 package org.kpax.winfoom.util;
 
 import org.kpax.winfoom.annotation.*;
-import org.kpax.winfoom.util.functional.*;
 import org.slf4j.*;
 import org.springframework.util.*;
 
@@ -26,7 +25,6 @@ import java.awt.*;
 import java.io.*;
 import java.net.*;
 import java.util.*;
-import java.util.concurrent.*;
 
 /**
  * Various Swing related methods.

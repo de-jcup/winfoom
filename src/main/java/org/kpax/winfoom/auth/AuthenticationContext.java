@@ -34,8 +34,10 @@ public class AuthenticationContext implements StartListener, StopListener {
 
     @Override
     public void onStop() {
-        kerberosAuthenticatorSupplier.reset();
-        System.clearProperty("java.security.krb5.conf");
+        if (proxyConfig.isKerberos()) {
+            kerberosAuthenticatorSupplier.reset();
+            System.clearProperty("java.security.krb5.conf");
+        }
     }
 
 }

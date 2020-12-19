@@ -218,7 +218,11 @@ public class KerberosHttpProxyMock implements AutoCloseable {
 
     public static void main(String[] args) {
         try {
-            KerberosHttpProxyMock httpProxyMock = new KerberosHttpProxyMockBuilder().build();
+            KerberosHttpProxyMock httpProxyMock = new KerberosHttpProxyMockBuilder().
+                    setMaximumTicketLifetime(60L).
+                    setMinimumTicketLifetime(30L).
+                   //setCredentials(Arrays.asList(new UsernamePasswordCredentials("winfoom", "4321"))).
+                    build();
             httpProxyMock.start();
             synchronized (httpProxyMock) {
                 httpProxyMock.wait();
