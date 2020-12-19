@@ -15,6 +15,7 @@ package org.kpax.winfoom.proxy.processor;
 import org.apache.http.*;
 import org.apache.http.impl.execchain.*;
 import org.kpax.winfoom.annotation.*;
+import org.kpax.winfoom.config.*;
 import org.kpax.winfoom.exception.*;
 import org.kpax.winfoom.proxy.*;
 import org.kpax.winfoom.util.*;
@@ -39,6 +40,9 @@ class HttpConnectClientConnectionProcessor extends ClientConnectionProcessor {
 
     @Autowired
     private TunnelConnection tunnelConnection;
+
+    @Autowired
+    private ProxyConfig proxyConfig;
 
     @Override
     void handleRequest(final ClientConnection clientConnection, final ProxyInfo proxyInfo)
@@ -69,7 +73,8 @@ class HttpConnectClientConnectionProcessor extends ClientConnectionProcessor {
             }
         } catch (TunnelRefusedException tre) {
             logger.debug("The tunnel request was rejected by the proxy host", tre);
-            if (tre.getResponse().getStatusLine().getStatusCode() == HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED) {
+            if (tre.getResponse().getStatusLine().getStatusCode() == HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED &&
+                    proxyConfig.isKerberos()) {
                 throw new ProxyAuthorizationException(tre.getResponse());
             }
             try {

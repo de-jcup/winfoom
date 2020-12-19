@@ -148,8 +148,7 @@ public abstract class ClientConnectionProcessor {
                     try {
                         logger.debug("First attempt to handle request within Kerberos auth context");
                         // Handle the request within Kerberos authenticated context
-                        authenticationContext.kerberosAuthenticator().execute(
-                                () -> handleRequest(clientConnection, proxyInfo),
+                        authenticationContext.kerberosAuthenticator().execute(() -> handleRequest(clientConnection, proxyInfo),
                                 IOException.class,
                                 HttpException.class,
                                 RuntimeException.class,
@@ -162,8 +161,7 @@ public abstract class ClientConnectionProcessor {
                         authenticationContext.kerberosAuthenticator().authenticate();
                         logger.debug("Second attempt to handle request within Kerberos auth context");
                         // Handle the request within Kerberos authenticated context for the second time
-                        authenticationContext.kerberosAuthenticator().execute(
-                                () -> handleRequest(clientConnection, proxyInfo),
+                        authenticationContext.kerberosAuthenticator().execute(() -> handleRequest(clientConnection, proxyInfo),
                                 IOException.class,
                                 HttpException.class,
                                 RuntimeException.class,

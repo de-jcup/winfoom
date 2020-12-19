@@ -71,7 +71,8 @@ class NonConnectClientConnectionProcessor extends ClientConnectionProcessor {
             // Execute the request
             try (CloseableHttpResponse response = httpClient.execute(target, clientConnection.getRequest(), context)) {
                 StatusLine statusLine = response.getStatusLine();
-                if (statusLine.getStatusCode() == HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED) {
+                if (statusLine.getStatusCode() == HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED &&
+                        proxyConfig.isKerberos()) {
                     //HttpUtils.readEntity(response);
                     if (response.getEntity() != null) {
                         response.setEntity(new BufferedHttpEntity(response.getEntity()));
