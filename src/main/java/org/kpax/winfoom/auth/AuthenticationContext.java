@@ -4,6 +4,7 @@ import org.kpax.winfoom.config.*;
 import org.kpax.winfoom.proxy.*;
 import org.kpax.winfoom.util.functional.*;
 import org.springframework.beans.factory.annotation.*;
+import org.springframework.context.*;
 import org.springframework.stereotype.*;
 import org.springframework.util.*;
 
@@ -11,12 +12,15 @@ import org.springframework.util.*;
 public class AuthenticationContext implements StartListener, StopListener {
 
     @Autowired
+    private ApplicationContext applicationContext;
+
+    @Autowired
     private ProxyConfig proxyConfig;
 
     private final SingletonSupplier<KerberosAuthenticator> kerberosAuthenticatorSupplier =
             new SingletonSupplier<>(() -> {
                 System.setProperty("java.security.krb5.conf", proxyConfig.getKrb5ConfFilepath());
-                return new KerberosAuthenticator(proxyConfig);
+                return applicationContext.getBean(KerberosAuthenticator.class);
             });
 
 

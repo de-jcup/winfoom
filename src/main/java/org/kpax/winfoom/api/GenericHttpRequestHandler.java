@@ -31,6 +31,7 @@ import java.util.concurrent.*;
  * <p>It provides basic authentication and authorization.
  */
 public class GenericHttpRequestHandler implements HttpRequestHandler {
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final Credentials credentials;
@@ -75,7 +76,9 @@ public class GenericHttpRequestHandler implements HttpRequestHandler {
                 response.setStatusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
                 response.setEntity(new StringEntity("Command execution interrupted"));
             } catch (ExecutionException e) {
-                Throwables.throwIfMatches(e.getCause(), HttpException.class, IOException.class, RuntimeException.class);
+                Throwables.throwIfMatches(e.getCause(), HttpException.class);
+                Throwables.throwIfMatches(e.getCause(), IOException.class);
+                Throwables.throwIfMatches(e.getCause(), RuntimeException.class);
                 logger.debug("Error on executing request", e);
                 response.setStatusCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
                 response.setEntity(new StringEntity("Error on executing command: " + e.getMessage()));

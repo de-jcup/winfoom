@@ -18,6 +18,11 @@ import org.kpax.winfoom.config.*;
 import org.kpax.winfoom.util.*;
 import org.kpax.winfoom.util.functional.*;
 import org.slf4j.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.beans.factory.config.*;
+import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.*;
 
 import javax.security.auth.*;
 import javax.security.auth.callback.*;
@@ -26,14 +31,17 @@ import javax.security.auth.login.*;
 import java.security.*;
 import java.util.*;
 
-
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Component
 public class KerberosAuthenticator implements AutoCloseable {
-
-    public static final int MIN_LOGIN_INTERVAL = 30;
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final ProxyConfig proxyConfig;
+    @Autowired
+    private ProxyConfig proxyConfig;
+
+    @Autowired
+    private SystemConfig systemConfig;
 
     private volatile Krb5LoginModule loginContext;
 
@@ -41,18 +49,31 @@ public class KerberosAuthenticator implements AutoCloseable {
 
     private volatile KerberosTicket kerberosTicket;
 
-    KerberosAuthenticator(ProxyConfig proxyConfig) {
-        this.proxyConfig = proxyConfig;
-    }
-
     public synchronized void authenticate() throws LoginException {
         logger.debug("Attempting Kerberos authentication");
 
-        if (kerberosTicket != null &&
-                kerberosTicket.isCurrent() &&
-                DateUtils.secondBetween(kerberosTicket.getAuthTime(), new Date()) < MIN_LOGIN_INTERVAL) {
-            logger.debug("Already authenticated, nothing to do");
-            return;
+        if (kerberosTicket != null) {
+
+            // Enforcing the minimum login gap policy.
+            // This is necessary to avoid useless multiple logins in simultaneous access cases.
+            if (kerberosTicket.isCurrent() &&
+                    kerberosTicket.getAuthTime() != null &&
+                    DateUtils.secondsFromCurrent(kerberosTicket.getAuthTime()) < systemConfig.getKerberosLoginMinInterval()) {
+                logger.debug("Already authenticated, nothing to do");
+                return;
+            }
+
+            if (kerberosTicket.isRenewable()) {
+                try {
+                    // Try to renew the ticket
+                    kerberosTicket.refresh();
+                    logger.debug("Ticket refresh succeeded");
+                    return;
+                } catch (Exception e) {
+                    logger.debug("Ticket refresh failed", e);
+                }
+            }
+
         }
 
         if (loginContext != null) {
@@ -60,7 +81,7 @@ public class KerberosAuthenticator implements AutoCloseable {
                 logger.debug("Existent LoginContext found, try logout");
                 loginContext.logout();
             } catch (Exception e) {
-                logger.warn("Cannot logout the former LoginContext, proceed with login", e);
+                logger.warn("Cannot logout the former LoginContext: {}", e.getMessage());
             }
         }
 
@@ -69,6 +90,7 @@ public class KerberosAuthenticator implements AutoCloseable {
             Map<String, String> map = new HashMap<>();
             map.put("storeKey", "true");
             subject = new Subject();
+
             loginContext.initialize(subject, new CallbackHandler() {
                 @Override
                 public void handle(Callback[] callbacks) {
@@ -91,7 +113,6 @@ public class KerberosAuthenticator implements AutoCloseable {
             throw e;
         }
 
-
         // Retrieve the Kerberos credentials
         // Get Kerberos ticket
         for (Object o : subject.getPrivateCredentials()) {
@@ -101,15 +122,14 @@ public class KerberosAuthenticator implements AutoCloseable {
         }
 
         logger.debug("kerberosTicket {}", kerberosTicket);
-
     }
 
     void logout() {
         if (loginContext != null) {
             try {
-                loginContext.logout();
+                loginContext.abort();
             } catch (Exception e) {
-                logger.debug("Error on Kerberos logout", e);
+                logger.debug("Error on Kerberos logout: {}", e.getMessage());
             }
         }
         subject = null;
@@ -120,66 +140,17 @@ public class KerberosAuthenticator implements AutoCloseable {
         return kerberosTicket != null ? kerberosTicket.getAuthTime() : null;
     }
 
-    public <E1 extends Exception, E2 extends Exception> void execute(
-            PrivilegedActionWrapper action,
-            Class<E1> cls1,
-            Class<E2> cls2)
-            throws E1, E2, PrivilegedActionException {
+    public void execute(PrivilegedActionWrapper action) throws PrivilegedActionException {
         if (subject != null) {
-            try {
-                Subject.doAs(subject, action);
-            } catch (PrivilegedActionException e) {
-                logger.debug("Error on executing action", e);
-                Throwables.throwIfMatches(e.getException(), cls1, cls2);
-                throw e;
-            }
+            Subject.doAs(subject, action);
         } else {
-            throw new SecurityException("JAAS authentication not found");
-        }
-    }
-
-    public <E1 extends Exception, E2 extends Exception, E3 extends Exception> void execute(
-            PrivilegedActionWrapper action,
-            Class<E1> cls1,
-            Class<E2> cls2,
-            Class<E3> cls3)
-            throws E1, E2, E3, PrivilegedActionException {
-        if (subject != null) {
-            try {
-                Subject.doAs(subject, action);
-            } catch (PrivilegedActionException e) {
-                logger.debug("Error on executing action", e);
-                Throwables.throwIfMatches(e.getException(), cls1, cls2, cls3);
-                throw e;
-            }
-        } else {
-            throw new SecurityException("JAAS authentication not found");
-        }
-    }
-
-    public <E1 extends Exception, E2 extends Exception, E3 extends Exception, E4 extends Exception> void execute(
-            PrivilegedActionWrapper action,
-            Class<E1> cls1,
-            Class<E2> cls2,
-            Class<E3> cls3,
-            Class<E4> cls4)
-            throws E1, E2, E3, E4, PrivilegedActionException {
-        if (subject != null) {
-            try {
-                Subject.doAs(subject, action);
-            } catch (PrivilegedActionException e) {
-                logger.debug("Error on executing action ", e);
-                Throwables.throwIfMatches(e.getException(), cls1, cls2, cls3, cls4);
-                throw e;
-            }
-        } else {
-            throw new SecurityException("JAAS authentication not found");
+            throw new SecurityException("Kerberos authentication not found, you need to login first");
         }
     }
 
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         logout();
     }
 }

@@ -44,7 +44,7 @@ public class KerberosApplication {
 
     @Bean
     KerberosHttpProxyMock kerberosHttpProxyMock () throws KrbException {
-        return new KerberosHttpProxyMock.KerberosHttpProxyMockBuilder().
+        return KerberosHttpProxyMock.KerberosHttpProxyMockBuilder.builder().
                 setMaximumTicketLifetime(60L).
                 setMinimumTicketLifetime(30L).
                 //setCredentials(Arrays.asList(new UsernamePasswordCredentials("winfoom", "4321"))).

@@ -34,7 +34,7 @@ fi
 
 if [ ! -z $1 ]; then
   if [ "$1" == "--debug" ]; then
-    ARGS="$ARGS -Dlogging.level.root=DEBUG -Dlogging.level.java.awt=INFO -Dlogging.level.sun.awt=INFO -Dlogging.level.javax.swing=INFO -Dlogging.level.jdk=INFO"
+    ARGS="$ARGS -Dlogging.level.root=DEBUG -Dlogging.level.java.awt=INFO -Dlogging.level.sun.awt=INFO -Dlogging.level.javax.swing=INFO -Dlogging.level.jdk=INFO -Dsun.security.krb5.debug=true -Dsun.security.jgss.debug=true"
   else
     echo "Invalid command, try 'launch --help' for more information"
     exit 1

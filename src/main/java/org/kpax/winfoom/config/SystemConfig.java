@@ -125,11 +125,16 @@ public class SystemConfig {
     private Integer pacScriptEnginePoolMinIdle;
 
     /**
-     * The connections idle timeout,
-     * to be purged by a scheduled task (seconds).
+     * The request timeout for API server (seconds).
      */
     @Value("${apiServer.request.timeout:10}")
     private Integer apiServerRequestTimeout;
+
+    /**
+     * The minimum interval successful Kerberos login is allowed (seconds)
+     */
+    @Value("${kerberos.login.minInterval:30}")
+    private Integer kerberosLoginMinInterval;
 
     @PostConstruct
     private void init() {
@@ -186,6 +191,10 @@ public class SystemConfig {
 
     public Integer getApiServerRequestTimeout() {
         return apiServerRequestTimeout;
+    }
+
+    public Integer getKerberosLoginMinInterval() {
+        return kerberosLoginMinInterval;
     }
 
     public RequestConfig.Builder applyConfig(final RequestConfig.Builder configBuilder) {

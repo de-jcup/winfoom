@@ -67,7 +67,7 @@ public class KerberosTests {
     void before() throws Exception {
         beforeEach();
 
-        kerberosHttpProxyMock = new KerberosHttpProxyMock.KerberosHttpProxyMockBuilder().setProxyPort(PROXY_PORT).build();
+        kerberosHttpProxyMock = KerberosHttpProxyMock.KerberosHttpProxyMockBuilder.builder().setProxyPort(PROXY_PORT).build();
         kerberosHttpProxyMock.start();
 
         remoteServer = ServerBootstrap.bootstrap().registerHandler("/post", new HttpRequestHandler() {
@@ -80,6 +80,7 @@ public class KerberosTests {
 
         }).create();
         remoteServer.start();
+
         proxyController.start();
     }
 

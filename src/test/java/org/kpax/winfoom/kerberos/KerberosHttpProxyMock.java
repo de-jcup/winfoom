@@ -246,8 +246,12 @@ public class KerberosHttpProxyMock implements AutoCloseable {
         private int kdcPort = DEFAULT_KDC_PORT;
         private long minimumTicketLifetime = DEFAULT_MINIMUM_TICKET_LIFETIME;
         private long maximumTicketLifetime = DEFAULT_MAXIMUM_TICKET_LIFETIME;
+
         private List<UsernamePasswordCredentials> credentials =
                 Collections.singletonList(new UsernamePasswordCredentials(DEFAULT_USERNAME, DEFAULT_PASSWORD));
+
+        private KerberosHttpProxyMockBuilder() {
+        }
 
         public KerberosHttpProxyMockBuilder setProxyPort(int proxyPort) {
             this.proxyPort = proxyPort;
@@ -277,6 +281,10 @@ public class KerberosHttpProxyMock implements AutoCloseable {
         public KerberosHttpProxyMock build() throws KrbException {
             Assert.notNull(credentials, "credentials cannot be null");
             return new KerberosHttpProxyMock(proxyPort, kdcPort, minimumTicketLifetime, maximumTicketLifetime, credentials);
+        }
+
+        public static KerberosHttpProxyMockBuilder builder() {
+            return new KerberosHttpProxyMockBuilder();
         }
     }
 }

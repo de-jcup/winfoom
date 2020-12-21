@@ -11,6 +11,6 @@ public class ThrowablesTests {
     @Test
     public void throwIfMatches_fourExceptions_throwOne () {
         Assertions.assertThrows(IOException.class, () ->
-                Throwables.throwIfMatches(new FileNotFoundException(), IOException.class, HttpException.class, RuntimeException.class, ProxyAuthorizationException.class));
+                Throwables.throwIfMatches(new FileNotFoundException(), IOException.class));
     }
 }

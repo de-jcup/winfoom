@@ -82,6 +82,30 @@ public abstract class ClientConnectionProcessor {
                               @NotNull final Exception e)
             throws ProxyConnectException;
 
+    private void handleKerberosRequest(@NotNull final ClientConnection clientConnection,
+                                       @NotNull final ProxyInfo proxyInfo)
+            throws IOException, HttpException, ProxyAuthorizationException, PrivilegedActionException {
+        try {
+            authenticationContext.kerberosAuthenticator().execute(() -> handleRequest(clientConnection, proxyInfo));
+        } catch (PrivilegedActionException e) {
+            logger.debug("Error on executing request within Kerberos context", e);
+            Exception actualException = e.getException();
+            if (actualException instanceof IOException) {
+                throw (IOException) actualException;
+            }
+            if (actualException instanceof HttpException) {
+                throw (HttpException) actualException;
+            }
+            if (actualException instanceof ProxyAuthorizationException) {
+                throw (ProxyAuthorizationException) actualException;
+            }
+            if (actualException instanceof RuntimeException) {
+                throw (RuntimeException) actualException;
+            }
+            throw e;
+        }
+    }
+
     /**
      * Simultaneously transfer bytes between two sources in a mutually independent manner.
      *
@@ -143,17 +167,13 @@ public abstract class ClientConnectionProcessor {
             throws ProxyConnectException {
         logger.debug("Process {} for {}", clientConnection, proxyInfo);
         try {
-            try {
-                if (proxyConfig.isKerberos()) {
+            if (proxyConfig.isKerberos()) {
+                try {
                     try {
                         logger.debug("First attempt to handle request within Kerberos auth context");
 
                         // Handle the request within Kerberos authenticated context
-                        authenticationContext.kerberosAuthenticator().execute(() -> handleRequest(clientConnection, proxyInfo),
-                                IOException.class,
-                                HttpException.class,
-                                RuntimeException.class,
-                                ProxyAuthorizationException.class);
+                        handleKerberosRequest(clientConnection, proxyInfo);
                     } catch (ProxyAuthorizationException e) {
                         logger.debug("Authorization error on first attempt", e);
 
@@ -161,27 +181,25 @@ public abstract class ClientConnectionProcessor {
                         // Normally this happens when the ticket is expired
                         // so we re-login to get a new valid ticket
                         authenticationContext.kerberosAuthenticator().authenticate();
+
                         logger.debug("Second attempt to handle request within Kerberos auth context");
                         // Handle the request within Kerberos authenticated context for the second time
-                        authenticationContext.kerberosAuthenticator().execute(() -> handleRequest(clientConnection, proxyInfo),
-                                IOException.class,
-                                HttpException.class,
-                                RuntimeException.class,
-                                ProxyAuthorizationException.class);
+                        handleKerberosRequest(clientConnection, proxyInfo);
                     }
-                } else {
-                    handleRequest(clientConnection, proxyInfo);
+
+                } catch (LoginException e) {
+                    logger.debug("Failed to login to Kerberos proxy", e);
+                    clientConnection.writeProxyAuthRequiredErrorResponse();
+                } catch (ProxyAuthorizationException e) {
+                    logger.debug("Proxy authorization failed", e);
+                    clientConnection.writeHttpResponse(e.getResponse());
+                } catch (PrivilegedActionException e) {
+                    logger.debug("Failed to execute action", e);
+                    clientConnection.writeErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR,
+                            "Cannot perform Kerberos authentication");
                 }
-            } catch (LoginException e) {
-                logger.debug("Failed to login to Kerberos proxy", e);
-                clientConnection.writeProxyAuthRequiredErrorResponse();
-            } catch (ProxyAuthorizationException e) {
-                logger.debug("Proxy authorization failed", e);
-                clientConnection.writeHttpResponse(e.getResponse());
-            } catch (PrivilegedActionException e) {
-                logger.debug("Failed to execute action", e);
-                clientConnection.writeErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR,
-                        "Cannot perform Kerberos authentication");
+            } else {
+                handleRequest(clientConnection, proxyInfo);
             }
         } catch (Exception e) {
             logger.debug("Error on handling request", e);

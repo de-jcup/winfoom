@@ -7,7 +7,7 @@ public class DateUtils {
     private DateUtils() {
     }
 
-    public static long secondBetween(Date date1, Date date2) {
-        return (date2.getTime() - date1.getTime()) / 1000;
+    public static long secondsFromCurrent(Date date) {
+        return (System.currentTimeMillis() - date.getTime()) / 1000;
     }
 }
