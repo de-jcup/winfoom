@@ -51,6 +51,7 @@ public class NonWindowsCredentialsProviderTests {
     public void getCredentials_withDomain_NoError() {
         when(proxyConfig.getProxyHttpUsername()).thenReturn("MyDomain\\randomUser");
         when(proxyConfig.getProxyHttpPassword()).thenReturn("randomPassword");
+        when(proxyConfig.isNtlm()).thenReturn(true);
 
         NonWindowsCredentialsProvider nonWindowsCredentialsProvider = new NonWindowsCredentialsProvider(proxyConfig);
         Credentials credentials = nonWindowsCredentialsProvider.getCredentials(null);
