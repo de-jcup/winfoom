@@ -38,10 +38,11 @@ import java.nio.charset.*;
 import java.util.*;
 
 public class KerberosHttpProxyMock implements AutoCloseable {
+
     private final int proxyPort;
-    private final int kdcPort;
-    private final long minimumTicketLifetime;
-    private final long maximumTicketLifetime;
+
+    private final String domain;
+
     private final List<UsernamePasswordCredentials> credentials;
 
     private HttpProxyServer proxyServer;
@@ -52,61 +53,33 @@ public class KerberosHttpProxyMock implements AutoCloseable {
 
     private SunJaasKerberosTicketValidator ticketValidator;
 
-    private KerberosHttpProxyMock(int proxyPort, int kdcPort, long minimumTicketLifetime,
-                                  long maximumTicketLifetime, List<UsernamePasswordCredentials> credentials)
+    private KerberosHttpProxyMock(int proxyPort,
+                                  String domain,
+                                  List<UsernamePasswordCredentials> credentials,
+                                  SimpleKdcServer simpleKdcServer)
             throws KrbException {
         this.proxyPort = proxyPort;
-        this.kdcPort = kdcPort;
-        this.minimumTicketLifetime = minimumTicketLifetime;
-        this.maximumTicketLifetime = maximumTicketLifetime;
+        this.domain = domain;
         this.credentials = credentials;
         this.proxyServerBootstrap = DefaultHttpProxyServer.bootstrap()
-                .withAddress(new InetSocketAddress("localhost", proxyPort))
+                .withPort(proxyPort)
                 .withName("KerberosHttpProxy")
                 .withFiltersSource(getFiltersSource())
-                .withTransparent(true);
+                .withTransparent(true)
+                .withAllowLocalOnly(false);
 
-        this.simpleKdcServer = new SimpleKdcServer(new KdcConfig() {
-            @Override
-            public long getMaximumTicketLifetime() {
-                return maximumTicketLifetime;
-            }
-
-            @Override
-            public long getMinimumTicketLifetime() {
-                return minimumTicketLifetime;
-            }
-        }, new BackendConfig());
-
-        this.simpleKdcServer.enableDebug();
-        this.simpleKdcServer.setKdcTcpPort(kdcPort);
-        this.simpleKdcServer.setAllowTcp(true);
-        this.simpleKdcServer.setAllowUdp(false);
-        this.simpleKdcServer.setKdcPort(kdcPort);
-        this.simpleKdcServer.setWorkDir(new File("src/test/resources"));
+        this.simpleKdcServer = simpleKdcServer;
+        System.out.println(" *** isRenewableAllowed: " + simpleKdcServer.getKdcConfig().isRenewableAllowed());
         this.simpleKdcServer.init();
 
         this.ticketValidator = new SunJaasKerberosTicketValidator();
-        this.ticketValidator.setServicePrincipal("HTTP/localhost@EXAMPLE.COM");
+        this.ticketValidator.setServicePrincipal("HTTP/" + domain + "@EXAMPLE.COM");
         this.ticketValidator.setKeyTabLocation(new FileSystemResource(new File("src/test/resources/test.keytab")));
         this.ticketValidator.setDebug(true);
-
     }
 
     public int getProxyPort() {
         return proxyPort;
-    }
-
-    public int getKdcPort() {
-        return kdcPort;
-    }
-
-    public long getMinimumTicketLifetime() {
-        return minimumTicketLifetime;
-    }
-
-    public long getMaximumTicketLifetime() {
-        return maximumTicketLifetime;
     }
 
     public List<UsernamePasswordCredentials> getCredentials() {
@@ -122,14 +95,11 @@ public class KerberosHttpProxyMock implements AutoCloseable {
         simpleKdcServer.start();
 
         System.out.println("Add the principals");
-        simpleKdcServer.createPrincipal("HTTP/localhost@EXAMPLE.COM");
+        simpleKdcServer.createPrincipal("HTTP/" + domain + "@EXAMPLE.COM");
         for (UsernamePasswordCredentials credential : credentials) {
             simpleKdcServer.createPrincipal(credential.getUsername(), credential.getPassword());
         }
         System.out.println("KDC server started and listening on port: " + simpleKdcServer.getKdcPort());
-
-        //System.setProperty("java.security.auth.login.config", new File("config/jaas.conf").getAbsolutePath());
-        //System.setProperty("java.security.krb5.conf", new File("src/test/resources/krb5.conf").getAbsolutePath());
         System.out.println("Export credentials");
         simpleKdcServer.exportPrincipals(new File("src/test/resources/test.keytab"));
 
@@ -219,10 +189,7 @@ public class KerberosHttpProxyMock implements AutoCloseable {
     public static void main(String[] args) {
         try {
             KerberosHttpProxyMock httpProxyMock = new KerberosHttpProxyMockBuilder().
-                    setMaximumTicketLifetime(60L).
-                    setMinimumTicketLifetime(30L).
-                   //setCredentials(Arrays.asList(new UsernamePasswordCredentials("winfoom", "4321"))).
-                    build();
+                    withDomain("auth.example.com").build();
             httpProxyMock.start();
             synchronized (httpProxyMock) {
                 httpProxyMock.wait();
@@ -238,53 +205,89 @@ public class KerberosHttpProxyMock implements AutoCloseable {
         public static final int DEFAULT_KDC_PORT = 54284;
         public static final long DEFAULT_MINIMUM_TICKET_LIFETIME = 600L;
         public static final long DEFAULT_MAXIMUM_TICKET_LIFETIME = 3600L;
+        public static final long DEFAULT_MAXIMUM_RENEWABLE_LIFETIME = 10 * 3600L;
         public static final String DEFAULT_USERNAME = "winfoom";
         public static final String DEFAULT_PASSWORD = "1234";
         public static final String DEFAULT_REALM = "EXAMPLE.COM";
+        public static final String DEFAULT_DOMAIN = "localhost";
 
         private int proxyPort = DEFAULT_PROXY_PORT;
-        private int kdcPort = DEFAULT_KDC_PORT;
-        private long minimumTicketLifetime = DEFAULT_MINIMUM_TICKET_LIFETIME;
-        private long maximumTicketLifetime = DEFAULT_MAXIMUM_TICKET_LIFETIME;
+        private String domain = DEFAULT_DOMAIN;
 
         private List<UsernamePasswordCredentials> credentials =
                 Collections.singletonList(new UsernamePasswordCredentials(DEFAULT_USERNAME, DEFAULT_PASSWORD));
 
-        private KerberosHttpProxyMockBuilder() {
+        private KdcConfig kdcConfig = getDefaultKdcConfig();
+
+        private SimpleKdcServer simpleKdcServer = getDefaultSimpleKdcServer();
+
+        public KerberosHttpProxyMockBuilder() throws KrbException, UnknownHostException {
         }
 
-        public KerberosHttpProxyMockBuilder setProxyPort(int proxyPort) {
+        public KerberosHttpProxyMockBuilder withProxyPort(int proxyPort) {
             this.proxyPort = proxyPort;
             return this;
         }
 
-        public KerberosHttpProxyMockBuilder setKdcPort(int kdcPort) {
-            this.kdcPort = kdcPort;
+        public KerberosHttpProxyMockBuilder withDomain(String domain) {
+            this.domain = domain;
             return this;
         }
 
-        public KerberosHttpProxyMockBuilder setMinimumTicketLifetime(long minimumTicketLifetime) {
-            this.minimumTicketLifetime = minimumTicketLifetime;
-            return this;
-        }
-
-        public KerberosHttpProxyMockBuilder setMaximumTicketLifetime(long maximumTicketLifetime) {
-            this.maximumTicketLifetime = maximumTicketLifetime;
-            return this;
-        }
-
-        public KerberosHttpProxyMockBuilder setCredentials(List<UsernamePasswordCredentials> credentials) {
+        public KerberosHttpProxyMockBuilder withCredentials(List<UsernamePasswordCredentials> credentials) {
             this.credentials = credentials;
+            return this;
+        }
+
+        public static KdcConfig getDefaultKdcConfig() {
+            return new KdcConfig() {
+                @Override
+                public long getMaximumTicketLifetime() {
+                    return DEFAULT_MAXIMUM_TICKET_LIFETIME;
+                }
+
+                @Override
+                public long getMinimumTicketLifetime() {
+                    return DEFAULT_MINIMUM_TICKET_LIFETIME;
+                }
+
+                @Override
+                public boolean isRenewableAllowed() {
+                    return true;
+                }
+
+                @Override
+                public long getMaximumRenewableLifetime() {
+                    return DEFAULT_MAXIMUM_RENEWABLE_LIFETIME;
+                }
+            };
+        }
+
+        public static SimpleKdcServer getDefaultSimpleKdcServer() throws KrbException, UnknownHostException {
+            SimpleKdcServer simpleKdcServer = new SimpleKdcServer(getDefaultKdcConfig(), new BackendConfig());
+            simpleKdcServer.enableDebug();
+            simpleKdcServer.setKdcTcpPort(DEFAULT_KDC_PORT);
+            simpleKdcServer.setAllowTcp(true);
+            simpleKdcServer.setAllowUdp(false);
+            simpleKdcServer.setKdcPort(DEFAULT_KDC_PORT);
+            simpleKdcServer.setWorkDir(new File("src/test/resources"));
+            simpleKdcServer.setKdcHost("0.0.0.0");
+            return simpleKdcServer;
+        }
+
+        public KerberosHttpProxyMockBuilder withKdcConfig(KdcConfig kdcConfig) {
+            this.kdcConfig = kdcConfig;
+            return this;
+        }
+
+        public KerberosHttpProxyMockBuilder withSimpleKdcServer(SimpleKdcServer simpleKdcServer) {
+            this.simpleKdcServer = simpleKdcServer;
             return this;
         }
 
         public KerberosHttpProxyMock build() throws KrbException {
             Assert.notNull(credentials, "credentials cannot be null");
-            return new KerberosHttpProxyMock(proxyPort, kdcPort, minimumTicketLifetime, maximumTicketLifetime, credentials);
-        }
-
-        public static KerberosHttpProxyMockBuilder builder() {
-            return new KerberosHttpProxyMockBuilder();
+            return new KerberosHttpProxyMock(proxyPort, domain, credentials, simpleKdcServer);
         }
     }
 }

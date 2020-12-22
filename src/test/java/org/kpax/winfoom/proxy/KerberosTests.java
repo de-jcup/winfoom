@@ -15,6 +15,7 @@ import org.junit.jupiter.api.extension.*;
 import org.kpax.winfoom.*;
 import org.kpax.winfoom.config.*;
 import org.kpax.winfoom.kerberos.*;
+import org.pac4j.core.credentials.*;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.boot.test.context.*;
 import org.springframework.boot.test.mock.mockito.*;
@@ -23,6 +24,7 @@ import org.springframework.test.context.*;
 import org.springframework.test.context.junit.jupiter.*;
 
 import java.io.*;
+import java.util.*;
 import java.util.concurrent.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -67,7 +69,7 @@ public class KerberosTests {
     void before() throws Exception {
         beforeEach();
 
-        kerberosHttpProxyMock = KerberosHttpProxyMock.KerberosHttpProxyMockBuilder.builder().setProxyPort(PROXY_PORT).build();
+        kerberosHttpProxyMock = new KerberosHttpProxyMock.KerberosHttpProxyMockBuilder().withProxyPort(PROXY_PORT).build();
         kerberosHttpProxyMock.start();
 
         remoteServer = ServerBootstrap.bootstrap().registerHandler("/post", new HttpRequestHandler() {
@@ -114,6 +116,66 @@ public class KerberosTests {
             HttpRequest request = new BasicHttpRequest("CONNECT", "localhost:" + remoteServer.getLocalPort());
             try (CloseableHttpResponse response = httpClient.execute(target, request)) {
                 assertEquals(HttpStatus.SC_OK, response.getStatusLine().getStatusCode());
+                EntityUtils.consume(response.getEntity());
+            }
+        }
+    }
+
+
+    @Test
+    @Order(3)
+    void httpProxy_NonConnectWrongCredentials_407() throws IOException, KrbException {
+        try {
+            kerberosHttpProxyMock.stop();
+        } catch (KrbException e) {
+            e.printStackTrace();
+        }
+        kerberosHttpProxyMock = new KerberosHttpProxyMock.KerberosHttpProxyMockBuilder().
+                withProxyPort(PROXY_PORT).
+                withCredentials(Arrays.asList(
+                        new UsernamePasswordCredentials(
+                                KerberosHttpProxyMock.KerberosHttpProxyMockBuilder.DEFAULT_USERNAME, "4321"))).build();
+        kerberosHttpProxyMock.start();
+
+        HttpHost localProxy = new HttpHost("localhost", LOCAL_PROXY_PORT, "http");
+        try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
+            RequestConfig config = RequestConfig.custom()
+                    .setProxy(localProxy)
+                    .build();
+            HttpHost target = HttpHost.create("http://localhost:" + remoteServer.getLocalPort());
+            HttpPost request = new HttpPost("/post");
+            request.setConfig(config);
+            request.setEntity(new StringEntity("whatever"));
+            try (CloseableHttpResponse response = httpClient.execute(target, request)) {
+                assertEquals(HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED, response.getStatusLine().getStatusCode());
+                EntityUtils.consume(response.getEntity());
+            }
+        }
+    }
+
+    @Test
+    @Order(4)
+    void httpProxy_ConnectWrongCredentials_407() throws IOException, KrbException {
+        try {
+            kerberosHttpProxyMock.stop();
+        } catch (KrbException e) {
+            e.printStackTrace();
+        }
+        kerberosHttpProxyMock = new KerberosHttpProxyMock.KerberosHttpProxyMockBuilder().
+                withProxyPort(PROXY_PORT).
+                withCredentials(Arrays.asList(
+                        new UsernamePasswordCredentials(
+                                KerberosHttpProxyMock.KerberosHttpProxyMockBuilder.DEFAULT_USERNAME, "4321"))).build();
+        kerberosHttpProxyMock.start();
+
+        HttpHost localProxy = new HttpHost("localhost", LOCAL_PROXY_PORT, "http");
+        try (CloseableHttpClient httpClient = HttpClientBuilder.create()
+                .setProxy(localProxy).build()) {
+            HttpHost target = HttpHost.create("http://localhost:" + remoteServer.getLocalPort());
+            HttpRequest request = new BasicHttpRequest("CONNECT", "localhost:" + remoteServer.getLocalPort());
+            try (CloseableHttpResponse response = httpClient.execute(target, request)) {
+                assertEquals(HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED, response.getStatusLine().getStatusCode());
+                EntityUtils.consume(response.getEntity());
             }
         }
     }

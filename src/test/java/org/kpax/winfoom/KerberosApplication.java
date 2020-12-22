@@ -30,6 +30,7 @@ import org.springframework.scheduling.annotation.*;
 import javax.swing.*;
 import java.beans.*;
 import java.io.*;
+import java.net.*;
 import java.nio.file.*;
 import java.util.*;
 
@@ -43,12 +44,8 @@ public class KerberosApplication {
     private static final Logger logger = LoggerFactory.getLogger(KerberosApplication.class);
 
     @Bean
-    KerberosHttpProxyMock kerberosHttpProxyMock () throws KrbException {
-        return KerberosHttpProxyMock.KerberosHttpProxyMockBuilder.builder().
-                setMaximumTicketLifetime(60L).
-                setMinimumTicketLifetime(30L).
-                //setCredentials(Arrays.asList(new UsernamePasswordCredentials("winfoom", "4321"))).
-                        build();
+    KerberosHttpProxyMock kerberosHttpProxyMock () throws KrbException, UnknownHostException {
+        return new KerberosHttpProxyMock.KerberosHttpProxyMockBuilder().build();
     }
 
     @Bean

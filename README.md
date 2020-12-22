@@ -24,8 +24,6 @@ This way, the software application will only have to deal with a basic proxy wit
 
 An example of such a facade for NTLM proxies is [CNTLM](http://cntlm.sourceforge.net/)
 
-> 👉 Note: Currently, on Linux/Macos the Kerberos proxy is not yet supported.
-
 # Getting Started
 ## Download Winfoom
 ### Download prepackaged
@@ -198,6 +196,31 @@ If you want to shut down Winfoom then execute `foomcli shutdown`
 
 ---
 
+On Linux/Macos, if the proxy type is HTTP, you need to set the `httpAuthProtocol` field, 
+which is the proxy protocol: one of `NTLM, KERBEROS, BASIC` values. 
+
+For Kerberos proxy protocol, the config JSON would look something like:
+
+```
+{
+"proxyType" : "HTTP",
+"proxyHost" : "auth.example.com",
+"proxyPort" : 3128,
+"proxyUsername" : "EXAMPLE.COM\\winfoom",
+"proxyPassword" : "***",
+"localPort" : 3129,
+"proxyTestUrl" : "http://example.com",
+"httpAuthProtocol" : "KERBEROS",
+"krb5ConfFilepath" : "/etc/krb5.conf"
+}
+```
+
+> 👉 Note: For Kerberos proxy protocol to work on Linux/Macos, your workstation must be properly configured.
+> As an example for RHEL ![see this](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/system-level_authentication_guide/configuring_a_kerberos_5_client)
+> Winfoom reads the Kerberos configuration from the `/etc/krb5.conf` location or the value of `KRB5_CONFIG` environment variable.
+
+---
+
 To put Winfoom in autostart mode first execute:
 
 `foomcli settings`
@@ -249,7 +272,11 @@ The available settings:
 |serverSocket.backlog|The maximum number of pending connections|Integer|1000|
 |socket.soTimeout|The timeout for read/write through socket channel (seconds)|Integer|60|
 |socket.connectTimeout|The timeout for socket connect (seconds)|Integer|20|
+|pacScriptEngine.pool.maxTotal|The pacScriptEngine pool maximum total instances|Integer|100|
+|pacScriptEngine.pool.minIdle|The pacScriptEngine pool min idle instances|Integer|20|
 |connection.request.timeout|The timeout for request connection (seconds)|Integer|30|
+|apiServer.request.timeout|The timeout for API commands (seconds)|Integer|10|
+|kerberos.login.minInterval|The minimum interval successful Kerberos login is allowed (seconds)|Integer|30|
 
 ### Authentication
 * For HTTP proxy type, Winfoom uses the current Windows user credentials to authenticate to the remote proxy. 

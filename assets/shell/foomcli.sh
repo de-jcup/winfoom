@@ -43,6 +43,9 @@ usage() {
   echo "                              the path to the JSON file containing the settings to be applied"
   echo "settings -d [json_content]    - apply the proxy settings, where the [json_content] is"
   echo "                              the JSON object containing the settings to be applied"
+  echo
+  echo "Note: When proxyType is http, then the value of httpAuthProtocol - the remote proxy protocol -"
+  echo "      must be set (allowed values, one of: NTLM, KERBEROS, BASIC)"
 }
 
 if [ "$1" == "--help" ]; then

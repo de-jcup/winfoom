@@ -89,6 +89,8 @@ public class KerberosAuthenticator implements AutoCloseable {
             loginContext = new Krb5LoginModule();
             Map<String, String> map = new HashMap<>();
             map.put("storeKey", "true");
+           // map.put("renewTGT", "true");
+           // map.put("useTicketCache", "true");
             subject = new Subject();
 
             loginContext.initialize(subject, new CallbackHandler() {

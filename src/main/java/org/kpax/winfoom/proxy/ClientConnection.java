@@ -332,7 +332,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
      * @param httpResponse the HTTP response
      * @throws Exception
      */
-    public void writeHttpResponse(@NotNull final HttpResponse httpResponse) throws Exception {
+    public void writeHttpResponse(@NotNull final HttpResponse httpResponse) throws IOException {
         StatusLine statusLine = httpResponse.getStatusLine();
         logger.debug("Write statusLine {}", statusLine);
         write(statusLine);

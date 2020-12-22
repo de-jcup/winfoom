@@ -8,6 +8,8 @@ import org.springframework.context.*;
 import org.springframework.stereotype.*;
 import org.springframework.util.*;
 
+import javax.security.auth.login.*;
+
 @Component
 public class AuthenticationContext implements StartListener, StopListener {
 
@@ -27,6 +29,10 @@ public class AuthenticationContext implements StartListener, StopListener {
     public KerberosAuthenticator kerberosAuthenticator() {
         Assert.state(proxyConfig.isKerberos(), "Not configured for Kerberos");
         return kerberosAuthenticatorSupplier.get();
+    }
+
+    public void authenticate() throws LoginException {
+        kerberosAuthenticator().authenticate();
     }
 
     @Override
