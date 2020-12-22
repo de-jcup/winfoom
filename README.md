@@ -216,7 +216,7 @@ For Kerberos proxy protocol, the config JSON would look something like:
 ```
 
 > 👉 Note: For Kerberos proxy protocol to work on Linux/Macos, your workstation must be properly configured.
-> As an example for RHEL [see this](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/system-level_authentication_guide/configuring_a_kerberos_5_client)
+> As an example for RHEL [see this](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/system-level_authentication_guide/configuring_a_kerberos_5_client).
 > Winfoom reads the Kerberos configuration from the `/etc/krb5.conf` location or the value of `KRB5_CONFIG` environment variable.
 
 ---
