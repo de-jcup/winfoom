@@ -20,7 +20,6 @@ import org.kpax.winfoom.util.functional.*;
 import org.slf4j.*;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.beans.factory.config.*;
-import org.springframework.context.annotation.*;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.*;
 
@@ -89,8 +88,6 @@ public class KerberosAuthenticator implements AutoCloseable {
             loginContext = new Krb5LoginModule();
             Map<String, String> map = new HashMap<>();
             map.put("storeKey", "true");
-           // map.put("renewTGT", "true");
-           // map.put("useTicketCache", "true");
             subject = new Subject();
 
             loginContext.initialize(subject, new CallbackHandler() {
