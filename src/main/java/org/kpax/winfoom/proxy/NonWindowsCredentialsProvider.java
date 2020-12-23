@@ -27,7 +27,7 @@ public class NonWindowsCredentialsProvider implements CredentialsProvider, StopL
 
     private ProxyConfig proxyConfig;
 
-    private final SingletonSupplier<Credentials> credentialsSupplier = new SingletonSupplier<Credentials>(() -> {
+    private final SingletonSupplier<Credentials> credentialsSupplier = new SingletonSupplier<>(() -> {
         if (proxyConfig.isKerberos()) {
             return new NoCredentials();
         } else if (proxyConfig.isNtlm()) {

@@ -311,7 +311,7 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
                 + "</head><body>\n"
                 + "Winfoom failed to login to the remote proxy with the provided credentials"
                 + "</body></html>\n";
-        byte[] bytes = body.getBytes(Charset.forName("UTF-8"));
+        byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
         try {
             write(HttpUtils.toStatusLine(request != null ? request.getProtocolVersion() : HttpVersion.HTTP_1_1,
                     HttpStatus.SC_PROXY_AUTHENTICATION_REQUIRED));

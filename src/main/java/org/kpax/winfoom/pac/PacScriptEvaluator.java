@@ -111,7 +111,7 @@ public class PacScriptEvaluator implements StartListener, StopListener {
      */
     private final SingletonSupplier<GenericObjectPool<GraalJSScriptEngine>> enginePoolSingletonSupplier =
             new SingletonSupplier<>(() -> {
-                GenericObjectPoolConfig config = new GenericObjectPoolConfig();
+                GenericObjectPoolConfig<GraalJSScriptEngine> config = new GenericObjectPoolConfig<>();
                 config.setMaxTotal(systemConfig.getPacScriptEnginePoolMaxTotal());
                 config.setMinIdle(systemConfig.getPacScriptEnginePoolMinIdle());
                 config.setTestOnBorrow(false);
@@ -127,7 +127,7 @@ public class PacScriptEvaluator implements StartListener, StopListener {
 
                             @Override
                             public PooledObject<GraalJSScriptEngine> wrap(GraalJSScriptEngine obj) {
-                                return new DefaultPooledObject<GraalJSScriptEngine>(obj);
+                                return new DefaultPooledObject<>(obj);
                             }
                         }, config);
             });

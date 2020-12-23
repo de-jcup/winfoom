@@ -2,7 +2,7 @@ package org.kpax.winfoom.util.functional;
 
 import java.security.*;
 
-public interface PrivilegedActionWrapper extends PrivilegedExceptionAction {
+public interface PrivilegedActionWrapper extends PrivilegedExceptionAction<Object> {
 
     void execute() throws Exception;
 

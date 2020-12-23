@@ -55,9 +55,7 @@ public class FoomApplication {
         }
 
         logger.info("Application started at: {}", new Date());
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            logger.info("Application shutdown at: {}", new Date());
-        }));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> logger.info("Application shutdown at: {}", new Date())));
 
         if (SystemContext.IS_GUI_MODE) {
             try {

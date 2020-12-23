@@ -54,17 +54,23 @@ public class GenericHttpRequestHandler implements HttpRequestHandler {
         if (isAuthorized) {
             Future<Object> future = executorService.submit(() -> {
                 String method = request.getRequestLine().getMethod().toUpperCase(Locale.ROOT);
-                if ("GET".equals(method)) {
-                    doGet(request, response, context);
-                } else if ("POST".equals(method)) {
-                    doPost(request, response, context);
-                } else if ("PUT".equals(method)) {
-                    doPut(request, response, context);
-                } else if ("DELETE".equals(method)) {
-                    doDelete(request, response, context);
-                } else {
-                    response.setStatusCode(HttpStatus.SC_NOT_FOUND);
-                    response.setReasonPhrase(String.format("No handler found for %s method", method));
+                switch (method) {
+                    case "GET":
+                        doGet(request, response, context);
+                        break;
+                    case "POST":
+                        doPost(request, response, context);
+                        break;
+                    case "PUT":
+                        doPut(request, response, context);
+                        break;
+                    case "DELETE":
+                        doDelete(request, response, context);
+                        break;
+                    default:
+                        response.setStatusCode(HttpStatus.SC_NOT_FOUND);
+                        response.setReasonPhrase(String.format("No handler found for %s method", method));
+                        break;
                 }
                 return null;
             });

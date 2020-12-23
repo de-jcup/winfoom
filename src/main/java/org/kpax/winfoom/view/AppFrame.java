@@ -434,14 +434,11 @@ public class AppFrame extends JFrame {
             btnAutoDetect = new JButton("Autodetect");
             btnAutoDetect.setMargin(new Insets(2, 6, 2, 6));
             btnAutoDetect.setIcon(new TunedImageIcon("system-search.png"));
-            btnAutoDetect.addActionListener((event) -> {
-                SwingUtils.executeRunnable(() -> {
-                            if (autoDetectProxySettings()) {
-                                applyProxyType();
-                            }
-                        }, AppFrame.this
-                );
-            });
+            btnAutoDetect.addActionListener((event) -> SwingUtils.executeRunnable(() -> {
+                        if (autoDetectProxySettings()) {
+                            applyProxyType();
+                        }
+                    }, AppFrame.this));
             btnAutoDetect.setToolTipText(HttpUtils.toHtml("Attempt to load the system's current proxy settings"));
         }
         return btnAutoDetect;
@@ -634,9 +631,7 @@ public class AppFrame extends JFrame {
                     "<br>will automatically detect the proxy settings " +
                     "<br>by interrogating Internet Explorer network settings on each startup." +
                     "<br><b>WARNING: The existent settings will be overwritten!</b>"));
-            autoDetectMenuItem.addActionListener((event -> {
-                proxyConfig.setAutodetect(autoDetectMenuItem.isSelected());
-            }));
+            autoDetectMenuItem.addActionListener((event -> proxyConfig.setAutodetect(autoDetectMenuItem.isSelected())));
         }
         return autoDetectMenuItem;
     }

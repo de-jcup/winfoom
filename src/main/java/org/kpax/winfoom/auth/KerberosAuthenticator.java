@@ -90,15 +90,12 @@ public class KerberosAuthenticator implements AutoCloseable {
             map.put("storeKey", "true");
             subject = new Subject();
 
-            loginContext.initialize(subject, new CallbackHandler() {
-                @Override
-                public void handle(Callback[] callbacks) {
-                    for (Callback callback : callbacks) {
-                        if (callback instanceof NameCallback) {
-                            ((NameCallback) callback).setName(proxyConfig.getProxyKrbPrincipal());
-                        } else if (callback instanceof PasswordCallback) {
-                            ((PasswordCallback) callback).setPassword(proxyConfig.getProxyHttpPassword().toCharArray());
-                        }
+            loginContext.initialize(subject, callbacks -> {
+                for (Callback callback : callbacks) {
+                    if (callback instanceof NameCallback) {
+                        ((NameCallback) callback).setName(proxyConfig.getProxyKrbPrincipal());
+                    } else if (callback instanceof PasswordCallback) {
+                        ((PasswordCallback) callback).setPassword(proxyConfig.getProxyHttpPassword().toCharArray());
                     }
                 }
             }, null, map);
