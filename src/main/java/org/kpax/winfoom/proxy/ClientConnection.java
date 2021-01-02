@@ -337,8 +337,8 @@ public final class ClientConnection implements StreamSource, AutoCloseable {
         logger.debug("Write statusLine {}", statusLine);
         write(statusLine);
 
-        logger.debug("Write headers");
         for (Header header : httpResponse.getAllHeaders()) {
+            logger.debug("Write header {}", header);
             write(header);
         }
 

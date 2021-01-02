@@ -100,7 +100,7 @@ class LocalProxyServer implements StopListener {
                 }
             });
             logger.info("Server started, listening on port: " + proxyConfig.getLocalPort());
-        } catch (IOException | RuntimeException e) {
+        } catch (Exception e) {
             // Cleanup on exception
             close();
             throw e;

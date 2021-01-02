@@ -54,7 +54,8 @@ public class KerberosAuthenticator implements AutoCloseable {
         if (kerberosTicket != null) {
 
             // Enforcing the minimum login gap policy.
-            // This is necessary to avoid useless multiple logins in simultaneous access cases.
+            // This is necessary to avoid useless multiple logins
+            // in simultaneous access cases.
             if (kerberosTicket.isCurrent() &&
                     kerberosTicket.getAuthTime() != null &&
                     DateUtils.secondsFromCurrent(kerberosTicket.getAuthTime()) < systemConfig.getKerberosLoginMinInterval()) {
