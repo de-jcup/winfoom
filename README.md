@@ -253,7 +253,7 @@ To load the new values, execute:
 then check the new settings with `foomcli settings`
 
 > 👉 Note: If you modify the apiPort then you need to set the environment variable FOOM_LOCATION. 
-> (For example FOOM_LOCATION=localhost:<your new port>)
+> (For example FOOM_LOCATION=localhost:[your new port])
 
 ### System settings
 The system settings configuration file is `<user.home.dir>/.winfoom/system.properties`.
