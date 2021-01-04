@@ -14,10 +14,10 @@ package org.kpax.winfoom.proxy.processor;
 
 import org.apache.http.*;
 import org.kpax.winfoom.annotation.*;
-import org.kpax.winfoom.auth.*;
 import org.kpax.winfoom.config.*;
 import org.kpax.winfoom.exception.*;
 import org.kpax.winfoom.proxy.*;
+import org.kpax.winfoom.proxy.auth.*;
 import org.kpax.winfoom.util.*;
 import org.slf4j.*;
 import org.springframework.beans.factory.annotation.*;
@@ -48,7 +48,7 @@ public abstract class ClientConnectionProcessor {
     private ProxyBlacklist proxyBlacklist;
 
     @Autowired
-    private AuthenticationContext authenticationContext;
+    private KerberosModule kerberosModule;
 
     /**
      * Process the client's connection. That is:<br>
@@ -97,7 +97,7 @@ public abstract class ClientConnectionProcessor {
                                        @NotNull final ProxyInfo proxyInfo)
             throws IOException, HttpException, ProxyAuthorizationException, PrivilegedActionException {
         try {
-            authenticationContext.kerberosAuthenticator().execute(() -> handleRequest(clientConnection, proxyInfo));
+            kerberosModule.execute(() -> handleRequest(clientConnection, proxyInfo));
         } catch (PrivilegedActionException e) {
             logger.debug("Error on executing request within Kerberos context", e);
             Exception actualException = e.getException();
@@ -189,7 +189,7 @@ public abstract class ClientConnectionProcessor {
                 // The Kerberos proxy rejected the request.
                 // Normally this happens when the ticket is expired
                 // so we re-login to get a new valid ticket
-                authenticationContext.authenticate();
+                kerberosModule.authenticate();
 
                 logger.debug("Second attempt to handle request within Kerberos auth context");
 
