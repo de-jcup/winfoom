@@ -116,19 +116,19 @@ public class KerberosHttpProxyMock implements AutoCloseable {
                             HttpRequest request = (HttpRequest) httpObject;
                             String authentication = request.headers().get(HttpHeaders.PROXY_AUTHORIZATION);
                             Optional<KerberosCredentials> extract = extractKrbCredentials(authentication);
-
                             if (extract.isPresent()) {
+                                String authType = authentication.split("\\s")[0];
                                 System.out.println("Proxy-Authorization header is present, now validate");
                                 try {
                                     validate(extract.get());
                                     System.out.println("The credentials are valid");
                                 } catch (Exception exception) {
                                     exception.printStackTrace();
-                                    return generateProxyAuthenticationRequiredResponse();
+                                    return generateProxyAuthenticationRequiredResponse(authType);
                                 }
                             } else {
                                 System.out.println("Proxy-Authorization header is not present");
-                                return generateProxyAuthenticationRequiredResponse();
+                                return generateProxyAuthenticationRequiredResponse(null);
                             }
                         }
                         return null;
@@ -138,7 +138,7 @@ public class KerberosHttpProxyMock implements AutoCloseable {
         };
     }
 
-    private HttpResponse generateProxyAuthenticationRequiredResponse() {
+    private HttpResponse generateProxyAuthenticationRequiredResponse(String authType) {
         String body = "<!DOCTYPE HTML \"-//IETF//DTD HTML 2.0//EN\">\n"
                 + "<html><head>\n"
                 + "<title>" + "Proxy authentication required" + "</title>\n"
@@ -150,7 +150,7 @@ public class KerberosHttpProxyMock implements AutoCloseable {
         HttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,
                 HttpResponseStatus.PROXY_AUTHENTICATION_REQUIRED, content);
         response.headers().set(HttpHeaders.CONTENT_LENGTH, bytes.length);
-        response.headers().set(HttpHeaders.PROXY_AUTHENTICATE, Arrays.asList("Kerberos"));
+        response.headers().set(HttpHeaders.PROXY_AUTHENTICATE,  Arrays.asList(authType != null ? authType : "Negotiate"));
         response.headers().set(HttpHeaders.DATE, ProxyUtils.formatDate(new Date()));
         response.headers().set(HttpHeaders.CONNECTION, "Keep-Alive");
         return response;
@@ -189,7 +189,7 @@ public class KerberosHttpProxyMock implements AutoCloseable {
     public static void main(String[] args) {
         try {
             KerberosHttpProxyMock httpProxyMock = new KerberosHttpProxyMockBuilder().
-                    withDomain("auth.example.com").build();
+                    withDomain("localhost").build();
             httpProxyMock.start();
             synchronized (httpProxyMock) {
                 httpProxyMock.wait();
