@@ -32,11 +32,11 @@ public class KerberosModule implements StartListener, StopListener {
     @Autowired
     private SystemConfig systemConfig;
 
-    private final SingletonSupplier<Krb5Authenticator> kerberosAuthenticatorSupplier =
+    private final SingletonSupplier<Krb5JaasAuth> kerberosAuthenticatorSupplier =
             new SingletonSupplier<>(() -> {
                 Assert.state(proxyConfig.isKerberos(), "Not configured for Kerberos");
                 System.setProperty("java.security.krb5.conf", proxyConfig.getKrb5ConfFilepath());
-                return new Krb5Authenticator();
+                return new Krb5JaasAuth();
             });
 
     public void authenticate() throws LoginException {
@@ -62,7 +62,7 @@ public class KerberosModule implements StartListener, StopListener {
         }
     }
 
-    private class Krb5Authenticator implements AutoCloseable {
+    private class Krb5JaasAuth implements AutoCloseable {
 
         volatile Krb5LoginModule loginContext;
 
