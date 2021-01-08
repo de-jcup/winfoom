@@ -150,6 +150,7 @@ public class KerberosModule implements StartListener, StopListener {
             if (loginContext != null) {
                 try {
                     loginContext.abort();
+                    loginContext = null;
                 } catch (Exception e) {
                     logger.debug("Error on Kerberos logout: {}", e.getMessage());
                 }
