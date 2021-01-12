@@ -2,7 +2,7 @@ package org.kpax.winfoom.proxy.auth;
 
 import com.sun.security.auth.module.*;
 import org.kpax.winfoom.config.*;
-import org.kpax.winfoom.proxy.*;
+import org.kpax.winfoom.proxy.listener.*;
 import org.kpax.winfoom.util.*;
 import org.kpax.winfoom.util.functional.*;
 import org.slf4j.*;
@@ -19,7 +19,7 @@ import java.security.*;
 import java.util.*;
 
 @Component
-public class KerberosModule implements StartListener, StopListener {
+public class KerberosModule implements ProxyListener {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 

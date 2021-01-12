@@ -11,7 +11,7 @@
  *
  */
 
-package org.kpax.winfoom.proxy;
+package org.kpax.winfoom.proxy.listener;
 
 /**
  * For every Spring singleton bean implementing this interface the method {@link #onStop()} is called

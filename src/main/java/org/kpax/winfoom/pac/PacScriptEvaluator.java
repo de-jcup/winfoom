@@ -40,6 +40,7 @@ import org.kpax.winfoom.config.*;
 import org.kpax.winfoom.exception.MissingResourceException;
 import org.kpax.winfoom.exception.*;
 import org.kpax.winfoom.proxy.*;
+import org.kpax.winfoom.proxy.listener.*;
 import org.kpax.winfoom.util.*;
 import org.kpax.winfoom.util.functional.*;
 import org.slf4j.*;
@@ -57,7 +58,7 @@ import java.util.*;
 @ThreadSafe
 @Order(3)
 @Component
-public class PacScriptEvaluator implements StartListener, StopListener {
+public class PacScriptEvaluator implements ProxyListener {
 
     private final Logger logger = LoggerFactory.getLogger(PacScriptEvaluator.class);
 

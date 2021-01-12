@@ -11,7 +11,7 @@
  *
  */
 
-package org.kpax.winfoom.proxy;
+package org.kpax.winfoom.proxy.listener;
 
 /**
  * If a Spring managed bean implements this, the method {@link #onStart()} would run

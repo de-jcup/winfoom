@@ -16,6 +16,7 @@ package org.kpax.winfoom.proxy;
 import org.apache.http.auth.*;
 import org.apache.http.client.*;
 import org.kpax.winfoom.config.*;
+import org.kpax.winfoom.proxy.listener.*;
 import org.kpax.winfoom.util.functional.*;
 
 import java.security.*;

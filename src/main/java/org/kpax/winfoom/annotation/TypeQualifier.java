@@ -15,7 +15,7 @@ package org.kpax.winfoom.annotation;
 
 
 import org.kpax.winfoom.config.*;
-import org.kpax.winfoom.proxy.*;
+import org.kpax.winfoom.proxy.listener.*;
 
 import java.lang.annotation.*;
 
