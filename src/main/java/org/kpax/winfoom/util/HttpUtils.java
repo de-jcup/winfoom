@@ -520,4 +520,17 @@ public final class HttpUtils {
         return null;
     }
 
+    /**
+     * Remove all headers having certain names.
+     * @param httpMessage the HTTP message (request or response)
+     * @param names the list of header names to be removed
+     */
+    public static void removeHeaders(final @NotNull HttpMessage httpMessage, final @NotNull String... names) {
+        HeaderIterator headerIterator = httpMessage.headerIterator();
+        while (headerIterator.hasNext()) {
+            if (Stream.of(names).anyMatch(headerIterator.nextHeader().getName()::equalsIgnoreCase)) {
+                headerIterator.remove();
+            }
+        }
+    }
 }

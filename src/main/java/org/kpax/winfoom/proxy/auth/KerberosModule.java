@@ -18,6 +18,9 @@ import javax.security.auth.login.*;
 import java.security.*;
 import java.util.*;
 
+/**
+ * Responsible for Kerberos authentication, authorization.
+ */
 @Component
 public class KerberosModule implements ProxyListener {
 
