@@ -320,7 +320,7 @@ public class AppFrame extends JFrame {
         storePasswordJCheckBox.addActionListener((e -> {
             if (storePasswordJCheckBox.isSelected()) {
                 int option = JOptionPane.showConfirmDialog(AppFrame.this,
-                        "This is not recomanded!" +
+                        "This is not recommended!" +
                                 "\nThe password is stored in a text file, encoded but not encrypted.",
                         "Warning",
                         JOptionPane.OK_CANCEL_OPTION,
