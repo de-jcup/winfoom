@@ -36,7 +36,7 @@ on Linux systems, use your package manager.
 If, for certain reasons, you do not want to install Java globally on your system then download the JRE archive according
 to your system architecture then unzip it in the Winfoom directory and rename it to `jdk`.
 
-> 👉 Note: For Windows systems there is `winfoom-windows.zip` archive containing only the Windows executable files, also a `jdk`, so you don't have to install anything.
+> 👉 Note: For Windows systems there is `winfoom-windows.zip` archive containing only the Windows executable files, that comes with AdoptOpenJDK v11 (the `jdk` directory), so you don't have to install anything.
 
 ### Build from source code
 If you decide to build the executable *jar* file from the source code, you would need these prerequisites:
