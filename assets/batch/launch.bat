@@ -44,7 +44,7 @@ if exist out.log (
 	exit /B 2
 )
 
-if exist .\jdk\bin\javaw (
+if exist .\jdk\bin\javaw.exe (
 set JAVA_EXE=.\jdk\bin\javaw
 ) else (
 set JAVA_EXE=javaw
