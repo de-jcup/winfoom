@@ -12,10 +12,20 @@
 
 package org.kpax.winfoom;
 
+import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.config.AuthSchemes;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.impl.auth.*;
+import org.apache.http.impl.auth.win.WindowsNTLMSchemeFactory;
+import org.apache.http.impl.auth.win.WindowsNegotiateSchemeFactory;
 import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.kpax.winfoom.config.ProxyConfig;
+import org.kpax.winfoom.util.functional.ProxySingletonSupplier;
+import org.kpax.winfoom.util.functional.SingletonSupplier;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -30,10 +40,25 @@ public class FoomApplicationTest {
 
     @Bean
     @Primary
-    public CredentialsProvider credentialsProvider() {
-        BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(TestConstants.USERNAME, TestConstants.PASSWORD));
-        return credentialsProvider;
+    public ProxySingletonSupplier<CredentialsProvider> credentialsProvider() {
+        return new ProxySingletonSupplier<CredentialsProvider>(() -> {
+            BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+            credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(TestConstants.USERNAME, TestConstants.PASSWORD));
+            return credentialsProvider;
+        });
+    }
+
+    @Bean
+    @Primary
+    public ProxySingletonSupplier<Registry<AuthSchemeProvider>> authSchemeRegistrySupplier(ProxyConfig proxyConfig) {
+        return new ProxySingletonSupplier<Registry<AuthSchemeProvider>>(() ->
+                RegistryBuilder.<AuthSchemeProvider>create()
+                        .register(AuthSchemes.BASIC, new BasicSchemeFactory())
+                        .register(AuthSchemes.DIGEST, new DigestSchemeFactory())
+                        .register(AuthSchemes.NTLM, new NTLMSchemeFactory())
+                        .register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory())
+                        .register(AuthSchemes.KERBEROS, new KerberosSchemeFactory()).build()
+        );
     }
 
 }

@@ -12,12 +12,12 @@
 
 package org.kpax.winfoom.util.functional;
 
-import org.kpax.winfoom.annotation.*;
-import org.kpax.winfoom.util.*;
-import org.springframework.util.*;
+import org.kpax.winfoom.annotation.NotNull;
+import org.kpax.winfoom.util.InputOutputs;
+import org.springframework.util.Assert;
 
-import java.util.*;
-import java.util.function.*;
+import java.util.Optional;
+import java.util.function.Consumer;
 
 
 /**

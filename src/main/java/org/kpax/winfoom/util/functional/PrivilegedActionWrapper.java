@@ -1,6 +1,6 @@
 package org.kpax.winfoom.util.functional;
 
-import java.security.*;
+import java.security.PrivilegedExceptionAction;
 
 public interface PrivilegedActionWrapper extends PrivilegedExceptionAction<Object> {
 

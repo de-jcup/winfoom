@@ -13,13 +13,16 @@
 
 package org.kpax.winfoom.proxy;
 
-import org.apache.http.auth.*;
-import org.apache.http.client.*;
-import org.kpax.winfoom.config.*;
-import org.kpax.winfoom.proxy.listener.*;
-import org.kpax.winfoom.util.functional.*;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.Credentials;
+import org.apache.http.auth.NTCredentials;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.kpax.winfoom.config.ProxyConfig;
+import org.kpax.winfoom.proxy.listener.StopListener;
+import org.kpax.winfoom.util.functional.SingletonSupplier;
 
-import java.security.*;
+import java.security.Principal;
 
 /**
  * The {@link CredentialsProvider} for non Windows systems.

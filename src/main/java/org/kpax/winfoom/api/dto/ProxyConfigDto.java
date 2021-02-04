@@ -13,10 +13,11 @@
 
 package org.kpax.winfoom.api.dto;
 
-import org.kpax.winfoom.config.*;
-import org.kpax.winfoom.exception.*;
-import org.kpax.winfoom.util.*;
-import org.springframework.util.*;
+import org.kpax.winfoom.config.ProxyConfig;
+import org.kpax.winfoom.config.SystemContext;
+import org.kpax.winfoom.exception.InvalidProxySettingsException;
+import org.kpax.winfoom.util.HttpUtils;
+import org.springframework.util.Assert;
 
 /**
  * The DTO for API server.
@@ -24,10 +25,9 @@ import org.springframework.util.*;
 public class ProxyConfigDto {
 
     private ProxyConfig.Type proxyType;
-
+    private Boolean useCurrentCredentials;
     private String proxyUsername;
     private String proxyPassword;
-    private Boolean proxyStorePassword;
     private String proxyPacFileLocation;
     private Integer blacklistTimeout;
     private String proxyHost;
@@ -47,6 +47,14 @@ public class ProxyConfigDto {
 
     public void setProxyType(ProxyConfig.Type proxyType) {
         this.proxyType = proxyType;
+    }
+
+    public Boolean getUseCurrentCredentials() {
+        return useCurrentCredentials;
+    }
+
+    public void setUseCurrentCredentials(Boolean useCurrentCredentials) {
+        this.useCurrentCredentials = useCurrentCredentials;
     }
 
     public String getProxyUsername() {
@@ -71,14 +79,6 @@ public class ProxyConfigDto {
 
     public void setApiPort(Integer apiPort) {
         this.apiPort = apiPort;
-    }
-
-    public Boolean getProxyStorePassword() {
-        return proxyStorePassword;
-    }
-
-    public void setProxyStorePassword(Boolean proxyStorePassword) {
-        this.proxyStorePassword = proxyStorePassword;
     }
 
     public String getProxyTestUrl() {
@@ -154,8 +154,8 @@ public class ProxyConfigDto {
     }
 
     public void validate() throws InvalidProxySettingsException {
-        if (proxyHost != null || proxyPort != null) {
-            Assert.state(proxyType != null, "proxyType must be specified when proxyHost or proxyPort are provided");
+        if (proxyHost != null || proxyPort != null || useCurrentCredentials != null) {
+            Assert.state(proxyType != null, "proxyType must be specified when proxyHost or proxyPort or useCurrentCredentials are provided");
             Assert.state(proxyType != ProxyConfig.Type.DIRECT, "When proxyType is DIRECT, neither proxyHost nor proxyPort can be provided");
         }
 
@@ -176,22 +176,30 @@ public class ProxyConfigDto {
                 throw new InvalidProxySettingsException("Invalid apiPort, allowed range: 1 - 65535");
             }
         }
+
+        if (useCurrentCredentials != null) {
+            Assert.state(proxyType == ProxyConfig.Type.HTTP, "proxyType must be HTTP when useCurrentCredentials is provided");
+            if (useCurrentCredentials && !SystemContext.IS_OS_WINDOWS) {
+                throw new InvalidProxySettingsException("The field useCurrentCredentials is only allowed on Windows OS");
+            }
+        }
     }
 
     @Override
     public String toString() {
         return "ProxyConfigDto{" +
                 "proxyType=" + proxyType +
-                ", proxyUsername=" + proxyUsername +
-                ", proxyPassword=" + proxyPassword +
-                ", commandPort=" + apiPort +
-                ", proxyStorePassword=" + proxyStorePassword +
-                ", proxyTestUrl=" + proxyTestUrl +
-                ", proxyPacFileLocation=" + proxyPacFileLocation +
+                ", useCurrentCredentials=" + useCurrentCredentials +
+                ", proxyUsername='" + proxyUsername + '\'' +
+                ", proxyPassword='" + proxyPassword + '\'' +
+                ", proxyPacFileLocation='" + proxyPacFileLocation + '\'' +
                 ", blacklistTimeout=" + blacklistTimeout +
-                ", proxyHost=" + proxyHost +
-                ", localPort=" + localPort +
+                ", proxyHost='" + proxyHost + '\'' +
                 ", proxyPort=" + proxyPort +
+                ", localPort=" + localPort +
+                ", proxyTestUrl='" + proxyTestUrl + '\'' +
+                ", httpAuthProtocol=" + httpAuthProtocol +
+                ", apiPort=" + apiPort +
                 ", autodetect=" + autodetect +
                 ", autostart=" + autostart +
                 '}';

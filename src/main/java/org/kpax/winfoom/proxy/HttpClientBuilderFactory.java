@@ -12,17 +12,19 @@
 
 package org.kpax.winfoom.proxy;
 
-import org.apache.http.*;
-import org.apache.http.auth.*;
-import org.apache.http.client.*;
-import org.apache.http.client.config.*;
-import org.apache.http.config.*;
-import org.apache.http.impl.client.*;
-import org.apache.http.impl.conn.*;
-import org.kpax.winfoom.annotation.*;
-import org.kpax.winfoom.config.*;
-import org.springframework.beans.factory.annotation.*;
-import org.springframework.stereotype.*;
+import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthSchemeProvider;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.config.Registry;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
+import org.kpax.winfoom.annotation.ThreadSafe;
+import org.kpax.winfoom.config.SystemConfig;
+import org.kpax.winfoom.util.functional.ProxySingletonSupplier;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * A factory for {@link HttpClientBuilder} for different proxy types.
@@ -39,10 +41,10 @@ public class HttpClientBuilderFactory {
     private SystemConfig systemConfig;
 
     @Autowired
-    private CredentialsProvider credentialsProvider;
+    private ProxySingletonSupplier<CredentialsProvider> credentialsProviderSupplier;
 
     @Autowired
-    private Registry<AuthSchemeProvider> authSchemeRegistry;
+    private ProxySingletonSupplier<Registry<AuthSchemeProvider>> authSchemeRegistrySupplier;
 
     @Autowired
     private ConnectionPoolingManager connectionPoolingManager;
@@ -75,8 +77,8 @@ public class HttpClientBuilderFactory {
                 setCircularRedirectsAllowed(true).
                 build();
         return HttpClients.custom().
-                setDefaultCredentialsProvider(credentialsProvider).
-                setDefaultAuthSchemeRegistry(authSchemeRegistry).
+                setDefaultCredentialsProvider(credentialsProviderSupplier.get()).
+                setDefaultAuthSchemeRegistry(authSchemeRegistrySupplier.get()).
                 setConnectionManager(connectionPoolingManager.getHttpConnectionManager()).
                 setConnectionManagerShared(true).
                 setDefaultRequestConfig(requestConfig).

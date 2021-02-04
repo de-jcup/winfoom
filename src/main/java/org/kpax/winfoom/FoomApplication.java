@@ -13,22 +13,32 @@
 package org.kpax.winfoom;
 
 import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.configuration2.builder.fluent.*;
-import org.apache.commons.configuration2.ex.*;
-import org.kpax.winfoom.config.*;
-import org.kpax.winfoom.util.*;
-import org.slf4j.*;
-import org.springframework.beans.factory.config.*;
-import org.springframework.boot.*;
-import org.springframework.boot.autoconfigure.*;
-import org.springframework.context.annotation.*;
-import org.springframework.scheduling.annotation.*;
+import org.apache.commons.configuration2.builder.fluent.Configurations;
+import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.kpax.winfoom.config.ProxyConfig;
+import org.kpax.winfoom.config.SystemConfig;
+import org.kpax.winfoom.config.SystemContext;
+import org.kpax.winfoom.util.Base64DecoderPropertyEditor;
+import org.kpax.winfoom.util.InputOutputs;
+import org.kpax.winfoom.util.SwingUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.config.CustomEditorConfigurer;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import javax.swing.*;
-import java.beans.*;
-import java.io.*;
-import java.nio.file.*;
-import java.util.*;
+import java.beans.PropertyEditor;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * The entry point for Winfoom application.

@@ -13,7 +13,9 @@
 
 package org.kpax.winfoom.api.json;
 
-import org.kpax.winfoom.config.*;
+import org.kpax.winfoom.annotation.NotNull;
+import org.kpax.winfoom.config.ProxyConfig;
+import org.kpax.winfoom.config.SystemContext;
 
 /**
  * Jackson's views to control which fields should be JSON available, based on the operation system and proxy type.
@@ -53,7 +55,16 @@ public class Views {
     public interface HttpWindows extends Http, Windows {
     }
 
+    public interface HttpWindowsManual extends HttpWindows {
+    }
+
     public interface HttpNonWindows extends Http, NonWindows {
+    }
+
+    public interface KerberosHttpNonWindows extends HttpNonWindows {
+    }
+
+    public interface KerberosHttpWindowsManual extends HttpWindowsManual {
     }
 
     public interface Socks4 extends Common {
@@ -83,8 +94,8 @@ public class Views {
     public interface PacNonWindows extends Pac, NonWindows {
     }
 
-    public static Class<?> getViewForType(ProxyConfig.Type type) {
-        switch (type) {
+    public static Class<?> getView(@NotNull ProxyConfig proxyConfig) {
+        switch (proxyConfig.getProxyType()) {
             case DIRECT:
                 if (SystemContext.IS_OS_WINDOWS) {
                     return DirectWindows.class;
@@ -92,9 +103,18 @@ public class Views {
                     return DirectNonWindows.class;
                 }
             case HTTP:
-                if (SystemContext.IS_OS_WINDOWS) {
+                if (proxyConfig.isAuthAutoMode()) {
                     return HttpWindows.class;
                 } else {
+                    if (proxyConfig.getHttpAuthProtocol() == ProxyConfig.HttpAuthProtocol.KERBEROS) {
+                        if (SystemContext.IS_OS_WINDOWS) {
+                            return KerberosHttpWindowsManual.class;
+                        }
+                        return KerberosHttpNonWindows.class;
+                    }
+                    if (SystemContext.IS_OS_WINDOWS) {
+                        return HttpWindowsManual.class;
+                    }
                     return HttpNonWindows.class;
                 }
             case SOCKS4:
@@ -116,7 +136,7 @@ public class Views {
                     return PacNonWindows.class;
                 }
             default:
-                throw new IllegalArgumentException("No view for type: " + type);
+                throw new IllegalArgumentException("No view for type: " + proxyConfig.getProxyType());
         }
     }
 

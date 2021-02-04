@@ -13,7 +13,10 @@
 
 package org.kpax.winfoom.config;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
 
 /**
  * Provide information about the current operating system, Spring's active profiles.

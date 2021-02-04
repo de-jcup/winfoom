@@ -13,10 +13,10 @@
 
 package org.kpax.winfoom.util;
 
-import org.apache.commons.lang3.*;
+import org.apache.commons.lang3.StringUtils;
 
-import java.beans.*;
-import java.util.*;
+import java.beans.PropertyEditorSupport;
+import java.util.Base64;
 
 /**
  * Decode the properties of {@code encoded(value)} format.

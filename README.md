@@ -36,7 +36,7 @@ on Linux systems, use your package manager.
 If, for certain reasons, you do not want to install Java globally on your system then download the JRE archive according
 to your system architecture then unzip it in the Winfoom directory and rename it to `jdk`.
 
-> 👉 Note: For Windows systems there is `winfoom-windows.zip` archive containing only the Windows executable files together with AdoptOpenJDK v11 (the `jdk` directory), therefore you don't need a Java Runtime Environment to be installed on your operation system.
+> 👉 Note: For Windows systems there is `winfoom-windows.zip` archive containing only the Windows executable files together with AdoptOpenJDK v11 (the `jdk` directory), therefore you don't need a Java Runtime Environment to be installed on your operating system.
 
 ### Build from source code
 If you decide to build the executable *jar* file from the source code, you would need these prerequisites:
@@ -164,13 +164,17 @@ Then, executing `foomcli config` again, the output is something like:
 
 ```
 {
-"proxyType" : "HTTP",
-"proxyHost" : "",
-"proxyPort" : 0,
-"localPort" : 3129,
-"proxyTestUrl" : "http://example.com"
+  "proxyType" : "HTTP",
+  "proxyHost" : "",
+  "proxyPort" : 0,
+  "localPort" : 3129,
+  "proxyTestUrl" : "http://example.com",
+  "useCurrentCredentials" : true
 }
 ```
+
+The field `useCurrentCredentials` only appears on Windows. When the value is `true`, it means Winfoom will use the current user's credentials
+also will automatically handle the upstream proxy protocol; otherwise, you will have to provide the user and password (or DOMAIN\user and password).
 
 To change the above values, copy the content of the output into a text file named, let's say, `http_config.json` 
 in the same directory, and edit the field's values accordingly:
@@ -194,11 +198,50 @@ and check the new configuration with `foomcli config` to be sure everything is a
 Now you can start the local proxy facade with `foomcli start`. 
 At this moment you should be able to use Winfoom as a proxy facade in your browser.
 
-If you want to shut down Winfoom then execute `foomcli shutdown`
+On Windows, if you want to provide your own credentials, change the `useCurrentCredentials` value to `false` by editing  
+`http_config.json` file like this:
+
+```
+{
+"proxyType" : "HTTP",
+"useCurrentCredentials" : false
+}
+```
+
+Now execute `foomcli config -f http_config.json` again, then `foomcli config` to see the result:
+
+```
+{
+  "proxyType" : "HTTP",
+  "proxyHost" : "192.168.0.105",
+  "proxyPort" : 80,
+  "proxyUsername" : null,
+  "proxyPassword" : null,
+  "localPort" : 3129,
+  "proxyTestUrl" : "http://example.com",
+  "useCurrentCredentials" : false,
+  "httpAuthProtocol" : null
+}
+```
+
+Now edit the `http_config.json` file again to fill in the required fields:
+
+```
+{
+  "proxyType" : "HTTP",
+  "proxyUsername" : "user",
+  "proxyPassword" : "password",
+  "httpAuthProtocol" : "NTLM"
+}
+```
+
+Execute `foomcli config -f http_config.json` again and start the local proxy server.
+
+If you want to shut down Winfoom execute `foomcli shutdown`
 
 ---
 
-On Linux/Macos, if the proxy type is HTTP, you need to set the `httpAuthProtocol` field, 
+On Linux/Macos or Windows with `useCurrentCredentials=false`, if the proxy type is HTTP you need to set the `httpAuthProtocol` field, 
 which is the proxy protocol: one of `NTLM, KERBEROS, BASIC` values. 
 
 For Kerberos proxy protocol, the config JSON would look something like:
@@ -281,9 +324,10 @@ The available settings:
 |kerberos.login.minInterval|The minimum interval successful Kerberos login is allowed (seconds)|Integer|30|
 
 ### Authentication
-* For HTTP proxy type, Winfoom uses the current Windows user credentials to authenticate to the remote proxy. 
-  On Linux/Macos you need to provide the user and password (or DOMAIN\user and password if the DOMAIN is required) 
-* For SOCKS5 proxy type, the user/password need the be provided when required.
+* For HTTP proxy type, Winfoom uses the current Windows user credentials to authenticate to the remote proxy, 
+  unless you uncheck the `Use system credentials` checkbox. 
+  On Linux/Macos or on Windows with `Use system credentials` unchecked you need to provide the user and password (or DOMAIN\user and password if the DOMAIN is required) 
+* For SOCKS5 proxy type, the user/password need to be provided when required.
 
 ### Error codes
 Starting with v2.6.0 Winfoom gives back the following HTTP error codes when there is no response from the remote proxy for various reasons:
@@ -302,7 +346,7 @@ To test it, open a browser, let's say Firefox and configure proxy like this:
 
 Now you should be able to access any URL without Firefox asking for credentials.
 
-_If you don't have an available proxy, you still can test WinFoom by installing [WinGate](https://www.wingate.com/) and configure it to act 
+_If you don't have an available proxy, you still can test Winfoom by installing [WinGate](https://www.wingate.com/) and configure it to act 
 as a NTML proxy._
    
 # Coding Guidance

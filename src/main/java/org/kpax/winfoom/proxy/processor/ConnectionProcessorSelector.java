@@ -12,10 +12,10 @@
 
 package org.kpax.winfoom.proxy.processor;
 
-import org.kpax.winfoom.annotation.*;
-import org.kpax.winfoom.proxy.*;
-import org.springframework.beans.factory.annotation.*;
-import org.springframework.stereotype.*;
+import org.kpax.winfoom.annotation.NotNull;
+import org.kpax.winfoom.proxy.ProxyInfo;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * Select the appropriate {@link ClientConnectionProcessor} to process a {@link org.kpax.winfoom.proxy.ClientConnection}.

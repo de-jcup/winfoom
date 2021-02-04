@@ -13,7 +13,7 @@
  */
 package org.kpax.winfoom.pac.datetime;
 
-import java.util.*;
+import java.util.Calendar;
 
 /**
  * Evaluates a time of day against a time range.

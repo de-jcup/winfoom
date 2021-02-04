@@ -12,15 +12,20 @@
 
 package org.kpax.winfoom.config;
 
-import org.apache.http.auth.*;
-import org.apache.http.client.*;
-import org.apache.http.client.config.*;
-import org.apache.http.config.*;
+import org.apache.http.auth.AuthSchemeProvider;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.config.AuthSchemes;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
 import org.apache.http.impl.auth.*;
-import org.apache.http.impl.auth.win.*;
-import org.apache.http.impl.client.*;
-import org.kpax.winfoom.proxy.*;
-import org.springframework.context.annotation.*;
+import org.apache.http.impl.auth.win.WindowsCredentialsProvider;
+import org.apache.http.impl.auth.win.WindowsNTLMSchemeFactory;
+import org.apache.http.impl.auth.win.WindowsNegotiateSchemeFactory;
+import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
+import org.kpax.winfoom.proxy.NonWindowsCredentialsProvider;
+import org.kpax.winfoom.util.functional.ProxySingletonSupplier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * @author Eugen Covaci {@literal eugen.covaci.q@gmail.com}
@@ -30,43 +35,40 @@ import org.springframework.context.annotation.*;
 class AuthConfiguration {
 
     /**
-     * Create the default system wide {@link CredentialsProvider} for Windows OS.
+     * Create the system wide {@link CredentialsProvider}.
      * <p>Note: Only works with HTTP proxies.
      *
      * @return the system wide {@link CredentialsProvider}
      */
-    @Profile("windows")
     @Bean
-    public CredentialsProvider windowsCredentialsProvider() {
-        return new WindowsCredentialsProvider(new SystemDefaultCredentialsProvider());
+    public ProxySingletonSupplier<CredentialsProvider> credentialsProviderSupplier(ProxyConfig proxyConfig) {
+        return new ProxySingletonSupplier<CredentialsProvider>(
+                () -> proxyConfig.isAuthAutoMode() ?
+                        new WindowsCredentialsProvider(new SystemDefaultCredentialsProvider()) :
+                        new NonWindowsCredentialsProvider(proxyConfig));
     }
 
-    @Profile("!windows")
+    /**
+     * Create the system wide {@link Registry<AuthSchemeProvider>}.
+     * <p>Note: Only works with HTTP proxies.
+     *
+     * @return the system wide {@link Registry<AuthSchemeProvider>}
+     */
     @Bean
-    public CredentialsProvider nonWindowsCredentialsProvider(ProxyConfig proxyConfig) {
-        return new NonWindowsCredentialsProvider(proxyConfig);
-    }
-
-    @Profile("windows")
-    @Bean
-    public Registry<AuthSchemeProvider> windowsAuthSchemeRegistry() {
-        return RegistryBuilder.<AuthSchemeProvider>create()
-                .register(AuthSchemes.BASIC, new BasicSchemeFactory())
-                .register(AuthSchemes.DIGEST, new DigestSchemeFactory())
-                .register(AuthSchemes.NTLM, new WindowsNTLMSchemeFactory(null))
-                .register(AuthSchemes.SPNEGO, new WindowsNegotiateSchemeFactory(null))
-                .build();
-    }
-
-    @Profile("!windows")
-    @Bean
-    public Registry<AuthSchemeProvider> nonWindowsAuthSchemeRegistry() {
-        return RegistryBuilder.<AuthSchemeProvider>create()
-                .register(AuthSchemes.NTLM, new NTLMSchemeFactory())
-                .register(AuthSchemes.BASIC, new BasicSchemeFactory())
-                .register(AuthSchemes.SPNEGO, new SPNegoSchemeFactory())
-                .register(AuthSchemes.KERBEROS, new KerberosSchemeFactory())
-                .build();
+    public ProxySingletonSupplier<Registry<AuthSchemeProvider>> authSchemeRegistrySupplier(ProxyConfig proxyConfig) {
+        return new ProxySingletonSupplier<Registry<AuthSchemeProvider>>(() -> {
+            RegistryBuilder<AuthSchemeProvider> register = RegistryBuilder.<AuthSchemeProvider>create()
+                    .register(AuthSchemes.BASIC, new BasicSchemeFactory())
+                    .register(AuthSchemes.DIGEST, new DigestSchemeFactory())
+                    .register(AuthSchemes.NTLM, proxyConfig.isAuthAutoMode() ?
+                            new WindowsNTLMSchemeFactory(null) : new NTLMSchemeFactory())
+                    .register(AuthSchemes.SPNEGO, proxyConfig.isAuthAutoMode() ?
+                            new WindowsNegotiateSchemeFactory(null) : new SPNegoSchemeFactory());
+            if (!proxyConfig.isAuthAutoMode()) {
+                register.register(AuthSchemes.KERBEROS, new KerberosSchemeFactory());
+            }
+            return register.build();
+        });
     }
 
 }

@@ -13,33 +13,42 @@
 package org.kpax.winfoom.proxy;
 
 import org.apache.http.*;
-import org.apache.http.auth.*;
-import org.apache.http.client.*;
-import org.apache.http.client.config.*;
-import org.apache.http.client.protocol.*;
-import org.apache.http.config.*;
-import org.apache.http.conn.*;
-import org.apache.http.conn.routing.*;
-import org.apache.http.conn.routing.RouteInfo.*;
-import org.apache.http.entity.*;
-import org.apache.http.impl.*;
+import org.apache.http.auth.AUTH;
+import org.apache.http.auth.AuthSchemeProvider;
+import org.apache.http.auth.AuthState;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.client.protocol.RequestClientConnControl;
+import org.apache.http.config.ConnectionConfig;
+import org.apache.http.config.Registry;
+import org.apache.http.conn.ManagedHttpClientConnection;
+import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.conn.routing.RouteInfo.LayerType;
+import org.apache.http.conn.routing.RouteInfo.TunnelType;
+import org.apache.http.entity.BufferedHttpEntity;
+import org.apache.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.http.impl.auth.HttpAuthenticator;
-import org.apache.http.impl.client.*;
-import org.apache.http.impl.conn.*;
+import org.apache.http.impl.client.ProxyAuthenticationStrategy;
+import org.apache.http.impl.conn.ManagedHttpClientConnectionFactory;
 import org.apache.http.impl.execchain.TunnelRefusedException;
-import org.apache.http.message.*;
+import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.protocol.*;
-import org.apache.http.util.*;
-import org.kpax.winfoom.annotation.*;
-import org.kpax.winfoom.config.*;
-import org.kpax.winfoom.util.*;
-import org.slf4j.*;
-import org.springframework.beans.factory.annotation.*;
-import org.springframework.stereotype.*;
+import org.apache.http.util.Args;
+import org.apache.http.util.EntityUtils;
+import org.kpax.winfoom.annotation.ThreadSafe;
+import org.kpax.winfoom.config.SystemConfig;
+import org.kpax.winfoom.util.HttpUtils;
+import org.kpax.winfoom.util.InputOutputs;
+import org.kpax.winfoom.util.functional.ProxySingletonSupplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.*;
-import java.io.*;
-import java.net.*;
+import javax.annotation.PostConstruct;
+import java.io.IOException;
+import java.net.Socket;
 
 /**
  * Establish a tunnel via a HTTP proxy.<br>
@@ -54,10 +63,10 @@ public class TunnelConnection {
     private final Logger logger = LoggerFactory.getLogger(TunnelConnection.class);
 
     @Autowired
-    private CredentialsProvider credentialsProvider;
+    private ProxySingletonSupplier<CredentialsProvider> credentialsProviderSupplier;
 
     @Autowired
-    private Registry<AuthSchemeProvider> authSchemeRegistry;
+    private ProxySingletonSupplier<Registry<AuthSchemeProvider>> authSchemeRegistrySupplier;
 
     @Autowired
     private SystemConfig systemConfig;
@@ -101,9 +110,9 @@ public class TunnelConnection {
         context.setAttribute(HttpCoreContext.HTTP_REQUEST, connect);
         context.setAttribute(HttpClientContext.HTTP_ROUTE, route);
         context.setAttribute(HttpClientContext.PROXY_AUTH_STATE, proxyAuthState);
-        context.setAttribute(HttpClientContext.CREDS_PROVIDER, credentialsProvider);
+        context.setAttribute(HttpClientContext.CREDS_PROVIDER, credentialsProviderSupplier.get());
         context.setAttribute(HttpClientContext.REQUEST_CONFIG, RequestConfig.DEFAULT);
-        context.setAttribute(HttpClientContext.AUTHSCHEME_REGISTRY, authSchemeRegistry);
+        context.setAttribute(HttpClientContext.AUTHSCHEME_REGISTRY, authSchemeRegistrySupplier.get());
 
         requestExec.preProcess(connect, httpProcessor, context);
 

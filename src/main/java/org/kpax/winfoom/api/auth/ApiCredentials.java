@@ -13,9 +13,10 @@
 
 package org.kpax.winfoom.api.auth;
 
-import org.apache.http.auth.*;
+import org.apache.http.auth.BasicUserPrincipal;
+import org.apache.http.auth.Credentials;
 
-import java.security.*;
+import java.security.Principal;
 
 /**
  * Manage the API server credentials.

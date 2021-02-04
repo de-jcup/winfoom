@@ -12,16 +12,21 @@
 
 package org.kpax.winfoom.proxy;
 
-import org.apache.http.*;
-import org.apache.http.entity.*;
-import org.apache.http.impl.io.*;
-import org.kpax.winfoom.annotation.*;
-import org.kpax.winfoom.util.*;
+import org.apache.http.HttpHeaders;
+import org.apache.http.HttpRequest;
+import org.apache.http.entity.AbstractHttpEntity;
+import org.apache.http.impl.io.ChunkedInputStream;
+import org.apache.http.impl.io.SessionInputBufferImpl;
+import org.kpax.winfoom.annotation.NotThreadSafe;
+import org.kpax.winfoom.util.HttpUtils;
+import org.kpax.winfoom.util.InputOutputs;
 
 import java.io.*;
-import java.nio.*;
-import java.nio.channels.*;
-import java.nio.file.*;
+import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousFileChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
 /**
  * A special type of repeatable {@link AbstractHttpEntity}.

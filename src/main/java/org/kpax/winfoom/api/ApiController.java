@@ -13,30 +13,37 @@
 
 package org.kpax.winfoom.api;
 
-import com.fasterxml.jackson.databind.*;
-import org.apache.http.*;
-import org.apache.http.auth.*;
-import org.apache.http.entity.*;
-import org.apache.http.impl.bootstrap.*;
-import org.apache.http.message.*;
-import org.apache.http.protocol.*;
-import org.kpax.winfoom.api.auth.*;
-import org.kpax.winfoom.api.dto.*;
-import org.kpax.winfoom.api.json.*;
-import org.kpax.winfoom.config.*;
-import org.kpax.winfoom.exception.*;
-import org.kpax.winfoom.proxy.*;
-import org.kpax.winfoom.util.*;
-import org.slf4j.*;
-import org.springframework.beans.factory.annotation.*;
-import org.springframework.context.*;
-import org.springframework.context.annotation.*;
-import org.springframework.stereotype.*;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpResponse;
+import org.apache.http.auth.Credentials;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.bootstrap.HttpServer;
+import org.apache.http.impl.bootstrap.ServerBootstrap;
+import org.apache.http.message.BasicHttpEntityEnclosingRequest;
+import org.apache.http.protocol.HttpContext;
+import org.kpax.winfoom.api.auth.ApiCredentials;
+import org.kpax.winfoom.api.dto.ProxyConfigDto;
+import org.kpax.winfoom.api.json.Views;
+import org.kpax.winfoom.config.ProxyConfig;
+import org.kpax.winfoom.config.SystemConfig;
+import org.kpax.winfoom.exception.InvalidProxySettingsException;
+import org.kpax.winfoom.proxy.ProxyController;
+import org.kpax.winfoom.proxy.ProxyExecutorService;
+import org.kpax.winfoom.proxy.ProxyValidator;
+import org.kpax.winfoom.util.BeanUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.*;
-import java.io.*;
-import java.lang.reflect.*;
-import java.util.concurrent.*;
+import javax.annotation.PostConstruct;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Open an API server and map various request handlers.
@@ -174,7 +181,7 @@ public class ApiController implements AutoCloseable {
                                     response.setEntity(new StringEntity(new ObjectMapper().
                                             configure(MapperFeature.DEFAULT_VIEW_INCLUSION, false).
                                             writerWithDefaultPrettyPrinter().
-                                            withView(Views.getViewForType(proxyConfig.getProxyType())).
+                                            withView(Views.getView(proxyConfig)).
                                             writeValueAsString(proxyConfig)));
                                 } catch (Exception e) {
                                     logger.error("Error on serializing proxy configuration", e);

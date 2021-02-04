@@ -12,7 +12,7 @@
 
 package org.kpax.winfoom.exception;
 
-import org.apache.http.*;
+import org.apache.http.HttpException;
 
 /**
  * Signal that the proxy settings (as provided by {@link org.kpax.winfoom.config.ProxyConfig}) are invalid.

@@ -1,6 +1,6 @@
 package org.kpax.winfoom.exception;
 
-import org.apache.http.*;
+import org.apache.http.HttpResponse;
 
 public class ProxyAuthorizationException extends Exception {
     private final HttpResponse response;

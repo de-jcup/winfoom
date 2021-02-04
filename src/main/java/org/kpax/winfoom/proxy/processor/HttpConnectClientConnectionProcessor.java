@@ -13,18 +13,24 @@
 package org.kpax.winfoom.proxy.processor;
 
 import org.apache.http.*;
-import org.apache.http.impl.execchain.*;
-import org.kpax.winfoom.annotation.*;
-import org.kpax.winfoom.config.*;
-import org.kpax.winfoom.exception.*;
-import org.kpax.winfoom.proxy.*;
-import org.kpax.winfoom.util.*;
-import org.slf4j.*;
-import org.springframework.beans.factory.annotation.*;
-import org.springframework.stereotype.*;
+import org.apache.http.impl.execchain.TunnelRefusedException;
+import org.kpax.winfoom.annotation.ThreadSafe;
+import org.kpax.winfoom.config.ProxyConfig;
+import org.kpax.winfoom.exception.ProxyAuthorizationException;
+import org.kpax.winfoom.exception.ProxyConnectException;
+import org.kpax.winfoom.proxy.ClientConnection;
+import org.kpax.winfoom.proxy.ProxyInfo;
+import org.kpax.winfoom.proxy.Tunnel;
+import org.kpax.winfoom.proxy.TunnelConnection;
+import org.kpax.winfoom.util.HttpUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-import java.io.*;
-import java.net.*;
+import java.io.IOException;
+import java.net.ConnectException;
+import java.net.UnknownHostException;
 
 /**
  * Process a CONNECT request through a HTTP proxy.

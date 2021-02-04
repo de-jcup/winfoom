@@ -22,6 +22,8 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.kpax.winfoom.FoomApplicationTest;
 import org.kpax.winfoom.config.ProxyConfig;
+import org.kpax.winfoom.util.functional.ProxySingletonSupplier;
+import org.kpax.winfoom.util.functional.SingletonSupplier;
 import org.littleshoot.proxy.HttpProxyServer;
 import org.littleshoot.proxy.ProxyAuthenticator;
 import org.littleshoot.proxy.impl.DefaultHttpProxyServer;
@@ -63,7 +65,7 @@ class CustomProxyClientTests {
     private ApplicationContext applicationContext;
 
     @Autowired
-    private CredentialsProvider credentialsProvider;
+    private ProxySingletonSupplier<CredentialsProvider> credentialsProviderSupplier;
 
     private HttpProxyServer proxyServer;
 
@@ -97,8 +99,8 @@ class CustomProxyClientTests {
             throws IOException, HttpException {
         HttpHost target = HttpHost.create("https://example.com");
         HttpHost proxy = new HttpHost(proxyConfig.getProxyHost(), proxyConfig.getProxyPort(), "http");
-        credentialsProvider.clear();
-        credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(USERNAME, PASSWORD));
+        credentialsProviderSupplier.get().clear();
+        credentialsProviderSupplier.get().setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(USERNAME, PASSWORD));
         Tunnel tunnel = applicationContext.getBean(TunnelConnection.class)
                 .open(proxy, target, HttpVersion.HTTP_1_1);
         tunnel.close();
@@ -108,8 +110,8 @@ class CustomProxyClientTests {
     void tunnel_rightProxyWrongCredentials_TunnelRefusedException() {
         HttpHost target = HttpHost.create("https://example.com");
         HttpHost proxy = new HttpHost(proxyConfig.getProxyHost(), proxyConfig.getProxyPort(), "http");
-        credentialsProvider.clear();
-        credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(USERNAME, "wrong_pass"));
+        credentialsProviderSupplier.get().clear();
+        credentialsProviderSupplier.get().setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(USERNAME, "wrong_pass"));
         assertThrows(org.apache.http.impl.execchain.TunnelRefusedException.class, () -> {
             Tunnel tunnel = applicationContext.getBean(TunnelConnection.class)
                     .open(proxy, target, HttpVersion.HTTP_1_1);
@@ -121,8 +123,8 @@ class CustomProxyClientTests {
     void tunnel_wrongProxyRightCredentials_UnknownHostException() {
         HttpHost target = HttpHost.create("https://example.com");
         HttpHost proxy = new HttpHost("wronghost", proxyConfig.getProxyPort(), "http");
-        credentialsProvider.clear();
-        credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(USERNAME, PASSWORD));
+        credentialsProviderSupplier.get().clear();
+        credentialsProviderSupplier.get().setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(USERNAME, PASSWORD));
         assertThrows(java.net.UnknownHostException.class, () -> {
             Tunnel tunnel = applicationContext.getBean(TunnelConnection.class)
                     .open(proxy, target, HttpVersion.HTTP_1_1);

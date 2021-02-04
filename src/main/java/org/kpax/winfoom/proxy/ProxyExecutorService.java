@@ -12,15 +12,17 @@
 
 package org.kpax.winfoom.proxy;
 
-import org.kpax.winfoom.proxy.listener.*;
-import org.kpax.winfoom.util.functional.*;
-import org.slf4j.*;
-import org.springframework.core.annotation.*;
-import org.springframework.stereotype.*;
+import org.kpax.winfoom.proxy.listener.StopListener;
+import org.kpax.winfoom.util.functional.SingletonSupplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A wrapper for {@link ThreadPoolExecutor} that forbids {@link #shutdown()}, {@link #shutdownNow()}

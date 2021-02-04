@@ -1,6 +1,6 @@
 package org.kpax.winfoom.util;
 
-import java.util.*;
+import java.util.Date;
 
 public class DateUtils {
 

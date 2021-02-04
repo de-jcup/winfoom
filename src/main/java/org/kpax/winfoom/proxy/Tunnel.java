@@ -12,13 +12,18 @@
 
 package org.kpax.winfoom.proxy;
 
-import org.apache.http.*;
-import org.apache.http.conn.*;
-import org.kpax.winfoom.annotation.*;
-import org.kpax.winfoom.util.*;
-import org.springframework.util.*;
+import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
+import org.apache.http.conn.ManagedHttpClientConnection;
+import org.kpax.winfoom.annotation.ThreadSafe;
+import org.kpax.winfoom.util.InputOutputs;
+import org.kpax.winfoom.util.StreamSource;
+import org.springframework.util.Assert;
 
-import java.io.*;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  * Encapsulate the response of a {@link TunnelConnection}.

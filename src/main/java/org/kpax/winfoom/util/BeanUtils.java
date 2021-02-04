@@ -13,18 +13,22 @@
 
 package org.kpax.winfoom.util;
 
-import org.apache.commons.beanutils.*;
+import org.apache.commons.beanutils.PropertyUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.*;
-import java.util.*;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
 
 public class BeanUtils {
+    private static final Logger logger = LoggerFactory.getLogger(BeanUtils.class);
 
     public static void copyNonNullProperties(Object src, Object dest)
             throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         Map<String, Object> objectMap = PropertyUtils.describe(src);
         for (Map.Entry<String, Object> entry : objectMap.entrySet()) {
             if (!entry.getKey().equals("class") && entry.getValue() != null) {
+                logger.debug("set property: {}={}", entry.getKey(), entry.getValue());
                 PropertyUtils.setProperty(dest, entry.getKey(), entry.getValue());
             }
         }

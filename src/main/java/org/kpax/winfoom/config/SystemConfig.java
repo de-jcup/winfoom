@@ -12,14 +12,16 @@
 
 package org.kpax.winfoom.config;
 
-import org.apache.http.client.config.*;
-import org.slf4j.*;
-import org.springframework.beans.factory.annotation.*;
-import org.springframework.context.annotation.*;
-import org.springframework.stereotype.*;
+import org.apache.http.client.config.RequestConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.*;
-import java.net.*;
+import javax.annotation.PostConstruct;
+import java.net.Socket;
+import java.net.SocketException;
 
 /**
  * The proxy facade system configuration.

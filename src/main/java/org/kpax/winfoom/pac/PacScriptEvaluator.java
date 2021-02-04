@@ -30,30 +30,43 @@
  */
 package org.kpax.winfoom.pac;
 
-import com.oracle.truffle.js.scriptengine.*;
-import org.apache.commons.io.*;
-import org.apache.commons.pool2.*;
-import org.apache.commons.pool2.impl.*;
-import org.graalvm.polyglot.*;
-import org.kpax.winfoom.annotation.*;
-import org.kpax.winfoom.config.*;
+import com.oracle.truffle.js.scriptengine.GraalJSScriptEngine;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.pool2.BasePooledObjectFactory;
+import org.apache.commons.pool2.PooledObject;
+import org.apache.commons.pool2.impl.DefaultPooledObject;
+import org.apache.commons.pool2.impl.GenericObjectPool;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.Engine;
+import org.graalvm.polyglot.HostAccess;
+import org.kpax.winfoom.annotation.ThreadSafe;
+import org.kpax.winfoom.annotation.TypeQualifier;
+import org.kpax.winfoom.config.ProxyConfig;
+import org.kpax.winfoom.config.SystemConfig;
 import org.kpax.winfoom.exception.MissingResourceException;
-import org.kpax.winfoom.exception.*;
-import org.kpax.winfoom.proxy.*;
-import org.kpax.winfoom.proxy.listener.*;
-import org.kpax.winfoom.util.*;
-import org.kpax.winfoom.util.functional.*;
-import org.slf4j.*;
-import org.springframework.beans.factory.annotation.*;
-import org.springframework.core.annotation.*;
-import org.springframework.stereotype.*;
-import org.springframework.util.*;
+import org.kpax.winfoom.exception.PacFileException;
+import org.kpax.winfoom.exception.PacScriptException;
+import org.kpax.winfoom.proxy.ProxyBlacklist;
+import org.kpax.winfoom.proxy.ProxyInfo;
+import org.kpax.winfoom.proxy.listener.ProxyListener;
+import org.kpax.winfoom.util.HttpUtils;
+import org.kpax.winfoom.util.functional.SingletonSupplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
-import javax.script.*;
-import java.io.*;
-import java.net.*;
-import java.nio.charset.*;
-import java.util.*;
+import javax.script.ScriptException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Objects;
 
 @ThreadSafe
 @Order(3)

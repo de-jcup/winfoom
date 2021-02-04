@@ -13,13 +13,15 @@
 
 package org.kpax.winfoom.api.json;
 
-import com.fasterxml.jackson.core.*;
-import com.fasterxml.jackson.databind.*;
-import com.fasterxml.jackson.databind.ser.*;
-import com.fasterxml.jackson.databind.ser.std.*;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.BeanProperty;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.ser.ContextualSerializer;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
-import java.io.*;
-import java.util.*;
+import java.io.IOException;
+import java.util.Optional;
 
 public class AsteriskSerializer extends StdSerializer<Object> implements ContextualSerializer {
 

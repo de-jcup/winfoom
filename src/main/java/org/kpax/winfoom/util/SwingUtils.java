@@ -14,17 +14,20 @@
 
 package org.kpax.winfoom.util;
 
-import org.kpax.winfoom.annotation.*;
-import org.slf4j.*;
-import org.springframework.util.*;
+import org.kpax.winfoom.annotation.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.Assert;
 
-import javax.imageio.*;
+import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.text.*;
+import javax.swing.text.DefaultFormatter;
 import java.awt.*;
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * Various Swing related methods.

@@ -54,11 +54,12 @@
 
 package org.kpax.winfoom.util.jna;
 
-import com.sun.jna.*;
-import com.sun.jna.platform.win32.*;
-import org.apache.commons.lang3.*;
-import org.kpax.winfoom.annotation.*;
-import org.slf4j.*;
+import com.sun.jna.LastErrorException;
+import com.sun.jna.platform.win32.WinDef;
+import org.apache.commons.lang3.StringUtils;
+import org.kpax.winfoom.annotation.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Static helper methods for Windows {@code WinHttp} functions.

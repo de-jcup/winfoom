@@ -12,10 +12,11 @@
 
 package org.kpax.winfoom.util;
 
-import org.kpax.winfoom.annotation.*;
-import org.springframework.util.*;
+import org.kpax.winfoom.annotation.NotNull;
+import org.springframework.util.Assert;
 
-import java.nio.charset.*;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author Eugen Covaci

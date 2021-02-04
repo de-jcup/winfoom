@@ -12,21 +12,30 @@
 
 package org.kpax.winfoom.proxy.processor;
 
-import org.apache.http.*;
-import org.kpax.winfoom.annotation.*;
-import org.kpax.winfoom.config.*;
-import org.kpax.winfoom.exception.*;
-import org.kpax.winfoom.proxy.*;
-import org.kpax.winfoom.proxy.auth.*;
-import org.kpax.winfoom.util.*;
-import org.slf4j.*;
-import org.springframework.beans.factory.annotation.*;
+import org.apache.http.HttpException;
+import org.apache.http.HttpStatus;
+import org.kpax.winfoom.annotation.NotNull;
+import org.kpax.winfoom.config.ProxyConfig;
+import org.kpax.winfoom.exception.ProxyAuthorizationException;
+import org.kpax.winfoom.exception.ProxyConnectException;
+import org.kpax.winfoom.proxy.ClientConnection;
+import org.kpax.winfoom.proxy.ProxyBlacklist;
+import org.kpax.winfoom.proxy.ProxyInfo;
+import org.kpax.winfoom.proxy.auth.KerberosModule;
+import org.kpax.winfoom.util.StreamSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.security.auth.login.*;
-import java.io.*;
-import java.net.*;
-import java.security.*;
-import java.util.concurrent.*;
+import javax.security.auth.login.LoginException;
+import java.io.IOException;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
+import java.security.PrivilegedActionException;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 /**
  * Process a {@link ClientConnection} with a certain {@link ProxyInfo}.

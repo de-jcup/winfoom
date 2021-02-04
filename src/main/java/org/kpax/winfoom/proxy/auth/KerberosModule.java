@@ -1,22 +1,28 @@
 package org.kpax.winfoom.proxy.auth;
 
-import com.sun.security.auth.module.*;
-import org.kpax.winfoom.config.*;
-import org.kpax.winfoom.proxy.listener.*;
-import org.kpax.winfoom.util.*;
-import org.kpax.winfoom.util.functional.*;
-import org.slf4j.*;
-import org.springframework.beans.factory.annotation.*;
-import org.springframework.context.*;
-import org.springframework.stereotype.*;
-import org.springframework.util.*;
+import com.sun.security.auth.module.Krb5LoginModule;
+import org.kpax.winfoom.config.ProxyConfig;
+import org.kpax.winfoom.config.SystemConfig;
+import org.kpax.winfoom.proxy.listener.ProxyListener;
+import org.kpax.winfoom.util.DateUtils;
+import org.kpax.winfoom.util.functional.PrivilegedActionWrapper;
+import org.kpax.winfoom.util.functional.SingletonSupplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
-import javax.security.auth.*;
-import javax.security.auth.callback.*;
-import javax.security.auth.kerberos.*;
-import javax.security.auth.login.*;
-import java.security.*;
-import java.util.*;
+import javax.security.auth.Subject;
+import javax.security.auth.callback.Callback;
+import javax.security.auth.callback.NameCallback;
+import javax.security.auth.callback.PasswordCallback;
+import javax.security.auth.kerberos.KerberosTicket;
+import javax.security.auth.login.LoginException;
+import java.security.PrivilegedActionException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Responsible for Kerberos authentication, authorization.

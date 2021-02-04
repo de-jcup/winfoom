@@ -12,30 +12,42 @@
 
 package org.kpax.winfoom.config;
 
-import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.annotation.JsonView;
 import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.configuration2.*;
-import org.apache.commons.configuration2.builder.*;
-import org.apache.commons.configuration2.builder.fluent.*;
-import org.apache.commons.configuration2.ex.*;
-import org.apache.commons.lang3.*;
-import org.apache.http.*;
-import org.kpax.winfoom.api.json.*;
-import org.kpax.winfoom.exception.*;
-import org.kpax.winfoom.proxy.*;
-import org.kpax.winfoom.util.*;
-import org.kpax.winfoom.util.jna.*;
-import org.slf4j.*;
-import org.springframework.beans.factory.annotation.*;
-import org.springframework.context.annotation.*;
-import org.springframework.stereotype.*;
+import org.apache.commons.configuration2.PropertiesConfiguration;
+import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
+import org.apache.commons.configuration2.builder.fluent.Configurations;
+import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpHost;
+import org.kpax.winfoom.api.json.Asterisk;
+import org.kpax.winfoom.api.json.Views;
+import org.kpax.winfoom.exception.InvalidProxySettingsException;
+import org.kpax.winfoom.proxy.ProxyType;
+import org.kpax.winfoom.util.HttpUtils;
+import org.kpax.winfoom.util.jna.IEProxyConfig;
+import org.kpax.winfoom.util.jna.WinHttpHelpers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
-import javax.annotation.*;
-import java.io.*;
-import java.lang.reflect.*;
-import java.net.*;
-import java.nio.charset.*;
-import java.nio.file.*;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 /**
@@ -110,8 +122,8 @@ public class ProxyConfig {
     @Value("${proxy.http.password:#{null}}")
     private String proxyHttpPassword;
 
-    @Value("${proxy.storePassword:false}")
-    private boolean proxyStorePassword;
+    @Value("${proxy.http.win.useCurrentCredentials:true}")
+    private boolean useCurrentCredentials;
 
     @Value("${proxy.pac.fileLocation:#{null}}")
     private String proxyPacFileLocation;
@@ -177,7 +189,7 @@ public class ProxyConfig {
             if (!HttpUtils.isValidPort(getProxyPort())) {
                 throw new InvalidProxySettingsException("Invalid proxy port");
             }
-            if (!SystemContext.IS_OS_WINDOWS && proxyType.isHttp()) {
+            if (proxyType.isHttp() && !(SystemContext.IS_OS_WINDOWS && useCurrentCredentials)) {
                 if (httpAuthProtocol == null) {
                     throw new InvalidProxySettingsException("Missing HTTP proxy authentication protocol");
                 }
@@ -360,7 +372,7 @@ public class ProxyConfig {
         this.proxyType = proxyType;
     }
 
-    @JsonView(value = {Views.Socks5.class, Views.HttpNonWindows.class})
+    @JsonView(value = {Views.Socks5.class, Views.HttpNonWindows.class, Views.HttpWindowsManual.class})
     public String getProxyUsername() {
         switch (proxyType) {
             case HTTP:
@@ -383,7 +395,7 @@ public class ProxyConfig {
     }
 
     @Asterisk
-    @JsonView(value = {Views.Socks5.class, Views.HttpNonWindows.class})
+    @JsonView(value = {Views.Socks5.class, Views.HttpNonWindows.class, Views.HttpWindowsManual.class})
     public String getProxyPassword() {
         switch (proxyType) {
             case HTTP:
@@ -405,15 +417,6 @@ public class ProxyConfig {
         }
     }
 
-    @JsonView(value = {Views.Socks5.class})
-    public boolean isProxyStorePassword() {
-        return proxyStorePassword;
-    }
-
-    public void setProxyStorePassword(boolean proxyStorePassword) {
-        this.proxyStorePassword = proxyStorePassword;
-    }
-
     public String getProxySocks5Username() {
         return proxySocks5Username;
     }
@@ -426,12 +429,25 @@ public class ProxyConfig {
         return proxyHttpUsername;
     }
 
+    @JsonView(value = {Views.HttpWindows.class})
+    public boolean isUseCurrentCredentials() {
+        return useCurrentCredentials;
+    }
+
+    public boolean isAuthAutoMode() {
+        return SystemContext.IS_OS_WINDOWS && useCurrentCredentials;
+    }
+
+    public void setUseCurrentCredentials(boolean useCurrentCredentials) {
+        this.useCurrentCredentials = useCurrentCredentials;
+    }
+
     public String getProxyKrbPrincipal() {
         if (proxyHttpUsername != null) {
             int backslashIndex = proxyHttpUsername.indexOf('\\');
             String username = backslashIndex > -1 ? proxyHttpUsername.substring(backslashIndex + 1) : proxyHttpUsername;
             String domain = backslashIndex > -1 ? proxyHttpUsername.substring(0, backslashIndex) : null;
-            return username + "@" + domain.toUpperCase(Locale.ROOT);
+            return username  + (StringUtils.isNotBlank(domain) ? "@" + domain.toUpperCase(Locale.ROOT) : "");
         }
         return null;
     }
@@ -469,7 +485,6 @@ public class ProxyConfig {
         }
         return null;
     }
-
 
     public boolean isAutoConfig() {
         return this.proxyType.isPac();
@@ -521,7 +536,7 @@ public class ProxyConfig {
         return apiToken;
     }
 
-    @JsonView(value = {Views.HttpNonWindows.class})
+    @JsonView(value = {Views.HttpNonWindows.class, Views.HttpWindowsManual.class})
     public HttpAuthProtocol getHttpAuthProtocol() {
         return httpAuthProtocol;
     }
@@ -530,7 +545,7 @@ public class ProxyConfig {
         this.httpAuthProtocol = httpAuthProtocol;
     }
 
-    @JsonView(value = {Views.HttpNonWindows.class})
+    @JsonView(value = {Views.KerberosHttpNonWindows.class, Views.KerberosHttpWindowsManual.class})
     public String getKrb5ConfFilepath() {
         return krb5ConfFilepath;
     }
@@ -560,8 +575,8 @@ public class ProxyConfig {
         setProperty(config, "local.port", localPort);
         setProperty(config, "proxy.test.url", proxyTestUrl);
         setProperty(config, "proxy.http.username", proxyHttpUsername);
+        setProperty(config, "proxy.http.win.useCurrentCredentials", useCurrentCredentials);
         setProperty(config, "proxy.socks5.username", proxySocks5Username);
-        setProperty(config, "proxy.storePassword", proxyStorePassword);
 
         if (StringUtils.isNotEmpty(proxyHttpPassword)) {
             setProperty(config, "proxy.http.password", "encoded(" + Base64.getEncoder().encodeToString(proxyHttpPassword.getBytes()) + ")");
@@ -569,7 +584,7 @@ public class ProxyConfig {
             config.clearProperty("proxy.http.password");
         }
 
-        if (proxyStorePassword && StringUtils.isNotEmpty(proxySocks5Password)) {
+        if (StringUtils.isNotEmpty(proxySocks5Password)) {
             setProperty(config, "proxy.socks5.password", "encoded(" + Base64.getEncoder().encodeToString(proxySocks5Password.getBytes()) + ")");
         } else {
             config.clearProperty("proxy.socks5.password");
@@ -622,27 +637,27 @@ public class ProxyConfig {
     @Override
     public String toString() {
         return "ProxyConfig{" +
-                "appVersion=" + appVersion +
+                "appVersion='" + appVersion + '\'' +
                 ", apiPort=" + apiPort +
-                ", apiToken=" + apiToken +
+                ", apiToken='" + apiToken + '\'' +
                 ", proxyType=" + proxyType +
                 ", localPort=" + localPort +
-                ", proxyHttpHost=" + proxyHttpHost +
-                ", proxySocks5Host=" + proxySocks5Host +
-                ", proxySocks4Host=" + proxySocks4Host +
+                ", proxyHttpHost='" + proxyHttpHost + '\'' +
+                ", proxySocks5Host='" + proxySocks5Host + '\'' +
+                ", proxySocks4Host='" + proxySocks4Host + '\'' +
                 ", proxyHttpPort=" + proxyHttpPort +
                 ", proxySocks5Port=" + proxySocks5Port +
                 ", proxySocks4Port=" + proxySocks4Port +
-                ", proxyTestUrl=" + proxyTestUrl +
-                ", proxySocks5Username=" + proxySocks5Username +
-                ", proxyHttpUsername=" + proxyHttpUsername +
-                ", proxyStorePassword=" + proxyStorePassword +
-                ", proxyPacFileLocation=" + proxyPacFileLocation +
+                ", proxyTestUrl='" + proxyTestUrl + '\'' +
+                ", proxySocks5Username='" + proxySocks5Username + '\'' +
+                ", proxyHttpUsername='" + proxyHttpUsername + '\'' +
+                ", useCurrentCredentials=" + useCurrentCredentials +
+                ", proxyPacFileLocation='" + proxyPacFileLocation + '\'' +
                 ", blacklistTimeout=" + blacklistTimeout +
                 ", autostart=" + autostart +
                 ", autodetect=" + autodetect +
                 ", httpAuthProtocol=" + httpAuthProtocol +
-                ", krb5ConfFilepath=" + krb5ConfFilepath +
+                ", krb5ConfFilepath='" + krb5ConfFilepath + '\'' +
                 ", tempDirectory=" + tempDirectory +
                 '}';
     }

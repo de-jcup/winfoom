@@ -12,25 +12,34 @@
 
 package org.kpax.winfoom.proxy.processor;
 
-import org.apache.commons.lang3.*;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.*;
-import org.apache.http.client.methods.*;
-import org.apache.http.client.protocol.*;
-import org.apache.http.conn.*;
-import org.apache.http.entity.*;
-import org.apache.http.impl.client.*;
-import org.apache.http.util.*;
-import org.kpax.winfoom.annotation.*;
-import org.kpax.winfoom.config.*;
-import org.kpax.winfoom.exception.*;
-import org.kpax.winfoom.proxy.*;
-import org.kpax.winfoom.util.*;
-import org.slf4j.*;
-import org.springframework.beans.factory.annotation.*;
-import org.springframework.stereotype.*;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.conn.HttpHostConnectException;
+import org.apache.http.entity.BufferedHttpEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.util.EntityUtils;
+import org.kpax.winfoom.annotation.ThreadSafe;
+import org.kpax.winfoom.config.ProxyConfig;
+import org.kpax.winfoom.config.SystemConfig;
+import org.kpax.winfoom.exception.ProxyAuthorizationException;
+import org.kpax.winfoom.exception.ProxyConnectException;
+import org.kpax.winfoom.proxy.ClientConnection;
+import org.kpax.winfoom.proxy.HttpClientBuilderFactory;
+import org.kpax.winfoom.proxy.ProxyInfo;
+import org.kpax.winfoom.util.HttpUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-import java.io.*;
-import java.net.*;
+import java.io.IOException;
+import java.net.ConnectException;
+import java.net.InetSocketAddress;
+import java.net.URI;
+import java.net.UnknownHostException;
 
 /**
  * Process any type of non-CONNECT request for any type of proxy.

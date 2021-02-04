@@ -12,18 +12,23 @@
 
 package org.kpax.winfoom.proxy.processor;
 
-import org.apache.http.*;
-import org.apache.http.protocol.*;
-import org.kpax.winfoom.annotation.*;
-import org.kpax.winfoom.config.*;
-import org.kpax.winfoom.exception.*;
-import org.kpax.winfoom.proxy.*;
-import org.kpax.winfoom.util.*;
-import org.slf4j.*;
-import org.springframework.beans.factory.annotation.*;
-import org.springframework.stereotype.*;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpStatus;
+import org.apache.http.RequestLine;
+import org.apache.http.protocol.HTTP;
+import org.kpax.winfoom.annotation.ThreadSafe;
+import org.kpax.winfoom.config.SystemConfig;
+import org.kpax.winfoom.exception.ProxyConnectException;
+import org.kpax.winfoom.proxy.ClientConnection;
+import org.kpax.winfoom.proxy.ProxyInfo;
+import org.kpax.winfoom.util.HttpUtils;
+import org.kpax.winfoom.util.StreamSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-import java.io.*;
+import java.io.IOException;
 import java.net.*;
 
 /**

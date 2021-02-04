@@ -28,9 +28,11 @@
 
 package org.kpax.winfoom.pac.net;
 
-import org.springframework.util.*;
+import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
-import java.net.*;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 /**
  * Matches a request based on IP Address or subnet mask matching against the remote

@@ -12,13 +12,17 @@
 
 package org.kpax.winfoom.config;
 
-import ch.qos.logback.classic.*;
-import ch.qos.logback.classic.spi.*;
-import ch.qos.logback.core.*;
-import ch.qos.logback.core.spi.*;
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.spi.LoggerContextListener;
+import ch.qos.logback.core.Context;
+import ch.qos.logback.core.spi.ContextAwareBase;
+import ch.qos.logback.core.spi.LifeCycle;
 
-import java.io.*;
-import java.nio.file.*;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Logback configuration class, used to add various context variables.

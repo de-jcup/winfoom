@@ -15,25 +15,32 @@ package org.kpax.winfoom.util;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.apache.http.*;
-import org.apache.http.auth.*;
-import org.apache.http.entity.*;
-import org.apache.http.impl.*;
-import org.apache.http.message.*;
-import org.apache.http.protocol.*;
-import org.kpax.winfoom.annotation.*;
-import org.kpax.winfoom.exception.*;
-import org.kpax.winfoom.proxy.*;
-import org.slf4j.*;
-import org.springframework.util.*;
+import org.apache.http.auth.AuthenticationException;
+import org.apache.http.entity.ContentType;
+import org.apache.http.impl.EnglishReasonPhraseCatalog;
+import org.apache.http.message.BasicHeader;
+import org.apache.http.message.BasicStatusLine;
+import org.apache.http.protocol.HTTP;
+import org.kpax.winfoom.annotation.NotNull;
+import org.kpax.winfoom.exception.PacFileException;
+import org.kpax.winfoom.exception.PacScriptException;
+import org.kpax.winfoom.proxy.ProxyInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.Assert;
 
-import java.io.*;
-import java.lang.reflect.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.net.*;
-import java.nio.charset.*;
-import java.text.*;
+import java.nio.charset.StandardCharsets;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.function.*;
-import java.util.stream.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Various utility methods, HTTP related.
@@ -522,8 +529,9 @@ public final class HttpUtils {
 
     /**
      * Remove all headers having certain names.
+     *
      * @param httpMessage the HTTP message (request or response)
-     * @param names the list of header names to be removed
+     * @param names       the list of header names to be removed
      */
     public static void removeHeaders(final @NotNull HttpMessage httpMessage, final @NotNull String... names) {
         HeaderIterator headerIterator = httpMessage.headerIterator();

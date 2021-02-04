@@ -12,24 +12,32 @@
 
 package org.kpax.winfoom.view;
 
-import org.apache.commons.lang3.*;
-import org.kpax.winfoom.config.*;
-import org.kpax.winfoom.exception.*;
-import org.kpax.winfoom.proxy.*;
-import org.kpax.winfoom.util.*;
-import org.slf4j.*;
-import org.springframework.beans.factory.annotation.*;
-import org.springframework.context.*;
-import org.springframework.context.annotation.*;
+import org.apache.commons.lang3.StringUtils;
+import org.kpax.winfoom.config.ProxyConfig;
+import org.kpax.winfoom.exception.InvalidProxySettingsException;
+import org.kpax.winfoom.proxy.ProxyBlacklist;
+import org.kpax.winfoom.proxy.ProxyController;
+import org.kpax.winfoom.proxy.ProxyValidator;
+import org.kpax.winfoom.util.HttpUtils;
+import org.kpax.winfoom.util.SwingUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.*;
+import javax.annotation.PostConstruct;
 import javax.swing.*;
-import javax.swing.border.*;
-import javax.swing.event.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.util.Objects;
 
 @Profile("gui")
 @Component
@@ -210,20 +218,24 @@ public class AppFrame extends JFrame {
         return new JLabel("Local proxy port* ");
     }
 
+    private JLabel getUseSystemCredentialsLabel() {
+        return new JLabel("Use system credentials");
+    }
+
     private JLabel getPacFileLabel() {
         return new JLabel("PAC file location* ");
     }
 
-    private JLabel getUsernameLabel() {
-        return new JLabel("Username ");
+    private JLabel getUsernameLabel(boolean mandatory) {
+        return new JLabel("Username" + (mandatory ? "* " : " "));
     }
 
-    private JLabel getPasswordLabel() {
-        return new JLabel("Password ");
+    private JLabel getPasswordLabel(boolean mandatory) {
+        return new JLabel("Password" + (mandatory ? "* " : " "));
     }
 
-    private JLabel getStorePasswordLabel() {
-        return new JLabel("Store password ");
+    private JLabel getAuthProtocolLabel() {
+        return new JLabel("Authentication protocol* ");
     }
 
     private JLabel getBlacklistTimeoutLabel() {
@@ -239,30 +251,45 @@ public class AppFrame extends JFrame {
             proxyTypeCombo = new JComboBox<>(ProxyConfig.Type.values());
             proxyTypeCombo.setMinimumSize(new Dimension(80, 35));
             proxyTypeCombo.addActionListener((e) -> {
-                clearLabelsAndFields();
-                getBtnCancelBlacklist().setVisible(false);
-                addProxyType();
-                ProxyConfig.Type proxyType = (ProxyConfig.Type) proxyTypeCombo.getSelectedItem();
-                proxyConfig.setProxyType(proxyType);
-                switch (Objects.requireNonNull(proxyType)) {
-                    case HTTP:
-                    case SOCKS4:
-                        configureForHttp();
-                        break;
-                    case SOCKS5:
-                        configureForSocks5();
-                        break;
-                    case PAC:
-                        configureForPac();
-                        break;
-                    case DIRECT:
-                        configureForDirect();
-                        break;
-                }
-                this.pack();
+                configureContent();
             });
         }
         return proxyTypeCombo;
+    }
+
+    private JComboBox<ProxyConfig.HttpAuthProtocol> getAuthProtocolCombo() {
+        JComboBox<ProxyConfig.HttpAuthProtocol> comboBox = new JComboBox<>(ProxyConfig.HttpAuthProtocol.values());
+        comboBox.setSelectedItem(proxyConfig.getHttpAuthProtocol());
+        comboBox.addActionListener((e) -> {
+            proxyConfig.setHttpAuthProtocol((ProxyConfig.HttpAuthProtocol) comboBox.getSelectedItem());
+        });
+        return comboBox;
+    }
+
+    private void configureContent() {
+        clearLabelsAndFields();
+        getBtnCancelBlacklist().setVisible(false);
+        addProxyType();
+        ProxyConfig.Type proxyType = (ProxyConfig.Type) proxyTypeCombo.getSelectedItem();
+        proxyConfig.setProxyType(proxyType);
+        switch (Objects.requireNonNull(proxyType)) {
+            case SOCKS4:
+                configureForSocks4();
+                break;
+            case HTTP:
+                configureForHttp();
+                break;
+            case SOCKS5:
+                configureForSocks5();
+                break;
+            case PAC:
+                configureForPac();
+                break;
+            case DIRECT:
+                configureForDirect();
+                break;
+        }
+        this.pack();
     }
 
     private JTextField getProxyHostJTextField() {
@@ -297,7 +324,7 @@ public class AppFrame extends JFrame {
         return localPortJSpinner;
     }
 
-    private JTextField getUsernameJTextField() {
+    private JTextField getSocks5UsernameJTextField() {
         JTextField usernameJTextField = createTextField(proxyConfig.getProxyUsername());
         usernameJTextField.setToolTipText("The optional username if the SOCKS5 proxy requires authentication.");
         usernameJTextField.getDocument().addDocumentListener((TextChangeListener) (e) -> proxyConfig.setProxyUsername(usernameJTextField.getText()));
@@ -305,34 +332,38 @@ public class AppFrame extends JFrame {
     }
 
 
-    private JPasswordField getPasswordField() {
+    private JPasswordField getSocks5PasswordField() {
         JPasswordField passwordField = new JPasswordField(proxyConfig.getProxySocks5Password());
         passwordField.setToolTipText("The optional password if the SOCKS5 proxy requires authentication.");
         passwordField.getDocument().addDocumentListener((TextChangeListener) (e) -> proxyConfig.setProxyPassword(new String(passwordField.getPassword())));
         return passwordField;
     }
 
-    private JCheckBox getStorePasswordJCheckBox() {
-        JCheckBox storePasswordJCheckBox = new JCheckBox();
-        storePasswordJCheckBox.setSelected(proxyConfig.isProxyStorePassword());
-        storePasswordJCheckBox.setToolTipText(HttpUtils.toHtml("Whether to store the password or not." +
-                "<br>The password is stored in a text file, encoded but not encrypted."));
-        storePasswordJCheckBox.addActionListener((e -> {
-            if (storePasswordJCheckBox.isSelected()) {
-                int option = JOptionPane.showConfirmDialog(AppFrame.this,
-                        "This is not recommended!" +
-                                "\nThe password is stored in a text file, encoded but not encrypted.",
-                        "Warning",
-                        JOptionPane.OK_CANCEL_OPTION,
-                        JOptionPane.WARNING_MESSAGE);
-                if (option != JOptionPane.OK_OPTION) {
-                    storePasswordJCheckBox.setSelected(false);
-                }
-            }
-            proxyConfig.setProxyStorePassword(storePasswordJCheckBox.isSelected());
+    private JTextField getHttpUsernameJTextField() {
+        JTextField usernameJTextField = createTextField(proxyConfig.getProxyHttpUsername());
+        usernameJTextField.setToolTipText("The username or DOMAIN\\username required by the upstream proxy");
+        usernameJTextField.getDocument().addDocumentListener((TextChangeListener) (e) -> proxyConfig.setProxyUsername(usernameJTextField.getText()));
+        return usernameJTextField;
+    }
+
+
+    private JPasswordField getHttpPasswordField() {
+        JPasswordField passwordField = new JPasswordField(proxyConfig.getProxyHttpPassword());
+        passwordField.setToolTipText("The password required by the upstream proxy");
+        passwordField.getDocument().addDocumentListener((TextChangeListener) (e) -> proxyConfig.setProxyPassword(new String(passwordField.getPassword())));
+        return passwordField;
+    }
+
+    private JCheckBox getUseSystemCredentialsJCheckBox() {
+        JCheckBox checkBox = new JCheckBox();
+        checkBox.setSelected(proxyConfig.isUseCurrentCredentials());
+        checkBox.setToolTipText(HttpUtils.toHtml("Whether to use the current user credentials or not"));
+        checkBox.addActionListener((e -> {
+            proxyConfig.setUseCurrentCredentials(checkBox.isSelected());
+            configureContent();
         }));
 
-        return storePasswordJCheckBox;
+        return checkBox;
     }
 
     private JSpinner getBlacklistTimeoutJSpinner() {
@@ -435,10 +466,10 @@ public class AppFrame extends JFrame {
             btnAutoDetect.setMargin(new Insets(2, 6, 2, 6));
             btnAutoDetect.setIcon(new TunedImageIcon("system-search.png"));
             btnAutoDetect.addActionListener((event) -> SwingUtils.executeRunnable(() -> {
-                        if (autoDetectProxySettings()) {
-                            applyProxyType();
-                        }
-                    }, AppFrame.this));
+                if (autoDetectProxySettings()) {
+                    applyProxyType();
+                }
+            }, AppFrame.this));
             btnAutoDetect.setToolTipText(HttpUtils.toHtml("Attempt to load the system's current proxy settings"));
         }
         return btnAutoDetect;
@@ -506,6 +537,28 @@ public class AppFrame extends JFrame {
         labelPanel.add(getProxyHostLabel());
         labelPanel.add(getProxyPortLabel());
         labelPanel.add(getLocalPortLabel());
+        labelPanel.add(getUseSystemCredentialsLabel());
+
+        fieldPanel.add(getProxyHostJTextField());
+        fieldPanel.add(wrapToPanel(getProxyPortJSpinner()));
+        fieldPanel.add(wrapToPanel(getLocalPortJSpinner()));
+        fieldPanel.add(getUseSystemCredentialsJCheckBox());
+
+        if (!proxyConfig.isUseCurrentCredentials()) {
+            labelPanel.add(getAuthProtocolLabel());
+            labelPanel.add(getUsernameLabel(true));
+            labelPanel.add(getPasswordLabel(true));
+
+            fieldPanel.add((wrapToPanel(getAuthProtocolCombo())));
+            fieldPanel.add(getHttpUsernameJTextField());
+            fieldPanel.add(getHttpPasswordField());
+        }
+    }
+
+    private void configureForSocks4() {
+        labelPanel.add(getProxyHostLabel());
+        labelPanel.add(getProxyPortLabel());
+        labelPanel.add(getLocalPortLabel());
 
         fieldPanel.add(getProxyHostJTextField());
         fieldPanel.add(wrapToPanel(getProxyPortJSpinner()));
@@ -535,16 +588,14 @@ public class AppFrame extends JFrame {
     private void configureForSocks5() {
         labelPanel.add(getProxyHostLabel());
         labelPanel.add(getProxyPortLabel());
-        labelPanel.add(getUsernameLabel());
-        labelPanel.add(getPasswordLabel());
-        labelPanel.add(getStorePasswordLabel());
+        labelPanel.add(getUsernameLabel(false));
+        labelPanel.add(getPasswordLabel(false));
         labelPanel.add(getLocalPortLabel());
 
         fieldPanel.add(getProxyHostJTextField());
         fieldPanel.add(wrapToPanel(getProxyPortJSpinner()));
-        fieldPanel.add(getUsernameJTextField());
-        fieldPanel.add(getPasswordField());
-        fieldPanel.add(getStorePasswordJCheckBox());
+        fieldPanel.add(getSocks5UsernameJTextField());
+        fieldPanel.add(getSocks5PasswordField());
         fieldPanel.add(wrapToPanel(getLocalPortJSpinner()));
     }
 
@@ -680,7 +731,6 @@ public class AppFrame extends JFrame {
     }
 
     private boolean isValidInput() {
-
         if ((proxyConfig.getProxyType().isSocks() || proxyConfig.getProxyType().isHttp())
                 && StringUtils.isBlank(proxyConfig.getProxyHost())) {
             SwingUtils.showErrorMessage(this, "Fill in the proxy host");
@@ -703,6 +753,21 @@ public class AppFrame extends JFrame {
         if (!HttpUtils.isValidPort(localPort)) {
             SwingUtils.showErrorMessage(this, "Fill in a valid local proxy port, between 1 and 65535");
             return false;
+        }
+
+        if (proxyConfig.getProxyType().isHttp() && !proxyConfig.isUseCurrentCredentials()) {
+            if (proxyConfig.getHttpAuthProtocol() == null) {
+                SwingUtils.showErrorMessage(this, "Select the authentication protocol");
+                return false;
+            }
+            if (StringUtils.isBlank(proxyConfig.getProxyHttpUsername())) {
+                SwingUtils.showErrorMessage(this, "Fill in the username");
+                return false;
+            }
+            if (StringUtils.isBlank(proxyConfig.getProxyHttpPassword())) {
+                SwingUtils.showErrorMessage(this, "Fill in the password");
+                return false;
+            }
         }
 
         return true;

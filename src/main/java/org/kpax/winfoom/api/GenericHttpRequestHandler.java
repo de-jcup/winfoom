@@ -13,18 +13,29 @@
 
 package org.kpax.winfoom.api;
 
-import org.apache.http.*;
-import org.apache.http.auth.*;
-import org.apache.http.entity.*;
-import org.apache.http.protocol.*;
-import org.kpax.winfoom.annotation.*;
-import org.kpax.winfoom.proxy.*;
-import org.kpax.winfoom.util.*;
-import org.slf4j.*;
+import org.apache.http.HttpException;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.auth.AuthenticationException;
+import org.apache.http.auth.Credentials;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.protocol.HttpContext;
+import org.apache.http.protocol.HttpRequestHandler;
+import org.kpax.winfoom.annotation.NotNull;
+import org.kpax.winfoom.proxy.ProxyExecutorService;
+import org.kpax.winfoom.util.HttpUtils;
+import org.kpax.winfoom.util.Throwables;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.util.*;
-import java.util.concurrent.*;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.Locale;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * The base class for all API request handlers.

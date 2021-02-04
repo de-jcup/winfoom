@@ -13,14 +13,15 @@
 
 package org.kpax.winfoom.starter;
 
-import org.kpax.winfoom.util.*;
-import org.kpax.winfoom.view.*;
-import org.slf4j.*;
-import org.springframework.beans.factory.annotation.*;
-import org.springframework.boot.context.event.*;
-import org.springframework.context.*;
-import org.springframework.context.annotation.*;
-import org.springframework.stereotype.*;
+import org.kpax.winfoom.util.SwingUtils;
+import org.kpax.winfoom.view.AppFrame;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
 
 @Profile("gui")
 @Component

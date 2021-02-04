@@ -12,11 +12,11 @@
 
 package org.kpax.winfoom.proxy;
 
-import org.apache.http.*;
-import org.kpax.winfoom.annotation.*;
-import org.springframework.util.*;
+import org.apache.http.HttpHost;
+import org.kpax.winfoom.annotation.ThreadSafe;
+import org.springframework.util.Assert;
 
-import java.util.*;
+import java.util.Objects;
 
 /**
  * Encapsulate the proxy information: type, host an port

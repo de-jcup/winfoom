@@ -27,7 +27,7 @@
 package org.kpax.winfoom.pac.datetime;
 
 
-import org.kpax.winfoom.pac.*;
+import org.kpax.winfoom.pac.PacHelperMethodsNetscape;
 
 import java.util.*;
 
