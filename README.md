@@ -198,8 +198,7 @@ and check the new configuration with `foomcli config` to be sure everything is a
 Now you can start the local proxy facade with `foomcli start`. 
 At this moment you should be able to use Winfoom as a proxy facade in your browser.
 
-On Windows, if you want to provide your own credentials, change the `useCurrentCredentials` value to `false` by editing  
-`http_config.json` file like this:
+On Windows, if you want to provide your own credentials, change the `useCurrentCredentials` value to `false` by editing  `http_config.json` file like this:
 
 ```
 {
@@ -208,7 +207,7 @@ On Windows, if you want to provide your own credentials, change the `useCurrentC
 }
 ```
 
-Now execute `foomcli config -f http_config.json` again, then `foomcli config` to see the result:
+Execute `foomcli config -f http_config.json` again, then `foomcli config` to see the result:
 
 ```
 {
@@ -224,7 +223,7 @@ Now execute `foomcli config -f http_config.json` again, then `foomcli config` to
 }
 ```
 
-Now edit the `http_config.json` file again to fill in the required fields:
+Edit the `http_config.json` file again to fill in the required fields:
 
 ```
 {
